@@ -58,7 +58,9 @@ public class PathEditor : Editor {
     void Input()
     {
         Event guiEvent = Event.current;
-        Vector2 mousePos = HandleUtility.GUIPointToWorldRay(guiEvent.mousePosition).origin;
+        Ray mouseRay = HandleUtility.GUIPointToWorldRay(guiEvent.mousePosition);
+        Vector3 mousePos = mouseRay.origin;
+
 
         if (guiEvent.type == EventType.MouseDown && guiEvent.button == 0 && guiEvent.shift)
         {
@@ -70,7 +72,14 @@ public class PathEditor : Editor {
             else if (!Path.IsClosed)
             {
                 Undo.RecordObject(creator, "Add segment");
-                Path.AddSegment(mousePos);
+
+                Debug.Log(mousePos);
+                float scaleFactor = (Path[Path.NumPoints - 1].y - mousePos.y) / mouseRay.direction.y;
+                Vector3 point = mousePos + mouseRay.direction * scaleFactor;
+                
+                //SceneView.lastActiveSceneView.camera.transform.forward;
+                // Vector3 pos = 
+                Path.AddSegment(point);
             }
         }
 
@@ -81,7 +90,7 @@ public class PathEditor : Editor {
 
             for (int i = 0; i < Path.NumPoints; i+=3)
             {
-                float dst = Vector2.Distance(mousePos, Path[i]);
+                float dst = Vector3.Distance(mousePos, Path[i]);
                 if (dst < minDstToAnchor)
                 {
                     minDstToAnchor = dst;
@@ -103,7 +112,7 @@ public class PathEditor : Editor {
 
             for (int i = 0; i < Path.NumSegments; i++)
             {
-                Vector2[] points = Path.GetPointsInSegment(i);
+                Vector3[] points = Path.GetPointsInSegment(i);
                 float dst = HandleUtility.DistancePointBezier(mousePos, points[0], points[3], points[1], points[2]);
                 if (dst < minDstToSegment)
                 {
@@ -126,7 +135,7 @@ public class PathEditor : Editor {
     {
         for (int i = 0; i < Path.NumSegments; i++)
         {
-            Vector2[] points = Path.GetPointsInSegment(i);
+            Vector3[] points = Path.GetPointsInSegment(i);
             if (creator.displayControlPoints)
             {
                 Handles.color = Color.black;
@@ -144,7 +153,7 @@ public class PathEditor : Editor {
             {
                 Handles.color = (i % 3 == 0) ? creator.anchorCol : creator.controlCol;
                 float handleSize = (i % 3 == 0) ? creator.anchorDiameter : creator.controlDiameter;
-                Vector2 newPos = Handles.FreeMoveHandle(Path[i], Quaternion.identity, handleSize, Vector2.zero, Handles.CylinderHandleCap);
+                Vector3 newPos = Handles.FreeMoveHandle(Path[i], Quaternion.identity, handleSize, Vector3.zero, Handles.CylinderHandleCap);
                 if (Path[i] != newPos)
                 {
                     Undo.RecordObject(creator, "Move point");

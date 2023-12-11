@@ -5,6 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(PathCreator))]
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
+[RequireComponent(typeof(MeshCollider))]
 public class RoadCreator : MonoBehaviour {
 
     [Range(.05f, 1.5f)]
@@ -16,14 +17,15 @@ public class RoadCreator : MonoBehaviour {
     public void UpdateRoad()
     {
         Path path = GetComponent<PathCreator>().path;
-        Vector2[] points = path.CalculateEvenlySpacedPoints(spacing);
+        Vector3[] points = path.CalculateEvenlySpacedPoints(spacing);
         GetComponent<MeshFilter>().mesh = CreateRoadMesh(points, path.IsClosed);
 
         int textureRepeat = Mathf.RoundToInt(tiling * points.Length * spacing * .05f);
-        GetComponent<MeshRenderer>().sharedMaterial.mainTextureScale = new Vector2(1, textureRepeat);
+        GetComponent<MeshRenderer>().sharedMaterial.mainTextureScale = new (1, textureRepeat);
+        GetComponent<MeshCollider>().sharedMesh = GetComponent<MeshFilter>().sharedMesh;
     }
 
-    Mesh CreateRoadMesh(Vector2[] points, bool isClosed)
+    Mesh CreateRoadMesh(Vector3[] points, bool isClosed)
     {
         Vector3[] verts = new Vector3[points.Length * 2];
         Vector2[] uvs = new Vector2[verts.Length];
@@ -34,19 +36,20 @@ public class RoadCreator : MonoBehaviour {
 
         for (int i = 0; i < points.Length; i++)
         {
-            Vector2 forward = Vector2.zero;
+            Vector3 forward = Vector3.zero;
             if (i < points.Length - 1 || isClosed)
             {
-                forward += points[(i + 1)%points.Length] - points[i];
+                forward += points[(i + 1) % points.Length] - points[i];
             }
             if (i > 0 || isClosed)
             {
-                forward += points[i] - points[(i - 1 + points.Length)%points.Length];
+                forward += points[i] - points[(i - 1 + points.Length) % points.Length];
             }
 
             forward.Normalize();
-            Vector2 left = new Vector2(-forward.y, forward.x);
-
+            
+            Vector3 left = new Vector3(-forward.z, 0, forward.x);
+            
             verts[vertIndex] = points[i] + left * roadWidth * .5f;
             verts[vertIndex + 1] = points[i] - left * roadWidth * .5f;
 

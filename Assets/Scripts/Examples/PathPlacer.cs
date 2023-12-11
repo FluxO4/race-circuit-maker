@@ -9,8 +9,8 @@ public class PathPlacer : MonoBehaviour {
 
 	
 	void Start () {
-        Vector2[] points = FindObjectOfType<PathCreator>().path.CalculateEvenlySpacedPoints(spacing, resolution);
-        foreach (Vector2 p in points)
+        Vector3[] points = FindObjectOfType<PathCreator>().path.CalculateEvenlySpacedPoints(spacing, resolution);
+        foreach (Vector3 p in points)
         {
             GameObject g = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             g.transform.position = p;

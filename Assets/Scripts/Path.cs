@@ -6,24 +6,24 @@ using UnityEngine;
 public class Path {
 
     [SerializeField, HideInInspector]
-    List<Vector2> points;
+    List<Vector3> points;
     [SerializeField, HideInInspector]
     bool isClosed;
     [SerializeField, HideInInspector]
     bool autoSetControlPoints;
 
-    public Path(Vector2 centre)
+    public Path(Vector3 centre)
     {
-        points = new List<Vector2>
+        points = new List<Vector3>
         {
-            centre+Vector2.left,
-            centre+(Vector2.left+Vector2.up)*.5f,
-            centre + (Vector2.right+Vector2.down)*.5f,
-            centre + Vector2.right
+            centre + Vector3.left,
+            centre + (Vector3.left+Vector3.up) * .5f,
+            centre + (Vector3.right+Vector3.down) * .5f,
+            centre + Vector3.right
         };
     }
 
-    public Vector2 this[int i]
+    public Vector3 this[int i]
     {
         get
         {
@@ -100,7 +100,7 @@ public class Path {
         }
     }
 
-    public void AddSegment(Vector2 anchorPos)
+    public void AddSegment(Vector3 anchorPos)
     {
         points.Add(points[points.Count - 1] * 2 - points[points.Count - 2]);
         points.Add((points[points.Count - 1] + anchorPos) * .5f);
@@ -112,9 +112,9 @@ public class Path {
         }
     }
 
-    public void SplitSegment(Vector2 anchorPos, int segmentIndex)
+    public void SplitSegment(Vector3 anchorPos, int segmentIndex)
     {
-        points.InsertRange(segmentIndex * 3 + 2, new Vector2[] { Vector2.zero, anchorPos, Vector2.zero });
+        points.InsertRange(segmentIndex * 3 + 2, new Vector3[] { Vector3.zero, anchorPos, Vector3.zero });
         if (autoSetControlPoints)
         {
             AutoSetAllAffectedControlPoints(segmentIndex * 3 + 3);
@@ -148,14 +148,14 @@ public class Path {
         }
     }
 
-    public Vector2[] GetPointsInSegment(int i)
+    public Vector3[] GetPointsInSegment(int i)
     {
-        return new Vector2[] { points[i * 3], points[i * 3 + 1], points[i * 3 + 2], points[LoopIndex(i * 3 + 3)] };
+        return new Vector3[] { points[i * 3], points[i * 3 + 1], points[i * 3 + 2], points[LoopIndex(i * 3 + 3)] };
     }
 
-    public void MovePoint(int i, Vector2 pos)
+    public void MovePoint(int i, Vector3 pos)
     {
-        Vector2 deltaMove = pos - points[i];
+        Vector3 deltaMove = pos - points[i];
 
         if (i % 3 == 0 || !autoSetControlPoints) {
             points[i] = pos;
@@ -187,7 +187,7 @@ public class Path {
                     if (correspondingControlIndex >= 0 && correspondingControlIndex < points.Count || isClosed)
                     {
                         float dst = (points[LoopIndex(anchorIndex)] - points[LoopIndex(correspondingControlIndex)]).magnitude;
-                        Vector2 dir = (points[LoopIndex(anchorIndex)] - pos).normalized;
+                        Vector3 dir = (points[LoopIndex(anchorIndex)] - pos).normalized;
                         points[LoopIndex(correspondingControlIndex)] = points[LoopIndex(anchorIndex)] + dir * dst;
                     }
                 }
@@ -195,30 +195,30 @@ public class Path {
         }
     }
 
-    public Vector2[] CalculateEvenlySpacedPoints(float spacing, float resolution = 1)
+    public Vector3[] CalculateEvenlySpacedPoints(float spacing, float resolution = 1)
     {
-        List<Vector2> evenlySpacedPoints = new List<Vector2>();
+        List<Vector3> evenlySpacedPoints = new List<Vector3>();
         evenlySpacedPoints.Add(points[0]);
-        Vector2 previousPoint = points[0];
+        Vector3 previousPoint = points[0];
         float dstSinceLastEvenPoint = 0;
 
         for (int segmentIndex = 0; segmentIndex < NumSegments; segmentIndex++)
         {
-            Vector2[] p = GetPointsInSegment(segmentIndex);
-            float controlNetLength = Vector2.Distance(p[0], p[1]) + Vector2.Distance(p[1], p[2]) + Vector2.Distance(p[2], p[3]);
-            float estimatedCurveLength = Vector2.Distance(p[0], p[3]) + controlNetLength / 2f;
+            Vector3[] p = GetPointsInSegment(segmentIndex);
+            float controlNetLength = Vector3.Distance(p[0], p[1]) + Vector3.Distance(p[1], p[2]) + Vector3.Distance(p[2], p[3]);
+            float estimatedCurveLength = Vector3.Distance(p[0], p[3]) + controlNetLength / 2f;
             int divisions = Mathf.CeilToInt(estimatedCurveLength * resolution * 10);
             float t = 0;
             while (t <= 1)
             {
                 t += 1f/divisions;
-                Vector2 pointOnCurve = Bezier.EvaluateCubic(p[0], p[1], p[2], p[3], t);
-                dstSinceLastEvenPoint += Vector2.Distance(previousPoint, pointOnCurve);
+                Vector3 pointOnCurve = Bezier.EvaluateCubic(p[0], p[1], p[2], p[3], t);
+                dstSinceLastEvenPoint += Vector3.Distance(previousPoint, pointOnCurve);
 
                 while (dstSinceLastEvenPoint >= spacing)
                 {
                     float overshootDst = dstSinceLastEvenPoint - spacing;
-                    Vector2 newEvenlySpacedPoint = pointOnCurve + (previousPoint - pointOnCurve).normalized * overshootDst;
+                    Vector3 newEvenlySpacedPoint = pointOnCurve + (previousPoint - pointOnCurve).normalized * overshootDst;
                     evenlySpacedPoints.Add(newEvenlySpacedPoint);
                     dstSinceLastEvenPoint = overshootDst;
                     previousPoint = newEvenlySpacedPoint;
@@ -257,19 +257,19 @@ public class Path {
 
     void AutoSetAnchorControlPoints(int anchorIndex)
     {
-        Vector2 anchorPos = points[anchorIndex];
-        Vector2 dir = Vector2.zero;
+        Vector3 anchorPos = points[anchorIndex];
+        Vector3 dir = Vector3.zero;
         float[] neighbourDistances = new float[2];
 
         if (anchorIndex - 3 >= 0 || isClosed)
         {
-            Vector2 offset = points[LoopIndex(anchorIndex - 3)] - anchorPos;
+            Vector3 offset = points[LoopIndex(anchorIndex - 3)] - anchorPos;
             dir += offset.normalized;
             neighbourDistances[0] = offset.magnitude;
         }
 		if (anchorIndex + 3 >= 0 || isClosed)
 		{
-			Vector2 offset = points[LoopIndex(anchorIndex + 3)] - anchorPos;
+			Vector3 offset = points[LoopIndex(anchorIndex + 3)] - anchorPos;
 			dir -= offset.normalized;
 			neighbourDistances[1] = -offset.magnitude;
 		}

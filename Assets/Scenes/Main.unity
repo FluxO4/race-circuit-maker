@@ -308,6 +308,22 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 754526381240774784, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 754526381240774784, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.06
+      objectReference: {fileID: 0}
+    - target: {fileID: 833146717320723739, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4990861528004888462, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7632040412775226436, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -355,6 +371,14 @@ PrefabInstance:
     - target: {fileID: 7632040412775226437, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
       propertyPath: m_Name
       value: Race Circuit
+      objectReference: {fileID: 0}
+    - target: {fileID: 7632040413474838054, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_Name
+      value: Dummy Gizmo
+      objectReference: {fileID: 0}
+    - target: {fileID: 7632040413770983405, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b480ebf12634b014090f6ba1c7745104, type: 3}

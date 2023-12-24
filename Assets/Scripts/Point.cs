@@ -34,4 +34,5 @@ public class Point : MonoBehaviour
 
         // update other required stuff as well
     }
+ 
 }

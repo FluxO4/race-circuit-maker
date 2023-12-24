@@ -1,147 +1,65 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
-public class RaceCircuitEditor : MonoBehaviour
+[CustomEditor(typeof(RaceCircuitCreator))]
+public class RaceCircuitEditor : Editor
 {
-    [Range(2, 10)]
-    public int cross_section_point_count = 3;
+    RaceCircuitCreator creator;
+    RaceCircuit circuit;
 
-    [Range(2, 20)]
-    public int width_wise_vertex_count = 10;
-
-    [Range(0.1f, 10f)]
-    public float length_wise_vertex_count_ratio = 1;
-
-
-    //References
-    RaceCircuit raceCircuit;
-    GameObject gizmoHolder;
-
-
-    //Prefabs:
-    GameObject largeGizmoPrefab; // Might want multiple gizmo prefabs of multi
-    GameObject smallGizmoPrefab;
-    GameObject pointPrefab;
-    GameObject roadPrefab;
-
-
-    //PUT ALL EDITOR RELATED CODE HERE
-
-
-    //ADD FUNCTIONS AND VARIABLES, all are inspector button handlers
-    public void ADD_POINT_ALONG_TRACK()
+    private void OnSceneGUI()
     {
-
+        Draw(circuit.circuitCurve, false);
     }
 
-    public void ADD_POINT_OUTSIDE()
+    void DrawBezierBetweenPoints(Point p1, Point p2, Color bezierColor, Color handleColor)
     {
+        Handles.DrawBezier(p1.transform.position, p2.transform.position, p1.controlPointPositionForward, p1.controlPointPositionBackward, bezierColor, null, 2);
+        Handles.color = handleColor;
+        Vector3 newPos1 = Handles.FreeMoveHandle(p1.controlPointPositionForward, Quaternion.identity, 0.1f, Vector2.zero, Handles.SphereHandleCap);
+        Vector3 newPos2 = Handles.FreeMoveHandle(p1.controlPointPositionBackward, Quaternion.identity, 0.1f, Vector2.zero, Handles.SphereHandleCap);
 
+        if (newPos1 != p1.controlPointPositionForward)
+        {
+            Undo.RecordObject(creator, "Move Anchor Point 1");
+            p1.controlPointPositionForward = newPos1;
+        }
+        if (newPos2 != p1.controlPointPositionBackward)
+        {
+            Undo.RecordObject(creator, "Move Anchor Point 2");
+            p1.controlPointPositionBackward = newPos2;
+        }
     }
 
-    public void CONNECT()
+    void Draw(Curve curve, bool crossSection)
     {
-        
+        for (int i = 0; i < curve.points.Count; ++i)
+        {
+            Point firstPoint = curve.points[i];
+            Point nextPoint = curve.points[(i + 1) % curve.points.Count];
+
+            if (!crossSection || i != curve.points.Count - 1)
+            {
+                DrawBezierBetweenPoints(firstPoint, nextPoint, crossSection ? Color.yellow : Color.green, crossSection ? Color.blue : Color.red);
+            }
+
+            // if the one we're drawing right now is in the main path, we got a cross section
+            // maybe we could just test for null or something instead of this tho
+            if (!crossSection) { 
+                Draw(firstPoint.crossSectionCurve, true);
+            }
+        }
     }
-
-    public void ADD_ROAD()
-    {
-
-    }
-
-    public void REMOVE_ROAD()
-    {
-
-    }
-
-    public void EDIT_CROSS_SECTION()
-    {
-        //all gizmos are hidden or disabled or whatever, and new gizmos are created for only the cross-section points
-    }
-
-
-
-
-
-
-
-    //DRAWING FUNCTIONS AND VARIABLES
-
-    private void DrawCircuitCurve()
-    {
-        
-    }
-
-    private void DrawCrossSectionCurve(Point point)
-    {
-
-    }
-
-    private void BuildRoad()
-    {
-
-    }
-
-    void CreateGizmo()
-    {
-        // Creates a gizmo based on a prefab that is selected and used to move POINTs around
-    }
-
-
-
-    //SELECTION FUNCITONS AND VARIABLES
-
-    //Some kind of state variable saying what is selected, circuit or road. This state will be read by a button refresher function that makes buttons interactive and non-interactive based on it
-
-    bool circuitSelected;
-    Road selectedRoad; //Null if none selected
-    Point selectedPoint; //Null if none selected
-
-
-
-    public void SelectCircuit()
-    {
-        //activated when circuit object is selected
-        //Spline is shown for the entire network
-        //Gizmos are created at each POINT on the circuit curve
-        
-    }
-
-    public void SelectRoad()
-    {
-        //Highlight the road somehow. Maybe give it a temporary material or something
-        //Spline is shown for only the POINTS on the road
-        //Only road points have gizmos, others are deleted
-    }
-
-    public void SelectPoint()
-    {
-        //if Circuit is selected, circuit stays selected, and moving the gizmo moves the corresponding POINT
-
-        
-    }
-
-    //Each of the above Select function also has a Deselect counterpart that destroys Gizmos and stuff like that
-
-    public void DeselectAll()
-    {
-        //Activate this when you click on an empty space in the scene. Thing to detect is that neither the root Race Circuit object nor any of its children are selected in the hierarchy maybe. You can think of a faster way to do this
-    }
-
-    public void ButtonRefresh()
-    {
-        //Reads the selection state and updates buttons
-    }
-
-    
-
-
-
 
     private void OnEnable()
     {
-        
+        creator = (RaceCircuitCreator) target;
+        // assuming there RaceCircuitCreator always holds a valid reference to a RaceCircuit
+        Debug.Log(creator);
+        Debug.Log(creator.raceCircuit.circuitCurve.points.Count);
+        circuit = creator.raceCircuit;
+
     }
 }

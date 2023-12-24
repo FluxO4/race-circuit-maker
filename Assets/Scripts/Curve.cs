@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class Curve : MonoBehaviour
 {
-
-
-    List<Point> points = new List<Point>();
+    public List<Point> points = new List<Point>();
 
     public void buildPath()
     {

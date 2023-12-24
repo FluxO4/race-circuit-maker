@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Point : MonoBehaviour
 {
-    
-
     public int PointIndex;
 
     public bool GizmoVisibility; //If true, a gizmo is shown that can be selected
@@ -36,5 +34,4 @@ public class Point : MonoBehaviour
 
         // update other required stuff as well
     }
-
 }

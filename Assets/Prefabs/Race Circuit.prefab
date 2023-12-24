@@ -91,7 +91,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7632040412775226436}
   - component: {fileID: 7632040412775226434}
-  - component: {fileID: 7632040412775226435}
+  - component: {fileID: 1262779694864876003}
   m_Layer: 0
   m_Name: Race Circuit
   m_TagString: Untagged
@@ -133,7 +133,7 @@ MonoBehaviour:
   startingPositions: []
   roads: []
   circuitCurve: {fileID: 0}
---- !u!114 &7632040412775226435
+--- !u!114 &1262779694864876003
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -142,12 +142,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 7632040412775226437}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c83c55c8d6580984a83c18f20fccb6e7, type: 3}
+  m_Script: {fileID: 11500000, guid: e000b1fd08938b34681038b567422326, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cross_section_point_count: 3
   width_wise_vertex_count: 10
   length_wise_vertex_count_ratio: 1
+  raceCircuit: {fileID: 0}
 --- !u!1 &7632040412777488201
 GameObject:
   m_ObjectHideFlags: 0

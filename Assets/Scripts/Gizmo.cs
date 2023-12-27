@@ -20,6 +20,8 @@ public class Gizmo : MonoBehaviour
 
     public GameObject prefabToInstantiate; // Assign this in the Inspector
     public Camera camera;
+    HashSet<GameObject> instantiatedObjects = new HashSet<GameObject>();
+
     public void InstantiateGizmo()
     {
         if (Input.GetMouseButtonDown(0)) // Left mouse button clicked
@@ -29,10 +31,12 @@ public class Gizmo : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit))
             {
-                if (hit.collider != null)
+                GameObject hitObject = hit.collider.gameObject;
+                if (hitObject != null && !instantiatedObjects.Contains(hitObject))
                 {
                     // Instantiate the prefab at the clicked GameObject's position
                     Instantiate(prefabToInstantiate, hit.collider.gameObject.transform.position, Quaternion.identity);
+                    instantiatedObjects.Add(hitObject);
                 }
             }
         }

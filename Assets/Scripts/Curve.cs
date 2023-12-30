@@ -55,7 +55,7 @@ public class Curve : MonoBehaviour
         
         // linearly searching for now
         int direction = 1;
-        bool hit = false;
+        //bool hit = false;
         // doing the min in case i = 1, so we'll stay in bounds
         for (int index = (int) Mathf.Min(i * points.Count, points.Count - 1); index >= 0 && index < points.Count; index += direction)
         {

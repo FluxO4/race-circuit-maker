@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
+[ExecuteInEditMode]
 public class RaceCircuitCreator : MonoBehaviour
 {
     [Range(2, 10)]
@@ -16,15 +17,16 @@ public class RaceCircuitCreator : MonoBehaviour
 
     //References
     public RaceCircuit raceCircuit;
-    GameObject gizmoHolder;
+    public GameObject gizmoHolder;
+    public List<GameObject> circuitPointGizmoList = new List<GameObject>();
     /*public GameObject gizmoPrefab;*//**/
 
 
     //Prefabs:
-    GameObject largeGizmoPrefab; // Might want multiple gizmo prefabs of multi
-    GameObject smallGizmoPrefab;
-    GameObject pointPrefab;
-    GameObject roadPrefab;
+    public GameObject circuitPointGizmoPrefab; // Might want multiple gizmo prefabs of multiplesizes
+    public GameObject smallGizmoPrefab;
+    public GameObject pointPrefab;
+    public GameObject roadPrefab;
 
 
     //PUT ALL EDITOR RELATED CODE HERE
@@ -104,19 +106,34 @@ public class RaceCircuitCreator : MonoBehaviour
     public void SelectCircuit()
     {
         //activated when circuit object is selected
+        circuitSelected = true;
+//return;
+
         //Spline is shown for the entire network
+
+        //TIDDY MOVE THAT REDRAW CODE HERE
+
+
         //Gizmos are created at each POINT on the circuit curve
+        foreach(Point point in raceCircuit.circuitCurve.points)
+        {
+            GameObject t = Instantiate(circuitPointGizmoPrefab, point.transform.position, Quaternion.identity);
+            t.transform.SetParent(gizmoHolder.transform);
+            t.GetComponent<CircuitPointGizmo>().correspondingPoint = point;
+            circuitPointGizmoList.Add(t);
+        }
+
         
     }
 
-    public void SelectRoad()
+    public void SelectRoad(Road selectedRoad)
     {
         //Highlight the road somehow. Maybe give it a temporary material or something
         //Spline is shown for only the POINTS on the road
         //Only road points have gizmos, others are deleted
     }
 
-    public void SelectPoint()
+    public void SelectPoint(Point selectedPoint)
     {
         //if Circuit is selected, circuit stays selected, and moving the gizmo moves the corresponding POINT
 
@@ -125,19 +142,66 @@ public class RaceCircuitCreator : MonoBehaviour
 
     //Each of the above Select function also has a Deselect counterpart that destroys Gizmos and stuff like that
 
+
     public void DeselectAll()
     {
-        //Activate this when you click on an empty space in the scene. Thing to detect is that neither the root Race Circuit object nor any of its children are selected in the hierarchy maybe. You can think of a faster way to do this
+        //Activate this when you click on an empty space in the scene
+        if(circuitPointGizmoList.Count > 0)
+        {
+            for(int i = circuitPointGizmoList.Count-1; i >= 0; i = i - 1)
+            {
+                DestroyImmediate(circuitPointGizmoList[i]);
+            }
+            circuitPointGizmoList.Clear();
+        }
+        
     }
 
     public void ButtonRefresh()
     {
         //Reads the selection state and updates buttons
     }
+}
 
 
-    private void OnEnable()
+public static class InitHelper
+{
+    public static RaceCircuitCreator raceCircuitCreator;
+
+
+    [InitializeOnLoadMethod]
+    static void StartUp()
     {
-        
+        //creator = (RaceCircuitCreator)target;
+        raceCircuitCreator = GameObject.FindGameObjectWithTag("RaceCircuitRootObject").GetComponent<RaceCircuitCreator>();
+        Debug.Log("Started");
+        Debug.Log("Found a creator root object with name: " + raceCircuitCreator);
+
+        Selection.selectionChanged += OnSelectionChanged;
+    }
+
+
+    private static void OnSelectionChanged() //Called when selection changes in the editor
+    {
+        GameObject currentSelectedObject = Selection.activeGameObject;
+        if (currentSelectedObject != null)
+        {
+            if (currentSelectedObject == raceCircuitCreator.gameObject)
+            {
+                raceCircuitCreator.SelectCircuit();
+            }
+            else if (currentSelectedObject.GetComponent<CircuitPointGizmo>())
+            {
+                raceCircuitCreator.SelectPoint(currentSelectedObject.GetComponent<CircuitPointGizmo>().correspondingPoint);
+            }
+            else if (currentSelectedObject.GetComponent<Road>())
+            {
+                raceCircuitCreator.SelectRoad(currentSelectedObject.GetComponent<Road>());
+            }
+        }
+        else //When clicking elsewhere
+        {
+            raceCircuitCreator.DeselectAll();
+        }
     }
 }

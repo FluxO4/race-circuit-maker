@@ -6,6 +6,7 @@ TagManager:
   tags:
   - CentrePoint
   - CrossSection
+  - RaceCircuitRootObject
   layers:
   - Default
   - TransparentFX

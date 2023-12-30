@@ -1,8 +1,7 @@
-<<<<<<< Updated upstream
-=======
+
 using System;
 using System.Collections.Generic;
->>>>>>> Stashed changes
+
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -16,14 +15,13 @@ public class RaceCircuitEditor : Editor
 
     RaceCircuitCreator creator;
     RaceCircuit circuit;
-<<<<<<< Updated upstream
 
-
-=======
     private GameObject currentSelectedObject;
->>>>>>> Stashed changes
+
     private void OnSceneGUI()
     {
+        return;
+
         Draw(circuit.circuitCurve, false);
         foreach (Point point in circuit.circuitCurve.points)
         {
@@ -114,28 +112,23 @@ public class RaceCircuitEditor : Editor
 
     private void OnEnable()
     {
-        Selection.selectionChanged -= selectionChange;
+        //Selection.selectionChanged -= selectionChange;
         creator = (RaceCircuitCreator)target;
         // assuming there RaceCircuitCreator always holds a valid reference to a RaceCircuit
-<<<<<<< Updated upstream
+
         circuit = creator.raceCircuit;
 
 
-        circuit.circuitCurve.Reinitialize();
+      /*  circuit.circuitCurve.Reinitialize();
 
         foreach (Point point in circuit.circuitCurve.points)
-=======
+
         creator.raceCircuit.circuitCurve.Reinitialize();
         bool flag =  creator.raceCircuit.bigGizmoList.Count == 0;
         foreach (Point point in creator.raceCircuit.circuitCurve.points)
->>>>>>> Stashed changes
+
         {
-            /*if(flag)
-            {
-                GameObject gizmo = Instantiate(gizmoPrefab, point.pointPosition, Quaternion.identity, creator.raceCircuit.gizmos.transform);
-                creator.raceCircuit.bigGizmoList.Add(gizmo);
-            }*/
-            
+
             point.crossSectionCurve.Reinitialize();
             point.UpdateLengths();
             
@@ -157,7 +150,7 @@ public class RaceCircuitEditor : Editor
             point.crossSectionCurve.ComputeNormalizedPoints();
         }
 
-<<<<<<< Updated upstream
+
         foreach (Point p in circuit.circuitCurve.points)
         {
             Debug.Log($"{circuit.circuitCurve.totalCurveLength}: {p.normalizedPositionAlongCurve}");
@@ -165,54 +158,12 @@ public class RaceCircuitEditor : Editor
             {
                 Debug.Log($"{p.crossSectionCurve.totalCurveLength}: {c.normalizedPositionAlongCurve}");
             }
-        }
-=======
-        /*Debug.Log(creator);
-        Debug.Log(creator.raceCircuit.circuitCurve.points.Count);*/
-        circuit = creator.raceCircuit;
->>>>>>> Stashed changes
-
-    }
-
-    private void OnDisable()
-    {
-        /*selectionChange();*/
-        /*Selection.selectionChanged += selectionChange;*/
-        
-    }
-    private void selectionChange()
-    {
-        currentSelectedObject = Selection.activeGameObject;
-        Debug.Log("OnDisable called. Last Selected: " + currentSelectedObject);
-        /*if (!creator.raceCircuit.bigGizmoList.Contains(currentSelectedObject))
-        {
-            for (int i = 0; i < creator.raceCircuit.bigGizmoList.Count; i++)
-            {
-                DestroyImmediate(creator.raceCircuit.bigGizmoList[i]);
-            }
-            creator.raceCircuit.bigGizmoList.Clear();
         }*/
 
-    }
-
-    private void Awake()
-    {
-        Debug.Log("Up and running");
-        Selection.selectionChanged += selectionChange;
-    }
-
-}
+        /*Debug.Log(creator);
+        Debug.Log(creator.raceCircuit.circuitCurve.points.Count);*/
 
 
-[InitializeOnLoad]
-public class Startup
-{
-    public static GameObject creator;
-    static Startup()
-    {
-        Startup.creator = GameObject.FindGameObjectWithTag("RaceCircuitRootObject");
-        Debug.Log($"Up and running + {creator.gameObject.name}");
-        Selection.selectionChanged += selectionChange;
+
     }
 }
-

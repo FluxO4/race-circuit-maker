@@ -13,16 +13,16 @@ public class Gizmo : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        InstantiateGizmo();
+        /*InstantiateGizmo();*//**/
         
     }
 
 
-    public GameObject prefabToInstantiate; // Assign this in the Inspector
-    public Camera camera;
-    HashSet<GameObject> instantiatedObjects = new HashSet<GameObject>();
+   /* public GameObject prefabToInstantiate; // Assign this in the Inspector
+    public Camera camera;*/
+   /* HashSet<GameObject> instantiatedObjects = new HashSet<GameObject>();*//**/
 
-    public void InstantiateGizmo()
+    /*public void InstantiateGizmo()
     {
         if (Input.GetMouseButtonDown(0)) // Left mouse button clicked
         {
@@ -40,5 +40,5 @@ public class Gizmo : MonoBehaviour
                 }
             }
         }
-    }
+    }*/
 }

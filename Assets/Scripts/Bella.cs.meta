@@ -1,10 +1,9 @@
 fileFormatVersion: 2
-guid: c83c55c8d6580984a83c18f20fccb6e7
+guid: 6758559a8389ef747952eb42cc95b2b0
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences:
-  - gizmoPrefab: {fileID: 4631999450709601621, guid: a98a4d05b5f374649b018c5fa9967d20, type: 3}
+  defaultReferences: []
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

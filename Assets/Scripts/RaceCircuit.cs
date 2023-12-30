@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class RaceCircuit : MonoBehaviour
 {
-
+    
     public void positionAlongCircuit()
     {
 
@@ -22,7 +22,8 @@ public class RaceCircuit : MonoBehaviour
 
 
     public Curve circuitCurve;
-
+    public GameObject gizmos;
+    public List<GameObject> bigGizmoList = new List<GameObject>();
     // Start is called before the first frame update
     void Start()
     {

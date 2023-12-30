@@ -17,6 +17,7 @@ public class RaceCircuitCreator : MonoBehaviour
     //References
     public RaceCircuit raceCircuit;
     GameObject gizmoHolder;
+    /*public GameObject gizmoPrefab;*//**/
 
 
     //Prefabs:

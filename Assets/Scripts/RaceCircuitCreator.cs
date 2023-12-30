@@ -135,18 +135,6 @@ public class RaceCircuitCreator : MonoBehaviour
     }
 
 
-    
-
-    public Vector3 GetPointFromij(Point a, Point b, float i, float j)
-    {
-        Vector3 result = Vector3.zero;
-
-
-        return result;
-    }
-
-
-
     private void OnEnable()
     {
         

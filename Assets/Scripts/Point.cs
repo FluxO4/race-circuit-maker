@@ -23,6 +23,8 @@ public class Point : MonoBehaviour
 
     float circuitPosition; // % along the circuit's length. Initially, this will just be distance along curve, but ideally this needs to be normalised average time taken to reach here from the starting point
 
+    public float normalizedPositionAlongCurve;
+
     public List<float> curveLengths = null;
 
     public Curve crossSectionCurve;
@@ -45,14 +47,18 @@ public class Point : MonoBehaviour
 
         // update other required stuff as well
         // updating the lengths of all the curves starting from itself to its forward points
-        if (curveLengths == null)
-        {
-            curveLengths = new List<float>(forwardPoints.Count);
-        }
+        // [OPTIMIZE]
+
+        UpdateLengths();
+    }
+
+    public void UpdateLengths()
+    {
+        curveLengths.Clear();
 
         for (int i = 0; i < forwardPoints.Count; ++i)
         {
-            // curveLengths[i] = EstimateCurveLength(pointPosition, controlPointPositionForward, forwardPoints[i].controlPointPositionBackward, forwardPoints[i].pointPosition);
+            curveLengths.Add(EstimateCurveLength(pointPosition, controlPointPositionForward, forwardPoints[i].controlPointPositionBackward, forwardPoints[i].pointPosition));
         }
     }
 

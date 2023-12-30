@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -8,6 +7,7 @@ public class RaceCircuitEditor : Editor
 {
     RaceCircuitCreator creator;
     RaceCircuit circuit;
+
 
     private void OnSceneGUI()
     {
@@ -23,6 +23,23 @@ public class RaceCircuitEditor : Editor
             }
             point.crossSectionCurve.points.First().AutoSetStart();
             point.crossSectionCurve.points.Last().AutoSetEnd();
+        }
+
+        if (Event.current.isKey)
+        {
+            if (Event.current.keyCode == KeyCode.M)
+            {
+                Debug.Log("Helo");
+                foreach (Point point in circuit.circuitCurve.points)
+                {
+                    point.UpdateLengths();
+                    foreach (Point crossSectionPoint in point.crossSectionCurve.points)
+                    {
+                        crossSectionPoint.UpdateLengths();
+                    }
+                }
+
+            }
         }
 
     }
@@ -92,14 +109,34 @@ public class RaceCircuitEditor : Editor
         foreach (Point point in circuit.circuitCurve.points)
         {
             point.crossSectionCurve.Reinitialize();
+            point.UpdateLengths();
+            
+            
             point.NormalizeCrossSection();
             point.AutoSetAnchorControlPoints();
             foreach (Point crossSectionPoint in point.crossSectionCurve.points)
             {
+                crossSectionPoint.UpdateLengths();
                 crossSectionPoint.AutoSetAnchorControlPoints();
             }
             point.crossSectionCurve.points.First().AutoSetStart();
             point.crossSectionCurve.points.Last().AutoSetEnd();
         }
+        
+        circuit.circuitCurve.ComputeNormalizedPoints();
+        foreach (Point point in circuit.circuitCurve.points)
+        {
+            point.crossSectionCurve.ComputeNormalizedPoints();
+        }
+
+        foreach (Point p in circuit.circuitCurve.points)
+        {
+            Debug.Log($"{circuit.circuitCurve.totalCurveLength}: {p.normalizedPositionAlongCurve}");
+            foreach (Point c in p.crossSectionCurve.points)
+            {
+                Debug.Log($"{p.crossSectionCurve.totalCurveLength}: {c.normalizedPositionAlongCurve}");
+            }
+        }
+
     }
 }

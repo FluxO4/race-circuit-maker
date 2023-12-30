@@ -12,24 +12,48 @@ public class RaceCircuitEditor : Editor
     private void OnSceneGUI()
     {
         Draw(circuit.circuitCurve, false);
+        foreach (Point point in circuit.circuitCurve.points)
+        {
+            point.DrawDebug();
+            point.NormalizeCrossSection();
+
+            foreach (Point crossSectionPoint in point.crossSectionCurve.points)
+            {
+                crossSectionPoint.AutoSetAnchorControlPoints();
+            }
+            point.crossSectionCurve.points.First().AutoSetStart();
+            point.crossSectionCurve.points.Last().AutoSetEnd();
+        }
+
     }
 
     void DrawBezierBetweenPoints(Point p1, Point p2, Color bezierColor, Color handleColor)
     {
         Handles.DrawBezier(p1.transform.position, p2.transform.position, p1.controlPointPositionForward, p2.controlPointPositionBackward, bezierColor, null, 2);
         Handles.color = handleColor;
-        Vector3 newPos1 = Handles.FreeMoveHandle(p1.controlPointPositionForward, Quaternion.identity, 0.1f, Vector2.zero, Handles.SphereHandleCap);
-        Vector3 newPos2 = Handles.FreeMoveHandle(p2.controlPointPositionBackward, Quaternion.identity, 0.1f, Vector2.zero, Handles.SphereHandleCap);
+        Vector3 newPos = Handles.FreeMoveHandle(p1.controlPointPositionForward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+        
 
-        if (newPos1 != p1.controlPointPositionForward)
+        if (newPos != p1.controlPointPositionForward)
         {
             Undo.RecordObject(creator, "Move Anchor Point 1");
-            p1.controlPointPositionForward = newPos1;
+            p1.controlPointPositionForward = newPos;
+
+            float dist = (p1.pointPosition - p1.controlPointPositionBackward).magnitude;
+            Vector3 dir = (p1.pointPosition - newPos).normalized;
+            p1.controlPointPositionBackward = p1.pointPosition + dir * dist;
+
         }
-        if (newPos2 != p2.controlPointPositionBackward)
+
+        newPos = Handles.FreeMoveHandle(p2.controlPointPositionBackward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+        if (newPos != p2.controlPointPositionBackward)
         {
             Undo.RecordObject(creator, "Move Anchor Point 2");
-            p2.controlPointPositionBackward = newPos2;
+            p2.controlPointPositionBackward = newPos;
+
+            float dist = (p2.pointPosition - p2.controlPointPositionForward).magnitude;
+            Vector3 dir = (p2.pointPosition - newPos).normalized;
+            p2.controlPointPositionForward = p2.pointPosition + dir * dist;
         }
     }
 
@@ -60,25 +84,22 @@ public class RaceCircuitEditor : Editor
     {
         creator = (RaceCircuitCreator)target;
         // assuming there RaceCircuitCreator always holds a valid reference to a RaceCircuit
+        circuit = creator.raceCircuit;
 
-        creator.raceCircuit.circuitCurve.Reinitialize();
 
-        foreach (Point point in creator.raceCircuit.circuitCurve.points)
+        circuit.circuitCurve.Reinitialize();
+
+        foreach (Point point in circuit.circuitCurve.points)
         {
             point.crossSectionCurve.Reinitialize();
+            point.NormalizeCrossSection();
             point.AutoSetAnchorControlPoints();
             foreach (Point crossSectionPoint in point.crossSectionCurve.points)
             {
                 crossSectionPoint.AutoSetAnchorControlPoints();
             }
-
             point.crossSectionCurve.points.First().AutoSetStart();
             point.crossSectionCurve.points.Last().AutoSetEnd();
         }
-
-        Debug.Log(creator);
-        Debug.Log(creator.raceCircuit.circuitCurve.points.Count);
-        circuit = creator.raceCircuit;
-
     }
 }

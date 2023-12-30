@@ -14,7 +14,6 @@ public class RaceCircuitCreator : MonoBehaviour
     [Range(0.1f, 10f)]
     public float length_wise_vertex_count_ratio = 1;
 
-
     //References
     public RaceCircuit raceCircuit;
     GameObject gizmoHolder;
@@ -135,8 +134,16 @@ public class RaceCircuitCreator : MonoBehaviour
         //Reads the selection state and updates buttons
     }
 
+
     
 
+    public Vector3 GetPointFromij(Point a, Point b, float i, float j)
+    {
+        Vector3 result = Vector3.zero;
+
+
+        return result;
+    }
 
 
 

@@ -18,6 +18,7 @@ public class RaceCircuitCreator : MonoBehaviour
     //References
     public RaceCircuit raceCircuit;
     public GameObject gizmoHolder;
+    public GameObject circuitPointGizmoHolder;
     public List<GameObject> circuitPointGizmoList = new List<GameObject>();
     /*public GameObject gizmoPrefab;*//**/
 
@@ -118,7 +119,7 @@ public class RaceCircuitCreator : MonoBehaviour
         foreach(Point point in raceCircuit.circuitCurve.points)
         {
             GameObject t = Instantiate(circuitPointGizmoPrefab, point.transform.position, Quaternion.identity);
-            t.transform.SetParent(gizmoHolder.transform);
+            t.transform.SetParent(circuitPointGizmoHolder.transform);
             t.GetComponent<CircuitPointGizmo>().correspondingPoint = point;
             circuitPointGizmoList.Add(t);
         }
@@ -133,8 +134,9 @@ public class RaceCircuitCreator : MonoBehaviour
         //Only road points have gizmos, others are deleted
     }
 
-    public void SelectPoint(Point selectedPoint)
+    public void SelectPoint(Point _selectedPoint)
     {
+        selectedPoint = _selectedPoint;
         //if Circuit is selected, circuit stays selected, and moving the gizmo moves the corresponding POINT
 
         
@@ -146,14 +148,25 @@ public class RaceCircuitCreator : MonoBehaviour
     public void DeselectAll()
     {
         //Activate this when you click on an empty space in the scene
-        if(circuitPointGizmoList.Count > 0)
+        if (circuitSelected)
         {
-            for(int i = circuitPointGizmoList.Count-1; i >= 0; i = i - 1)
+            if (selectedPoint)
             {
-                DestroyImmediate(circuitPointGizmoList[i]);
+                selectedPoint = null;
             }
-            circuitPointGizmoList.Clear();
+
+            if (circuitPointGizmoList.Count > 0)
+            {
+                for (int i = circuitPointGizmoList.Count - 1; i >= 0; i = i - 1)
+                {
+                    DestroyImmediate(circuitPointGizmoList[i]);
+                }
+                circuitPointGizmoList.Clear();
+            }
+            circuitSelected = false;
+            
         }
+
         
     }
 

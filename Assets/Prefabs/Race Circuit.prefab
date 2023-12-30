@@ -182,6 +182,7 @@ MonoBehaviour:
   length_wise_vertex_count_ratio: 1
   raceCircuit: {fileID: 7632040412775226434}
   gizmoHolder: {fileID: 7632040412153870411}
+  circuitPointGizmoHolder: {fileID: 2542706966892196055}
   circuitPointGizmoList:
   - {fileID: 0}
   - {fileID: 0}

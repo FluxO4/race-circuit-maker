@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 [ExecuteInEditMode]
 public class CircuitPointGizmo : MonoBehaviour
@@ -20,6 +21,11 @@ public class CircuitPointGizmo : MonoBehaviour
         {
             correspondingPoint.transform.position = transform.position;
             correspondingPoint.moveToTransform();
+        }
+
+        if (EditorApplication.isPlaying)
+        {
+            DestroyImmediate(this);
         }
     }
 }

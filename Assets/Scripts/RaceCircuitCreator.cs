@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class RaceCircuitCreator : MonoBehaviour
 {
     [Range(2, 10)]
@@ -106,17 +106,16 @@ public class RaceCircuitCreator : MonoBehaviour
 
     public void SelectCircuit()
     {
+        Debug.Log("SELECTED CIRCUIT");
         //activated when circuit object is selected
         circuitSelected = true;
-//return;
-
         //Spline is shown for the entire network
 
         //TIDDY MOVE THAT REDRAW CODE HERE
 
 
         //Gizmos are created at each POINT on the circuit curve
-        foreach(Point point in raceCircuit.circuitCurve.points)
+        foreach (Point point in raceCircuit.circuitCurve.points)
         {
             GameObject t = Instantiate(circuitPointGizmoPrefab, point.transform.position, Quaternion.identity);
             t.transform.SetParent(circuitPointGizmoHolder.transform);
@@ -174,21 +173,76 @@ public class RaceCircuitCreator : MonoBehaviour
     {
         //Reads the selection state and updates buttons
     }
+
+    private void Update()
+    {
+        if (EditorApplication.isPlaying)
+        {
+            DestroyImmediate(this);
+        }
+    }
+
+    void OnEnable()
+    {
+        //creator = (RaceCircuitCreator)target;
+
+        Debug.Log("Started");
+        //Debug.Log("Found a creator root object w ith name: " + raceCircuitCreator);
+
+        //Selection.selectionChanged += OnSelectionChanged;
+        Selection.selectionChanged += OnSelectionChanged;
+        Debug.Log("Selection function set baby!");
+    }
+
+    private void OnDestroy()
+    {
+        Selection.selectionChanged -= OnSelectionChanged;
+    }
+    private void OnDisable()
+    {
+        Selection.selectionChanged -= OnSelectionChanged;
+    }
+
+    private void OnSelectionChanged() //Called when selection changes in the editor
+    {
+        GameObject currentSelectedObject = Selection.activeGameObject;
+        
+        if (currentSelectedObject != null)
+        {
+            Debug.Log("Selected " + currentSelectedObject.name);
+            if (currentSelectedObject == gameObject)
+            {
+                SelectCircuit();
+            }
+            else if (currentSelectedObject.GetComponent<CircuitPointGizmo>())
+            {
+                SelectPoint(currentSelectedObject.GetComponent<CircuitPointGizmo>().correspondingPoint);
+            }
+            else if (currentSelectedObject.GetComponent<Road>())
+            {
+                SelectRoad(currentSelectedObject.GetComponent<Road>());
+            }
+        }
+        else //When clicking elsewhere
+        {
+            DeselectAll();
+        }
+    }
 }
 
-
+/*
 public static class InitHelper
 {
     public static RaceCircuitCreator raceCircuitCreator;
 
 
-    [InitializeOnLoadMethod]
+    //[InitializeOnLoadMethod]
     static void StartUp()
     {
         //creator = (RaceCircuitCreator)target;
         raceCircuitCreator = GameObject.FindGameObjectWithTag("RaceCircuitRootObject").GetComponent<RaceCircuitCreator>();
         Debug.Log("Started");
-        Debug.Log("Found a creator root object with name: " + raceCircuitCreator);
+        Debug.Log("Found a creator root object w ith name: " + raceCircuitCreator);
 
         Selection.selectionChanged += OnSelectionChanged;
     }
@@ -217,4 +271,4 @@ public static class InitHelper
             raceCircuitCreator.DeselectAll();
         }
     }
-}
+}*/

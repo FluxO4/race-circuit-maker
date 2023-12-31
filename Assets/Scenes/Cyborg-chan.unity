@@ -210,7 +210,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 567956972}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalPosition: {x: 44.1, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -294,7 +294,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1597126326}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalPosition: {x: 44.1, y: 1, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -308,13 +308,41 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 960098586569072659, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 28.100006
+      objectReference: {fileID: 0}
+    - target: {fileID: 1486635459385709302, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 28.100006
+      objectReference: {fileID: 0}
+    - target: {fileID: 2048827254274384659, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 13.199997
+      objectReference: {fileID: 0}
+    - target: {fileID: 2048827254274384659, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 30.89
+      objectReference: {fileID: 0}
+    - target: {fileID: 2797285068541792322, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.869995
+      objectReference: {fileID: 0}
+    - target: {fileID: 2797285068541792322, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 15.73
+      objectReference: {fileID: 0}
+    - target: {fileID: 5059272918810967740, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 13.440002
+      objectReference: {fileID: 0}
     - target: {fileID: 7632040412775226436, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7632040412775226436, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -240.3
       objectReference: {fileID: 0}
     - target: {fileID: 7632040412775226436, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
       propertyPath: m_LocalPosition.y
@@ -352,6 +380,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7632040412775226437, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
+      propertyPath: m_Icon
+      value: 
+      objectReference: {fileID: 2800000, guid: 43ed4593c5ddda0439fcc1bdaf8309fe, type: 3}
     - target: {fileID: 7632040412775226437, guid: b480ebf12634b014090f6ba1c7745104, type: 3}
       propertyPath: m_Name
       value: Race Circuit

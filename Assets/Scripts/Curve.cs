@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Reflection;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 public class Curve : MonoBehaviour
 {
     public List<Point> points = new List<Point>();
-    public float totalShortestPathLength = 0;
+
+    public bool isClosed = true;
 
     public void buildPath()
     {
@@ -20,13 +22,6 @@ public class Curve : MonoBehaviour
 
         for (int i = 0; i < transform.childCount; i++)
         {
-            Point point = transform.GetChild(i).GetComponent<Point>();
-            point.forwardPoints.Clear();
-            point.backwardPoints.Clear();
-        }
-
-        for (int i = 0; i < transform.childCount; i++)
-        {
             Transform child = transform.GetChild(i);
             Transform nextChild = transform.GetChild((i + 1) % transform.childCount);
             Point point = child.GetComponent<Point>();
@@ -35,11 +30,8 @@ public class Curve : MonoBehaviour
             Point nextPoint = nextChild.GetComponent<Point>();
             point.moveToTransform();
 
-            if (isClosed || i != transform.childCount - 1)
-            {
-                point.forwardPoints.Add(nextPoint);
-                nextPoint.backwardPoints.Add(point);
-            }
+            point.nextPoint = nextPoint;
+            point.nextPoint.prevPoint = point;
 
             points.Add(point);
         }
@@ -90,15 +82,17 @@ public class Curve : MonoBehaviour
         Vector3 iaPos = GetPointFromi(a.crossSectionCurve, i);
         Vector3 ibPos = GetPointFromi(b.crossSectionCurve, i);
 
+        // TODO: rethink this
         // scaling the control points 
-        float curveLength = a.curveLengths[b];
-        float scale = curveLength / (a.pointPosition - b.pointPosition).magnitude;
-        float dist = (iaPos - ibPos).magnitude;
+        // float curveLength = 1; // a.curveLengths[b];
+        //float scale = curveLength / (a.pointPosition - b.pointPosition).magnitude;
+        //float dist = (iaPos - ibPos).magnitude;
 
-        Vector3 controlForward = ((a.controlPointPositionForward - a.pointPosition) / scale) * dist + a.pointPosition;
-        Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) / scale) * dist + b.pointPosition;
+        //Vector3 controlForward = ((a.controlPointPositionForward - a.pointPosition) / scale) * dist + a.pointPosition;
+        //Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) / scale) * dist + b.pointPosition;
 
-        return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
+        // return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
+        return Vector3.zero;
     }
 
 }

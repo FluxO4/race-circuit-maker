@@ -39,14 +39,15 @@ public class CircuitPointGizmo : MonoBehaviour
             {
                 Debug.Log("Released");
                 correspondingPoint.AutoSetAnchorControlPoints();
-                correspondingPoint.UpdateLengths();
-                //foreach (Point crossSectionPoint in correspondingPoint.crossSectionCurve.points)
-                //{
-                //    crossSectionPoint.UpdateLengths();
-                //    crossSectionPoint.AutoSetAnchorControlPoints();
-                //}
-                //correspondingPoint.crossSectionCurve.points.First().AutoSetStart();
-                //correspondingPoint.crossSectionCurve.points.Last().AutoSetEnd();
+                // correspondingPoint.UpdateLengths();
+                foreach (Point crossSectionPoint in correspondingPoint.crossSectionCurve.points)
+                {
+                    // crossSectionPoint.UpdateLengths();
+                    crossSectionPoint.AutoSetAnchorControlPoints();
+                }
+                
+                correspondingPoint.crossSectionCurve.points.First().AutoSetStart();
+                correspondingPoint.crossSectionCurve.points.Last().AutoSetEnd();
 
 
                 // creator.raceCircuit.circuitCurve.ComputeNormalizedPoints();

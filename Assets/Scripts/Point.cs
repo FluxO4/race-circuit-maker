@@ -11,21 +11,18 @@ public class Point : MonoBehaviour
 
     public Vector3 pointPosition;
 
-    //Backward direction
-    bool continuesBackward;
     public Vector3 controlPointPositionBackward;
-    public List<Point> backwardPoints = new List<Point>();
-
-    //Forward direction
-    bool continuesForward;
     public Vector3 controlPointPositionForward;
-    public List<Point> forwardPoints = new List<Point>();
+
+    bool continuesBackward;
+    bool continuesForward;
+
+    public Point nextPoint;
+    public Point prevPoint;
 
     float circuitPosition; // % along the circuit's length. Initially, this will just be distance along curve, but ideally this needs to be normalised average time taken to reach here from the starting point
 
     public float normalizedPositionAlongCurve;
-
-    public Dictionary<Point, float> curveLengths = new Dictionary<Point, float>();
 
     public Curve crossSectionCurve;
 
@@ -54,15 +51,7 @@ public class Point : MonoBehaviour
         // updating the lengths of all the curves starting from itself to its forward points
         // [OPTIMIZE]
 
-        UpdateLengths();
-    }
-
-    public void UpdateLengths()
-    {
-        for (int i = 0; i < forwardPoints.Count; ++i)
-        {
-            curveLengths[forwardPoints[i]] = EstimateCurveLength(pointPosition, controlPointPositionForward, forwardPoints[i].controlPointPositionBackward, forwardPoints[i].pointPosition);
-        }
+        // TODO: update length here
     }
 
     void AutoSetAnchorHelper()
@@ -72,13 +61,13 @@ public class Point : MonoBehaviour
         float[] neighbourDistances = new float[2];
 
         {
-            Vector3 offset = backwardPoints.First().pointPosition - anchorPos;
+            Vector3 offset = prevPoint.pointPosition - anchorPos;
             dir += offset.normalized;
             neighbourDistances[0] = offset.magnitude;
         }
 
         {
-            Vector3 offset = forwardPoints.First().pointPosition - anchorPos;
+            Vector3 offset = nextPoint.pointPosition - anchorPos;
             dir -= offset.normalized;
             neighbourDistances[1] = -offset.magnitude;
         }
@@ -91,12 +80,12 @@ public class Point : MonoBehaviour
 
     public void AutoSetStart()
     {
-        controlPointPositionForward = (pointPosition + forwardPoints.First().controlPointPositionBackward) * .5f;
+        controlPointPositionForward = (pointPosition + nextPoint.controlPointPositionBackward) * .5f;
     }
 
     public void AutoSetEnd()
     {
-        controlPointPositionBackward = (backwardPoints.Last().controlPointPositionForward + pointPosition) * .5f;
+        controlPointPositionBackward = (prevPoint.controlPointPositionForward + pointPosition) * .5f;
     }
 
     public void AutoSetAnchorControlPoints()
@@ -107,15 +96,15 @@ public class Point : MonoBehaviour
         }
         else
         {
-            if (backwardPoints.Count != 0 && forwardPoints.Count != 0) 
+            if (prevPoint && nextPoint) 
             {
                 AutoSetAnchorHelper();
             } 
-            else if (backwardPoints.Count == 0)
+            else if (!prevPoint)
             {
                 AutoSetStart();
             } 
-            else if (forwardPoints.Count == 0)
+            else if (!nextPoint)
             {
                 AutoSetEnd();
             }
@@ -152,26 +141,6 @@ public class Point : MonoBehaviour
         return Vector3.Lerp(p0, p1, t);
     }
 
-
-
-    public void DrawDebug()
-    {
-        //if (crossSectionCurve == null)
-        //    return;
-
-        //Vector3 ac = controlPointPositionForward - controlPointPositionBackward;
-
-        //// grabbing the distance between each of the points and placing them in the direction along the perpendicular
-
-        //Debug.DrawLine(controlPointPositionBackward, controlPointPositionBackward + ac, Color.red);
-
-        //{
-        //    Vector3 p1 = Vector3.ProjectOnPlane(crossSectionCurve.points.First().pointPosition - pointPosition, ac) + pointPosition;
-        //    Vector3 p2 = Vector3.ProjectOnPlane(crossSectionCurve.points.Last().pointPosition - pointPosition, ac) + pointPosition;
-        //    Debug.DrawLine(p1, p2, Color.magenta);
-        //}
-
-    }
 
     // NOTE: function call is only valid if we contain a cross section
     public void PerpendicularizeCrossSection()

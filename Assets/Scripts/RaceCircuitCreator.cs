@@ -231,8 +231,8 @@ public class RaceCircuitCreator : MonoBehaviour
             }
         }
 
-        Vector3 spherePos = GetPointFromij(raceCurves[0].points[0], raceCurves[0].points[1], tempI, tempJ);
-        testSphere.transform.position = spherePos;
+       // Vector3 spherePos = raceCurves[0].GetPointFromij(raceCurves[0].points[0], raceCurves[0].points[1], tempI, tempJ);
+      //  testSphere.transform.position = spherePos;
     }
 
         public void SelectRoad(Road selectedRoad)
@@ -332,7 +332,7 @@ public class RaceCircuitCreator : MonoBehaviour
     //{
     //    Draw(raceCircuit.circuitCurve);
     //}
-
+    /*
     Vector3 GetPointFromi(Curve curve, float i)
     {
         // [OPTIMIZE]
@@ -380,11 +380,14 @@ public class RaceCircuitCreator : MonoBehaviour
         // TODO: rethink this
         // scaling the control points 
         float curveLength = a.nextSegmentLength;
-        float scale = curveLength / (a.pointPosition - b.pointPosition).magnitude;
+        
+        float curveLengthFromStraightLineDistanceEstimatorMultiplier = curveLength / (a.pointPosition - b.pointPosition).magnitude;
         float dist = (iaPos - ibPos).magnitude;
+        float estimatedCurvedLength = dist * curveLengthFromStraightLineDistanceEstimatorMultiplier;
+        float scale = estimatedCurvedLength / curveLength;
 
-        Vector3 controlForward = ((a.controlPointPositionForward - a.pointPosition) / scale) *  dist + iaPos;
-        Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) / scale) * dist + ibPos;
+        Vector3 controlForward = ((a.controlPointPositionForward - a.pointPosition) * scale) + iaPos;
+        Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) * scale) + ibPos;
 
 
         Handles.color = Color.blue;
@@ -394,7 +397,7 @@ public class RaceCircuitCreator : MonoBehaviour
 
         return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
     }
-
+    */
     private void OnDestroy()
     {
         Selection.selectionChanged -= OnSelectionChanged;

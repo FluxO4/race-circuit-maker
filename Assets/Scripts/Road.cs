@@ -4,9 +4,21 @@ using UnityEngine;
 
 public class Road : MonoBehaviour
 {
+    [Range(1, 20)]
+    public float tileX = 5;
+    [Range(1, 20)]
+    public float tileY = 5;
+
+
+    public RaceCircuitCreator creator;
     public List<Point> associatedPoints;
 
-    //ADD: enum variable called TextureType
+    float averageWidth = 1;
+    float roadLength = 1;
+
+    private Mesh mesh;
+    private Vector3[] vertices;
+
 
     public void RoadHighlight(bool activate)
     {
@@ -16,6 +28,77 @@ public class Road : MonoBehaviour
     public void buildRoad()
     {
         //Again, if editor stuff is required, move this to the Editor script
+        transform.position = associatedPoints[0].transform.position;
+        averageWidth = 0;
+        roadLength = 0;
+        for(int i = 0; i < associatedPoints.Count; i++)
+        {
+            averageWidth += associatedPoints[i].crossSectionCurve.totalLength;
+            if(i < associatedPoints.Count - 1)
+            {
+                roadLength = roadLength + associatedPoints[i].nextSegmentLength;
+            }
+        }
+        averageWidth = averageWidth / associatedPoints.Count;
+
+
+        int xCount = creator.width_wise_vertex_count;
+        int yCount = (int)(creator.length_wise_vertex_count_ratio * xCount * roadLength / averageWidth);
+        Debug.Log("Road will contain " + xCount + " vertices along width and " + yCount+ " vertices along length");
+
+        if (mesh != null)
+        {
+            DestroyImmediate(mesh, true);
+        }
+
+        GetComponent<MeshFilter>().mesh = mesh = new Mesh();
+        mesh.name = "Grid";
+
+        vertices = new Vector3[(xCount + 1) * (xCount + 1)];
+        Vector2[] uv = new Vector2[vertices.Length];
+
+
+        Point currentPoint = associatedPoints[0];
+        float segmentLength = currentPoint.nextSegmentLength;
+        float cumulativeSegmentLength = segmentLength;
+
+        for (int i = 0, z = 0; z <= yCount; z++)
+        {
+            float z_norm = (float)z / yCount;
+
+            float i_value = (z / yCount) * (roadLength / cumulativeSegmentLength);
+
+
+            for (int x = 0; x <= xCount; x++, i++)
+            {
+                float x_norm = (float)x / xCount;
+                
+
+
+                vertices[i] = new Vector3(x_norm, (Mathf.Sin(10 * x_norm) + Mathf.Cos(10 * z_norm)) * 0.1f, z_norm);
+                uv[i] = new Vector2((float)x / xCount * tileX, (float)z / yCount * tileY);
+            }
+        }
+
+        mesh.vertices = vertices;
+        mesh.uv = uv;
+
+        int[] triangles = new int[xCount * yCount * 6];
+        for (int ti = 0, vi = 0, z = 0; z < yCount; z++, vi++)
+        {
+            for (int x = 0; x < xCount; x++, ti += 6, vi++)
+            {
+                triangles[ti] = vi;
+                triangles[ti + 3] = triangles[ti + 2] = vi + 1;
+                triangles[ti + 4] = triangles[ti + 1] = vi + xCount + 1;
+                triangles[ti + 5] = vi + xCount + 2;
+            }
+        }
+
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+
+
 
         //Builds the road mesh
     }

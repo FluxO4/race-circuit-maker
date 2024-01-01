@@ -26,6 +26,7 @@ public class Point : MonoBehaviour
 
     public Curve crossSectionCurve;
 
+    public CircuitPointGizmo myGizmo;
 
     public void moveToGizmo(GameObject Gizmo)
     {

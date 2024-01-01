@@ -179,11 +179,15 @@ public class RaceCircuitCreator : MonoBehaviour
         {
             foreach (Point point in curve.points)
             {
-                GameObject t = Instantiate(circuitPointGizmoPrefab, point.transform.position, Quaternion.identity);
-                t.transform.SetParent(circuitPointGizmoHolder.transform);
-                t.GetComponent<CircuitPointGizmo>().correspondingPoint = point;
-                t.GetComponent<CircuitPointGizmo>().creator = this;
-                circuitPointGizmoList.Add(t);
+                if (!point.myGizmo)
+                {
+                    GameObject t = Instantiate(circuitPointGizmoPrefab, point.transform.position, Quaternion.identity);
+                    t.transform.SetParent(gizmoHolder.transform);
+                    t.GetComponent<CircuitPointGizmo>().correspondingPoint = point;
+                    point.myGizmo = t.GetComponent<CircuitPointGizmo>();
+                    t.GetComponent<CircuitPointGizmo>().creator = this;
+                    circuitPointGizmoList.Add(t);
+                }
             }
         }
 
@@ -244,6 +248,7 @@ public class RaceCircuitCreator : MonoBehaviour
             {
                 for (int i = circuitPointGizmoList.Count - 1; i >= 0; i = i - 1)
                 {
+                    //circuitPointGizmoList[i].GetComponent<CircuitPointGizmo>().correspondingPoint.myGizmo = null;
                     DestroyImmediate(circuitPointGizmoList[i]);
                 }
                 circuitPointGizmoList.Clear();

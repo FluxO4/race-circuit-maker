@@ -25,7 +25,7 @@ public class Point : MonoBehaviour
 
     public float normalizedPositionAlongCurve;
 
-    public List<float> curveLengths = null;
+    public Dictionary<Point, float> curveLengths = new Dictionary<Point, float>();
 
     public Curve crossSectionCurve;
 
@@ -43,7 +43,12 @@ public class Point : MonoBehaviour
 
     public void moveToTransform()
     {
+        Vector3 diff = transform.position - pointPosition;
+
         pointPosition = transform.position;
+        controlPointPositionForward += diff;
+        controlPointPositionBackward += diff;
+
 
         // update other required stuff as well
         // updating the lengths of all the curves starting from itself to its forward points
@@ -54,11 +59,9 @@ public class Point : MonoBehaviour
 
     public void UpdateLengths()
     {
-        curveLengths.Clear();
-
         for (int i = 0; i < forwardPoints.Count; ++i)
         {
-            curveLengths.Add(EstimateCurveLength(pointPosition, controlPointPositionForward, forwardPoints[i].controlPointPositionBackward, forwardPoints[i].pointPosition));
+            curveLengths[forwardPoints[i]] = EstimateCurveLength(pointPosition, controlPointPositionForward, forwardPoints[i].controlPointPositionBackward, forwardPoints[i].pointPosition);
         }
     }
 
@@ -107,40 +110,46 @@ public class Point : MonoBehaviour
             if (backwardPoints.Count != 0 && forwardPoints.Count != 0) 
             {
                 AutoSetAnchorHelper();
+            } 
+            else if (backwardPoints.Count == 0)
+            {
+                AutoSetStart();
+            } 
+            else if (forwardPoints.Count == 0)
+            {
+                AutoSetEnd();
             }
         }
     }
 
-    public static float EstimateCurveLength(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, int subdivisions = 10)
+    public static float EstimateCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int subdivisions = 10)
     {
         float length = 0.0f;
-        Vector2 previousPoint = p0;
+        Vector3 previousPoint = p0;
 
         for (int i = 1; i <= subdivisions; i++)
         {
             float t = (float)i / subdivisions;
-            Vector2 currentPoint = CalculateBezierPoint(t, p0, p1, p2, p3);
-            length += Vector2.Distance(previousPoint, currentPoint);
+            Vector3 currentPoint = CalculateBezierPoint(p0, p1, p2, p3, t);
+            length += Vector3.Distance(previousPoint, currentPoint);
             previousPoint = currentPoint;
         }
 
         return length;
     }
 
-    public static Vector2 CalculateBezierPoint(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+    public static Vector3 EvaluateQuadratic(Vector3 a, Vector3 b, Vector3 c, float t)
     {
-        float u = 1 - t;
-        float tt = t * t;
-        float uu = u * u;
-        float uuu = uu * u;
-        float ttt = tt * t;
+        Vector3 p0 = Vector3.Lerp(a, b, t);
+        Vector3 p1 = Vector3.Lerp(b, c, t);
+        return Vector3.Lerp(p0, p1, t);
+    }
 
-        Vector2 p = uuu * p0; // (1-t)³ * p0
-        p += 3 * uu * t * p1; // 3(1-t)²t * p1
-        p += 3 * u * tt * p2; // 3(1-t)t² * p2
-        p += ttt * p3; // t³ * p3
-
-        return p;
+    public static Vector3 CalculateBezierPoint(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float t)
+    {
+        Vector3 p0 = EvaluateQuadratic(a, b, c, t);
+        Vector3 p1 = EvaluateQuadratic(b, c, d, t);
+        return Vector3.Lerp(p0, p1, t);
     }
 
 
@@ -165,7 +174,7 @@ public class Point : MonoBehaviour
     }
 
     // NOTE: function call is only valid if we contain a cross section
-    public void NormalizeCrossSection()
+    public void PerpendicularizeCrossSection()
     {
         /*
          ////

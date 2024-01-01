@@ -1,7 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 [ExecuteAlways]
 public class RaceCircuitCreator : MonoBehaviour
@@ -29,7 +29,13 @@ public class RaceCircuitCreator : MonoBehaviour
     public GameObject pointPrefab;
     public GameObject roadPrefab;
 
+    public GameObject testSphere;
 
+    [Range(0, 1)]
+    public float tempI = 0.5f;
+
+    [Range(0, 1)]
+    public float tempJ = 0.5f;
     //PUT ALL EDITOR RELATED CODE HERE
 
 
@@ -46,7 +52,7 @@ public class RaceCircuitCreator : MonoBehaviour
 
     public void CONNECT()
     {
-        
+
     }
 
     public void ADD_ROAD()
@@ -72,9 +78,60 @@ public class RaceCircuitCreator : MonoBehaviour
 
     //DRAWING FUNCTIONS AND VARIABLES
 
+
+    void DrawBezierHandles(Point p1, Point p2, Color bezierColor, Color handleColor)
+    {
+        Handles.color = handleColor;
+        Vector3 newPos = Handles.FreeMoveHandle(p1.controlPointPositionForward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+
+
+        if (newPos != p1.controlPointPositionForward)
+        {
+            p1.controlPointPositionForward = newPos;
+
+            float dist = (p1.pointPosition - p1.controlPointPositionBackward).magnitude;
+            Vector3 dir = (p1.pointPosition - newPos).normalized;
+            p1.controlPointPositionBackward = p1.pointPosition + dir * dist;
+
+        }
+
+        newPos = Handles.FreeMoveHandle(p2.controlPointPositionBackward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+        if (newPos != p2.controlPointPositionBackward)
+        {
+            p2.controlPointPositionBackward = newPos;
+
+            float dist = (p2.pointPosition - p2.controlPointPositionForward).magnitude;
+            Vector3 dir = (p2.pointPosition - newPos).normalized;
+            p2.controlPointPositionForward = p2.pointPosition + dir * dist;
+        }
+    }
+
+    void Draw(Curve curve, bool crossSection = false)
+    {
+        for (int i = 0; i < curve.points.Count; ++i)
+        {
+            Point firstPoint = curve.points[i];
+
+            foreach (Point nextPoint in firstPoint.forwardPoints)
+            {
+                if (!crossSection || i != curve.points.Count - 1)
+                {
+                    Handles.DrawBezier(firstPoint.transform.position, nextPoint.transform.position, firstPoint.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, EditorGUIUtility.whiteTexture, 2);
+                }
+
+                // if the one we're drawing right now is in the main path, we got a cross section
+                // maybe we could just test for null or something instead of this tho
+                if (!crossSection)
+                {
+                    Draw(firstPoint.crossSectionCurve, true);
+                }
+            }
+        }
+    }
+
     private void DrawCircuitCurve()
     {
-        
+
     }
 
     private void DrawCrossSectionCurve(Point point)
@@ -111,8 +168,7 @@ public class RaceCircuitCreator : MonoBehaviour
         circuitSelected = true;
         //Spline is shown for the entire network
 
-        //TIDDY MOVE THAT REDRAW CODE HERE
-
+        // Draw(raceCircuit.circuitCurve);
 
         //Gizmos are created at each POINT on the circuit curve
         foreach (Point point in raceCircuit.circuitCurve.points)
@@ -120,10 +176,19 @@ public class RaceCircuitCreator : MonoBehaviour
             GameObject t = Instantiate(circuitPointGizmoPrefab, point.transform.position, Quaternion.identity);
             t.transform.SetParent(circuitPointGizmoHolder.transform);
             t.GetComponent<CircuitPointGizmo>().correspondingPoint = point;
+            t.GetComponent<CircuitPointGizmo>().creator = this;
             circuitPointGizmoList.Add(t);
         }
 
-        
+
+    }
+
+    private void OnDrawGizmos/*Selected*/()
+    {
+        Draw(raceCircuit.circuitCurve);
+
+        Vector3 spherePos = raceCircuit.circuitCurve.GetPointFromij(raceCircuit.circuitCurve.points[0], raceCircuit.circuitCurve.points[1], tempI, tempJ);
+        testSphere.transform.position = spherePos;
     }
 
     public void SelectRoad(Road selectedRoad)
@@ -138,7 +203,7 @@ public class RaceCircuitCreator : MonoBehaviour
         selectedPoint = _selectedPoint;
         //if Circuit is selected, circuit stays selected, and moving the gizmo moves the corresponding POINT
 
-        
+
     }
 
     //Each of the above Select function also has a Deselect counterpart that destroys Gizmos and stuff like that
@@ -163,10 +228,10 @@ public class RaceCircuitCreator : MonoBehaviour
                 circuitPointGizmoList.Clear();
             }
             circuitSelected = false;
-            
+
         }
 
-        
+
     }
 
     public void ButtonRefresh()
@@ -192,7 +257,43 @@ public class RaceCircuitCreator : MonoBehaviour
         //Selection.selectionChanged += OnSelectionChanged;
         Selection.selectionChanged += OnSelectionChanged;
         Debug.Log("Selection function set baby!");
+
+
+
+
+        raceCircuit.circuitCurve.Reinitialize();
+
+        foreach (Point point in raceCircuit.circuitCurve.points)
+        {
+            point.crossSectionCurve.Reinitialize();
+            point.UpdateLengths();
+
+
+            point.PerpendicularizeCrossSection();
+            point.AutoSetAnchorControlPoints();
+            foreach (Point crossSectionPoint in point.crossSectionCurve.points)
+            {
+                crossSectionPoint.UpdateLengths();
+                crossSectionPoint.AutoSetAnchorControlPoints();
+            }
+            point.crossSectionCurve.points.First().AutoSetStart();
+            point.crossSectionCurve.points.Last().AutoSetEnd();
+        }
+
+        // raceCircuit.circuitCurve.ComputeNormalizedPoints();
+        //foreach (Point point in raceCircuit.circuitCurve.points)
+        //{
+        //    point.crossSectionCurve.ComputeNormalizedPoints();
+        //}
+
     }
+
+    // this draws it all the time instead of just on selection
+    //void OnRenderObject()
+    //{
+    //    Draw(raceCircuit.circuitCurve);
+    //}
+
 
     private void OnDestroy()
     {
@@ -206,7 +307,7 @@ public class RaceCircuitCreator : MonoBehaviour
     private void OnSelectionChanged() //Called when selection changes in the editor
     {
         GameObject currentSelectedObject = Selection.activeGameObject;
-        
+
         if (currentSelectedObject != null)
         {
             Debug.Log("Selected " + currentSelectedObject.name);

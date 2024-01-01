@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Curve : MonoBehaviour
 {
     public List<Point> points = new List<Point>();
-    public float totalCurveLength = 0;
+    public float totalShortestPathLength = 0;
 
     public void buildPath()
     {
@@ -54,8 +55,7 @@ public class Curve : MonoBehaviour
         // meaning this only works for CrossSection curves
 
         // linearly searching for now
-        int index = 0;
-        for (; index < curve.points.Count; index++)
+        for (int index = 0; index < curve.points.Count; index++)
         {
             if (curve.points[index].normalizedPositionAlongCurve == i)
             {
@@ -72,8 +72,11 @@ public class Curve : MonoBehaviour
                 float a = curve.points[index].normalizedPositionAlongCurve;
                 float b = curve.points[index + 1].normalizedPositionAlongCurve;
                 float t = (i - a) / (b - a);
-                return Point.CalculateBezierPoint(t, curve.points[index].pointPosition, curve.points[index].controlPointPositionForward, curve.points[index + 1].controlPointPositionBackward,
-                    curve.points[index + 1].pointPosition);
+                return Point.CalculateBezierPoint(curve.points[index].pointPosition, 
+                                                    curve.points[index].controlPointPositionForward, 
+                                                    curve.points[index + 1].controlPointPositionBackward,
+                                                    curve.points[index + 1].pointPosition, 
+                                                    t);
 
             }
         }
@@ -88,35 +91,14 @@ public class Curve : MonoBehaviour
         Vector3 ibPos = GetPointFromi(b.crossSectionCurve, i);
 
         // scaling the control points 
-        float scale = totalCurveLength / (a.pointPosition - b.pointPosition).magnitude;
+        float curveLength = a.curveLengths[b];
+        float scale = curveLength / (a.pointPosition - b.pointPosition).magnitude;
         float dist = (iaPos - ibPos).magnitude;
 
-        Vector3 controlForward = (a.controlPointPositionForward / scale) * dist;
-        Vector3 controlBackward = (b.controlPointPositionBackward / scale) * dist;
+        Vector3 controlForward = ((a.controlPointPositionForward - a.pointPosition) / scale) * dist + a.pointPosition;
+        Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) / scale) * dist + b.pointPosition;
 
-        return Point.CalculateBezierPoint(j, iaPos, controlForward, controlBackward, ibPos);
-    }
-
-    // NOTE by default we're assuming the curve has no branching thus index 0 for forwardPoint
-    public void ComputeNormalizedPoints(int branchIndex = 0)
-    {
-        // first compute the total curve length
-        totalCurveLength = 0;
-        for (int i = 0; i < points.Count; ++i)
-        {
-            if (points[i].curveLengths.Count > 0)
-                totalCurveLength += points[i].curveLengths[branchIndex];
-            else 
-                break;
-        }
-
-        float accumulation = 0;
-        for (int i = 0; i < points.Count; ++i)
-        {
-            points[i].normalizedPositionAlongCurve = accumulation / totalCurveLength;
-            if (points[i].curveLengths.Count > 0)
-                accumulation += points[i].curveLengths[branchIndex];
-        }
+        return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
     }
 
 }

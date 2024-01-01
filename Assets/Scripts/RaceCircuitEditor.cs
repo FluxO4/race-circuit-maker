@@ -26,7 +26,7 @@ public class RaceCircuitEditor : Editor
         foreach (Point point in circuit.circuitCurve.points)
         {
             point.DrawDebug();
-            point.NormalizeCrossSection();
+            point.PerpendicularizeCrossSection();
 
             foreach (Point crossSectionPoint in point.crossSectionCurve.points)
             {

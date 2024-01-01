@@ -118,7 +118,7 @@ public class RaceCircuitCreator : MonoBehaviour
         {
             Point nextPoint = point.nextPoint;
 
-            if (point.nextPoint != firstPoint || curve.isClosed )
+            if (nextPoint && (point.nextPoint != firstPoint || curve.isClosed) )
                 Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, EditorGUIUtility.whiteTexture, 2);
 
             if (!crossSection)
@@ -127,7 +127,7 @@ public class RaceCircuitCreator : MonoBehaviour
             }
 
             point = nextPoint;
-        } while (point != firstPoint);
+        } while (point && point != firstPoint);
     }
 
     private void DrawCircuitCurve()
@@ -162,8 +162,6 @@ public class RaceCircuitCreator : MonoBehaviour
     bool circuitSelected;
     Road selectedRoad; //Null if none selected
     Point selectedPoint; //Null if none selected
-
-
 
     public void SelectCircuit()
     {
@@ -202,7 +200,7 @@ public class RaceCircuitCreator : MonoBehaviour
         {
             foreach (Point point in curve.points)
             {
-                point.PerpendicularizeCrossSection();
+                // point.PerpendicularizeCrossSection();
                 point.UpdateLength();
 
                 foreach (Point crossSectionPoint in point.crossSectionCurve.points)
@@ -215,11 +213,29 @@ public class RaceCircuitCreator : MonoBehaviour
             }
         }
 
-        // Vector3 spherePos = raceCircuit.circuitCurve.GetPointFromij(raceCircuit.circuitCurve.points[0], raceCircuit.circuitCurve.points[1], tempI, tempJ);
-        // testSphere.transform.position = spherePos;
+        foreach (Curve curve in raceCurves)
+        {
+            curve.NormalizeCurvePoints();
+            foreach (Point point in curve.points)
+            {
+                point.crossSectionCurve.NormalizeCurvePoints();
+            }
+        }
+
+        foreach (Curve curve in raceCurves)
+        {
+            if (curve.isClosed != curve.prevIsClosed)
+            {
+                curve.Reinitialize();
+                curve.prevIsClosed = curve.isClosed;
+            }
+        }
+
+        Vector3 spherePos = GetPointFromij(raceCurves[0].points[0], raceCurves[0].points[1], tempI, tempJ);
+        testSphere.transform.position = spherePos;
     }
 
-    public void SelectRoad(Road selectedRoad)
+        public void SelectRoad(Road selectedRoad)
     {
         //Highlight the road somehow. Maybe give it a temporary material or something
         //Spline is shown for only the POINTS on the road
@@ -304,8 +320,8 @@ public class RaceCircuitCreator : MonoBehaviour
                     // crossSectionPoint.UpdateLengths();
                     crossSectionPoint.AutoSetAnchorControlPoints();
                 }
-                point.crossSectionCurve.points.First().AutoSetStart();
-                point.crossSectionCurve.points.Last().AutoSetEnd();
+                //point.crossSectionCurve.points.First().AutoSetStart();
+                //point.crossSectionCurve.points.Last().AutoSetEnd();
             }
         }
 
@@ -317,6 +333,67 @@ public class RaceCircuitCreator : MonoBehaviour
     //    Draw(raceCircuit.circuitCurve);
     //}
 
+    Vector3 GetPointFromi(Curve curve, float i)
+    {
+        // [OPTIMIZE]
+
+        // NOTE we're assuming that i is across meaning there can be no branches when computing i
+        // meaning we can only have at max one forward point
+        // meaning this only works for CrossSection curves
+
+        // linearly searching for now
+        for (int index = 0; index < curve.points.Count; index++)
+        {
+            if (curve.points[index].normalizedPositionAlongCurve == i)
+            {
+                // we're exactly on the thing
+                return curve.points[index].pointPosition;
+            }
+            else if ((index < curve.points.Count - 1) && curve.points[index].normalizedPositionAlongCurve < i && curve.points[index + 1].normalizedPositionAlongCurve > i)
+            {
+                // remap the range i.e. ilerp [p[i].normalized, p[i + 1].normalized] -> 0, 1
+
+                // lerp: x = a + (b-a) * t
+                // ilerp x - a /  b - a
+
+                float a = curve.points[index].normalizedPositionAlongCurve;
+                float b = curve.points[index + 1].normalizedPositionAlongCurve;
+                float t = (i - a) / (b - a);
+                return Point.CalculateBezierPoint(curve.points[index].pointPosition,
+                                                    curve.points[index].controlPointPositionForward,
+                                                    curve.points[index + 1].controlPointPositionBackward,
+                                                    curve.points[index + 1].pointPosition,
+                                                    t);
+
+            }
+        }
+
+        return Vector3.zero;
+    }
+
+    // a and b refer to the anchor points in the big loop which contains the curves we're getting the point from
+    public Vector3 GetPointFromij(Point a, Point b, float i, float j)
+    {
+        Vector3 iaPos = GetPointFromi(a.crossSectionCurve, i);
+        Vector3 ibPos = GetPointFromi(b.crossSectionCurve, i);
+
+        // TODO: rethink this
+        // scaling the control points 
+        float curveLength = a.nextSegmentLength;
+        float scale = curveLength / (a.pointPosition - b.pointPosition).magnitude;
+        float dist = (iaPos - ibPos).magnitude;
+
+        Vector3 controlForward = ((a.controlPointPositionForward - a.pointPosition) / scale) *  dist + iaPos;
+        Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) / scale) * dist + ibPos;
+
+
+        Handles.color = Color.blue;
+        Handles.DrawLine(iaPos, controlForward);
+        Handles.DrawLine(ibPos, controlBackward);
+        Handles.DrawBezier(iaPos, ibPos, controlForward, controlBackward, Color.white, null, 2);
+
+        return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
+    }
 
     private void OnDestroy()
     {

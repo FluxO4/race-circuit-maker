@@ -37,7 +37,7 @@ public class RaceCircuitEditor : Editor
         {
             Point nextPoint = point.nextPoint;
 
-            if (!crossSection || point.nextPoint != firstPoint)
+            if (!crossSection || (point.nextPoint != firstPoint && nextPoint != null))
                 DrawBezierBetweenPoints(point, nextPoint, crossSection ? Color.red : Color.blue);
 
             if (!crossSection)
@@ -46,11 +46,13 @@ public class RaceCircuitEditor : Editor
             }
 
             point = nextPoint;
-        } while (point != firstPoint);
+        } while (point && point != firstPoint);
     }
 
     void DrawBezierBetweenPoints(Point p1, Point p2, Color handleColor)
     {
+        if (p1 == null || p2 == null)
+            return;
         // Handles.DrawBezier(p1.transform.position, p2.transform.position, p1.controlPointPositionForward, p2.controlPointPositionBackward, bezierColor, null, 2);
         Handles.color = handleColor;
         Vector3 newPos = Handles.FreeMoveHandle(p1.controlPointPositionForward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);

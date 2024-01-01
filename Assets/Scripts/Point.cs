@@ -20,6 +20,8 @@ public class Point : MonoBehaviour
     public Point nextPoint;
     public Point prevPoint;
 
+    public Curve parentCurve;
+
     public float nextSegmentLength;
     public float prevSegmentLength;
 
@@ -56,8 +58,15 @@ public class Point : MonoBehaviour
 
     public void UpdateLength()
     {
-        nextSegmentLength = EstimateCurveLength(pointPosition, controlPointPositionForward, nextPoint.controlPointPositionBackward, nextPoint.pointPosition);
-        prevSegmentLength = EstimateCurveLength(pointPosition, controlPointPositionForward, prevPoint.controlPointPositionBackward, prevPoint.pointPosition);
+        if (nextPoint)
+            nextSegmentLength = EstimateCurveLength(pointPosition, controlPointPositionForward, nextPoint.controlPointPositionBackward, nextPoint.pointPosition);
+        else
+            nextSegmentLength = 0f;
+
+        if (prevPoint)
+            prevSegmentLength = EstimateCurveLength(prevPoint.pointPosition, prevPoint.controlPointPositionForward, controlPointPositionBackward, pointPosition);
+        else
+            prevSegmentLength = 0f;
     }
 
     void AutoSetAnchorHelper()
@@ -96,24 +105,17 @@ public class Point : MonoBehaviour
 
     public void AutoSetAnchorControlPoints()
     {
-        if (crossSectionCurve != null)
+        if (prevPoint && nextPoint)
         {
             AutoSetAnchorHelper();
         }
-        else
+        else if (!prevPoint)
         {
-            if (prevPoint && nextPoint) 
-            {
-                AutoSetAnchorHelper();
-            } 
-            else if (!prevPoint)
-            {
-                AutoSetStart();
-            } 
-            else if (!nextPoint)
-            {
-                AutoSetEnd();
-            }
+            AutoSetStart();
+        }
+        else if (!nextPoint)
+        {
+            AutoSetEnd();
         }
     }
 

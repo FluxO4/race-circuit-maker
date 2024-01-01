@@ -183,6 +183,9 @@ MonoBehaviour:
   - {fileID: 5701939094076456625}
   - {fileID: 0}
   - {fileID: 0}
+  isClosed: 0
+  prevIsClosed: 0
+  totalLength: 0
 --- !u!1 &7632040412153870411
 GameObject:
   m_ObjectHideFlags: 0
@@ -450,6 +453,9 @@ MonoBehaviour:
   - {fileID: 1486635459385709296}
   - {fileID: 960098586569072661}
   - {fileID: 5059272918810967738}
+  isClosed: 0
+  prevIsClosed: 0
+  totalLength: 0
 --- !u!1001 &956697148405873731
 PrefabInstance:
   m_ObjectHideFlags: 0

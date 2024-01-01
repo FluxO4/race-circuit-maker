@@ -1,15 +1,19 @@
-using System;
 using System.Collections.Generic;
-using System.Reflection;
-using Unity.VisualScripting;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 
 public class Curve : MonoBehaviour
 {
     public List<Point> points = new List<Point>();
 
-    public bool isClosed = true;
+    public bool isClosed = false;
+
+    [HideInInspector]
+    public bool prevIsClosed = false;
+
+    public bool IsClosedProperty { get { return isClosed; } set { Reinitialize(); isClosed = value; } }
+
+    public float totalLength = 0;
 
     public void buildPath()
     {
@@ -26,14 +30,21 @@ public class Curve : MonoBehaviour
             Transform nextChild = transform.GetChild((i + 1) % transform.childCount);
             Point point = child.GetComponent<Point>();
 
-            bool isClosed = point.crossSectionCurve != null;
             Point nextPoint = nextChild.GetComponent<Point>();
             point.moveToTransform();
 
             point.nextPoint = nextPoint;
             point.nextPoint.prevPoint = point;
 
+            point.parentCurve = this;
+
             points.Add(point);
+        }
+
+        if (!isClosed)
+        {
+            points.First().prevPoint = null;
+            points.Last().nextPoint = null;
         }
     }
 
@@ -53,8 +64,8 @@ public class Curve : MonoBehaviour
             {
                 // we're exactly on the thing
                 return curve.points[index].pointPosition;
-            } 
-            else if (curve.points[index].normalizedPositionAlongCurve < i)
+            }
+            else if ((index < curve.points.Count - 1) && curve.points[index].normalizedPositionAlongCurve < i && curve.points[index + 1].normalizedPositionAlongCurve > i)
             {
                 // remap the range i.e. ilerp [p[i].normalized, p[i + 1].normalized] -> 0, 1
 
@@ -64,10 +75,10 @@ public class Curve : MonoBehaviour
                 float a = curve.points[index].normalizedPositionAlongCurve;
                 float b = curve.points[index + 1].normalizedPositionAlongCurve;
                 float t = (i - a) / (b - a);
-                return Point.CalculateBezierPoint(curve.points[index].pointPosition, 
-                                                    curve.points[index].controlPointPositionForward, 
+                return Point.CalculateBezierPoint(curve.points[index].pointPosition,
+                                                    curve.points[index].controlPointPositionForward,
                                                     curve.points[index + 1].controlPointPositionBackward,
-                                                    curve.points[index + 1].pointPosition, 
+                                                    curve.points[index + 1].pointPosition,
                                                     t);
 
             }
@@ -84,7 +95,7 @@ public class Curve : MonoBehaviour
 
         // TODO: rethink this
         // scaling the control points 
-        float curveLength = 1; // a.curveLengths[b];
+        float curveLength = a.nextSegmentLength;
         float scale = curveLength / (a.pointPosition - b.pointPosition).magnitude;
         float dist = (iaPos - ibPos).magnitude;
 
@@ -92,7 +103,43 @@ public class Curve : MonoBehaviour
         Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) / scale) * dist + b.pointPosition;
 
         return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
-        return Vector3.zero;
+    }
+
+    public void NormalizeCurvePoints()
+    {
+        totalLength = 0;
+
+        {
+            Point firstPoint = points[0];
+            Point point = firstPoint;
+            do
+            {
+                Point nextPoint = point.nextPoint;
+                totalLength += point.nextSegmentLength;
+                point = nextPoint;
+            } while (point && point != firstPoint);
+        }
+
+        {
+            Point firstPoint = points[0];
+            Point point = firstPoint;
+
+            float accumulator = 0;
+            do
+            {
+                Point nextPoint = point.nextPoint;
+                if (!isClosed)
+                {
+                    accumulator += point.prevSegmentLength;
+                    point.normalizedPositionAlongCurve = accumulator / totalLength;
+                } else
+                {
+                    point.normalizedPositionAlongCurve = accumulator / totalLength;
+                    accumulator += point.nextSegmentLength;
+                }
+                point = nextPoint;
+            } while (point && point != firstPoint);
+        }
     }
 
 }

@@ -199,8 +199,11 @@ public class RaceCircuitCreator : MonoBehaviour
             foreach (Point point in curve.points)
             {
                 point.PerpendicularizeCrossSection();
+                point.UpdateLength();
+
                 foreach (Point crossSectionPoint in point.crossSectionCurve.points)
                 {
+                    crossSectionPoint.UpdateLength();
                     crossSectionPoint.AutoSetAnchorControlPoints();
                 }
                 point.crossSectionCurve.points.First().AutoSetStart();
@@ -288,7 +291,6 @@ public class RaceCircuitCreator : MonoBehaviour
             foreach (Point point in curve.points)
             {
                 point.crossSectionCurve.Reinitialize();
-                // point.UpdateLengths();
 
                 point.PerpendicularizeCrossSection();
                 point.AutoSetAnchorControlPoints();

@@ -84,14 +84,14 @@ public class Curve : MonoBehaviour
 
         // TODO: rethink this
         // scaling the control points 
-        // float curveLength = 1; // a.curveLengths[b];
-        //float scale = curveLength / (a.pointPosition - b.pointPosition).magnitude;
-        //float dist = (iaPos - ibPos).magnitude;
+        float curveLength = 1; // a.curveLengths[b];
+        float scale = curveLength / (a.pointPosition - b.pointPosition).magnitude;
+        float dist = (iaPos - ibPos).magnitude;
 
-        //Vector3 controlForward = ((a.controlPointPositionForward - a.pointPosition) / scale) * dist + a.pointPosition;
-        //Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) / scale) * dist + b.pointPosition;
+        Vector3 controlForward = ((a.controlPointPositionForward - a.pointPosition) / scale) * dist + a.pointPosition;
+        Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) / scale) * dist + b.pointPosition;
 
-        // return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
+        return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
         return Vector3.zero;
     }
 

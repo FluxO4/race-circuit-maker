@@ -20,6 +20,9 @@ public class Point : MonoBehaviour
     public Point nextPoint;
     public Point prevPoint;
 
+    public float nextSegmentLength;
+    public float prevSegmentLength;
+
     float circuitPosition; // % along the circuit's length. Initially, this will just be distance along curve, but ideally this needs to be normalised average time taken to reach here from the starting point
 
     public float normalizedPositionAlongCurve;
@@ -46,12 +49,14 @@ public class Point : MonoBehaviour
         controlPointPositionForward += diff;
         controlPointPositionBackward += diff;
 
-
+        UpdateLength();
         // update other required stuff as well
-        // updating the lengths of all the curves starting from itself to its forward points
-        // [OPTIMIZE]
+    }
 
-        // TODO: update length here
+    public void UpdateLength()
+    {
+        nextSegmentLength = EstimateCurveLength(pointPosition, controlPointPositionForward, nextPoint.controlPointPositionBackward, nextPoint.pointPosition);
+        prevSegmentLength = EstimateCurveLength(pointPosition, controlPointPositionForward, prevPoint.controlPointPositionBackward, prevPoint.pointPosition);
     }
 
     void AutoSetAnchorHelper()
@@ -111,6 +116,7 @@ public class Point : MonoBehaviour
         }
     }
 
+    // NOTE: is there a better way to do this?
     public static float EstimateCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int subdivisions = 10)
     {
         float length = 0.0f;

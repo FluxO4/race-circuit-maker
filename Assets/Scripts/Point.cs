@@ -127,7 +127,7 @@ public class Point : MonoBehaviour
         return length;
     }
 
-    private static Vector2 CalculateBezierPoint(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+    public static Vector2 CalculateBezierPoint(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
     {
         float u = 1 - t;
         float tt = t * t;

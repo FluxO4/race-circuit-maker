@@ -45,49 +45,56 @@ public class Curve : MonoBehaviour
     }
 
 
-    Vector3 GetPointFromi(float i)
+    Vector3 GetPointFromi(Curve curve, float i)
     {
-        Vector3 result = Vector3.zero;
         // [OPTIMIZE]
-        
+
         // NOTE we're assuming that i is across meaning there can be no branches when computing i
         // meaning we can only have at max one forward point
-        
-        // linearly searching for now
-        int direction = 1;
-        //bool hit = false;
-        // doing the min in case i = 1, so we'll stay in bounds
-        for (int index = (int) Mathf.Min(i * points.Count, points.Count - 1); index >= 0 && index < points.Count; index += direction)
-        {
-            if (points[index].normalizedPositionAlongCurve > i) // meaning we're past the thing
-            {
-                // if (hit)
-                direction = -1;
-            } else if (points[index].normalizedPositionAlongCurve < i)
-            {
-                if (direction == -1) // we came from the right so this is the region that contains 'i'
-                {
+        // meaning this only works for CrossSection curves
 
-                    // remap 
-                }
-                direction = 1;
-            } 
-            else
+        // linearly searching for now
+        int index = 0;
+        for (; index < curve.points.Count; index++)
+        {
+            if (curve.points[index].normalizedPositionAlongCurve == i)
             {
-                // we're exactly on the target
+                // we're exactly on the thing
+                return curve.points[index].pointPosition;
+            } 
+            else if (curve.points[index].normalizedPositionAlongCurve < i)
+            {
+                // remap the range i.e. ilerp [p[i].normalized, p[i + 1].normalized] -> 0, 1
+
+                // lerp: x = a + (b-a) * t
+                // ilerp x - a /  b - a
+
+                float a = curve.points[index].normalizedPositionAlongCurve;
+                float b = curve.points[index + 1].normalizedPositionAlongCurve;
+                float t = (i - a) / (b - a);
+                return Point.CalculateBezierPoint(t, curve.points[index].pointPosition, curve.points[index].controlPointPositionForward, curve.points[index + 1].controlPointPositionBackward,
+                    curve.points[index + 1].pointPosition);
 
             }
-
         }
-        return result;
+
+        return Vector3.zero;
     }
 
-    public Vector3 GetPointFromij(float i, float j)
+    // a and b refer to the anchor points in the big loop which contains the curves we're getting the point from
+    public Vector3 GetPointFromij(Point a, Point b, float i, float j)
     {
-        Vector3 result = Vector3.zero;
+        Vector3 iaPos = GetPointFromi(a.crossSectionCurve, i);
+        Vector3 ibPos = GetPointFromi(b.crossSectionCurve, i);
 
-        Vector3 iPos = GetPointFromi(i);
-        return result;
+        // scaling the control points 
+        float scale = totalCurveLength / (a.pointPosition - b.pointPosition).magnitude;
+        float dist = (iaPos - ibPos).magnitude;
+
+        Vector3 controlForward = (a.controlPointPositionForward / scale) * dist;
+        Vector3 controlBackward = (b.controlPointPositionBackward / scale) * dist;
+
+        return Point.CalculateBezierPoint(j, iaPos, controlForward, controlBackward, ibPos);
     }
 
     // NOTE by default we're assuming the curve has no branching thus index 0 for forwardPoint

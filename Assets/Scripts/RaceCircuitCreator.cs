@@ -118,7 +118,7 @@ public class RaceCircuitCreator : MonoBehaviour
         {
             Point nextPoint = point.nextPoint;
 
-            if (!crossSection || point.nextPoint != firstPoint)
+            if (point.nextPoint != firstPoint || curve.isClosed )
                 Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, EditorGUIUtility.whiteTexture, 2);
 
             if (!crossSection)

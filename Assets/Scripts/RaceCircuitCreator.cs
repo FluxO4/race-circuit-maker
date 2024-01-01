@@ -16,12 +16,13 @@ public class RaceCircuitCreator : MonoBehaviour
     public float length_wise_vertex_count_ratio = 1;
 
     //References
+    public RaceCircuit raceCircuit;
     public List<Curve> raceCurves;
 
     // won't touch the gizmo stuff
-    public GameObject gizmoHolder;
+   /* public GameObject gizmoHolder;
     public GameObject circuitPointGizmoHolder;
-    public List<GameObject> circuitPointGizmoList = new List<GameObject>();
+    public List<GameObject> circuitPointGizmoList = new List<GameObject>();*/
     /*public GameObject gizmoPrefab;*//**/
 
 
@@ -159,9 +160,16 @@ public class RaceCircuitCreator : MonoBehaviour
 
     //Some kind of state variable saying what is selected, circuit or road. This state will be read by a button refresher function that makes buttons interactive and non-interactive based on it
 
-    bool circuitSelected;
-    Road selectedRoad; //Null if none selected
-    Point selectedPoint; //Null if none selected
+    public bool circuitSelected = false;
+    public Road selectedRoad; //Null if none selected
+    public Point selectedPoint; //Null if none selected
+
+    public bool showCurves = true;
+    public bool editingCrossSection = false;
+    public bool editingControlPoints = false;
+    public bool autoSetControlPoints = false;
+    public bool independentControlPoints = false;
+
 
     public void SelectCircuit()
     {
@@ -170,6 +178,10 @@ public class RaceCircuitCreator : MonoBehaviour
         circuitSelected = true;
         //Spline is shown for the entire network
 
+        foreach (Road road in raceCircuit.roads)
+        {
+            road.buildRoad();
+        }
         // Draw(raceCircuit.circuitCurve);
 
         //Gizmos are created at each POINT on the circuit curve
@@ -177,7 +189,9 @@ public class RaceCircuitCreator : MonoBehaviour
         {
             foreach (Point point in curve.points)
             {
-                if (!point.myGizmo)
+                point.EnableGizmo(true);
+                
+                /*if (!point.myGizmo)
                 {
                     GameObject t = Instantiate(circuitPointGizmoPrefab, point.transform.position, Quaternion.identity);
                     t.transform.SetParent(gizmoHolder.transform);
@@ -185,22 +199,29 @@ public class RaceCircuitCreator : MonoBehaviour
                     point.myGizmo = t.GetComponent<CircuitPointGizmo>();
                     t.GetComponent<CircuitPointGizmo>().creator = this;
                     circuitPointGizmoList.Add(t);
-                }
+                }*/
             }
         }
 
     }
 
+    private void OnDrawGizmosSelected()
+    {
+        
+    }
+
     private void OnDrawGizmos/*Selected*/()
     {
-        DrawCircuitCurve();
+        //DrawCircuitCurve();
 
         // NOTE: we'll do this only when the corresponding gizmo moves but that's only after @Bella adds them
+        return;
         foreach (Curve curve in raceCurves)
         {
             foreach (Point point in curve.points)
             {
                 // point.PerpendicularizeCrossSection();
+                
                 point.UpdateLength();
 
                 foreach (Point crossSectionPoint in point.crossSectionCurve.points)
@@ -263,7 +284,7 @@ public class RaceCircuitCreator : MonoBehaviour
                 selectedPoint = null;
             }
 
-            if (circuitPointGizmoList.Count > 0)
+            /*if (circuitPointGizmoList.Count > 0)
             {
                 for (int i = circuitPointGizmoList.Count - 1; i >= 0; i = i - 1)
                 {
@@ -273,8 +294,21 @@ public class RaceCircuitCreator : MonoBehaviour
                 circuitPointGizmoList.Clear();
             }
             circuitSelected = false;
+            */
 
+            foreach (Curve curve in raceCurves)
+            {
+                foreach (Point point in curve.points)
+                {
+                    point.EnableGizmo(false);
+                }
+            }
+            circuitSelected = false;
         }
+
+        selectedRoad = null;
+        selectedPoint = null;
+
 
 
     }
@@ -303,6 +337,7 @@ public class RaceCircuitCreator : MonoBehaviour
         Selection.selectionChanged += OnSelectionChanged;
         Debug.Log("Selection function set baby!");
 
+        raceCircuit = GetComponent<RaceCircuit>();
 
 
         foreach (Curve curve in raceCurves)
@@ -325,6 +360,39 @@ public class RaceCircuitCreator : MonoBehaviour
             }
         }
 
+        // NOTE: we'll do this only when the corresponding gizmo moves but that's only after @Bella adds them
+        foreach (Curve curve in raceCurves)
+        {
+            foreach (Point point in curve.points)
+            {
+                // point.PerpendicularizeCrossSection();
+                point.UpdateLength();
+
+                foreach (Point crossSectionPoint in point.crossSectionCurve.points)
+                {
+                    crossSectionPoint.UpdateLength();
+                    crossSectionPoint.AutoSetAnchorControlPoints();
+                }
+                point.crossSectionCurve.points.First().AutoSetStart();
+                point.crossSectionCurve.points.Last().AutoSetEnd();
+            }
+        }
+
+        foreach (Curve curve in raceCurves)
+        {
+            curve.NormalizeCurvePoints();
+            foreach (Point point in curve.points)
+            {
+                point.crossSectionCurve.NormalizeCurvePoints();
+            }
+        }
+
+        foreach(Road road in raceCircuit.roads)
+        {
+            road.buildRoad();
+        }
+        
+
     }
 
     // this draws it all the time instead of just on selection
@@ -332,72 +400,8 @@ public class RaceCircuitCreator : MonoBehaviour
     //{
     //    Draw(raceCircuit.circuitCurve);
     //}
-    /*
-    Vector3 GetPointFromi(Curve curve, float i)
-    {
-        // [OPTIMIZE]
+    
 
-        // NOTE we're assuming that i is across meaning there can be no branches when computing i
-        // meaning we can only have at max one forward point
-        // meaning this only works for CrossSection curves
-
-        // linearly searching for now
-        for (int index = 0; index < curve.points.Count; index++)
-        {
-            if (curve.points[index].normalizedPositionAlongCurve == i)
-            {
-                // we're exactly on the thing
-                return curve.points[index].pointPosition;
-            }
-            else if ((index < curve.points.Count - 1) && curve.points[index].normalizedPositionAlongCurve < i && curve.points[index + 1].normalizedPositionAlongCurve > i)
-            {
-                // remap the range i.e. ilerp [p[i].normalized, p[i + 1].normalized] -> 0, 1
-
-                // lerp: x = a + (b-a) * t
-                // ilerp x - a /  b - a
-
-                float a = curve.points[index].normalizedPositionAlongCurve;
-                float b = curve.points[index + 1].normalizedPositionAlongCurve;
-                float t = (i - a) / (b - a);
-                return Point.CalculateBezierPoint(curve.points[index].pointPosition,
-                                                    curve.points[index].controlPointPositionForward,
-                                                    curve.points[index + 1].controlPointPositionBackward,
-                                                    curve.points[index + 1].pointPosition,
-                                                    t);
-
-            }
-        }
-
-        return Vector3.zero;
-    }
-
-    // a and b refer to the anchor points in the big loop which contains the curves we're getting the point from
-    public Vector3 GetPointFromij(Point a, Point b, float i, float j)
-    {
-        Vector3 iaPos = GetPointFromi(a.crossSectionCurve, i);
-        Vector3 ibPos = GetPointFromi(b.crossSectionCurve, i);
-
-        // TODO: rethink this
-        // scaling the control points 
-        float curveLength = a.nextSegmentLength;
-        
-        float curveLengthFromStraightLineDistanceEstimatorMultiplier = curveLength / (a.pointPosition - b.pointPosition).magnitude;
-        float dist = (iaPos - ibPos).magnitude;
-        float estimatedCurvedLength = dist * curveLengthFromStraightLineDistanceEstimatorMultiplier;
-        float scale = estimatedCurvedLength / curveLength;
-
-        Vector3 controlForward = ((a.controlPointPositionForward - a.pointPosition) * scale) + iaPos;
-        Vector3 controlBackward = ((b.controlPointPositionBackward - b.pointPosition) * scale) + ibPos;
-
-
-        Handles.color = Color.blue;
-        Handles.DrawLine(iaPos, controlForward);
-        Handles.DrawLine(ibPos, controlBackward);
-        Handles.DrawBezier(iaPos, ibPos, controlForward, controlBackward, Color.white, null, 2);
-
-        return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
-    }
-    */
     private void OnDestroy()
     {
         Selection.selectionChanged -= OnSelectionChanged;
@@ -425,6 +429,26 @@ public class RaceCircuitCreator : MonoBehaviour
             else if (currentSelectedObject.GetComponent<Road>())
             {
                 SelectRoad(currentSelectedObject.GetComponent<Road>());
+            }
+            else
+            {
+                Transform t = currentSelectedObject.transform;
+                bool childOfRaceCircuit = false;
+
+                while(t.parent != null)
+                {
+                    t = t.parent;
+                    if(t == transform)
+                    {
+                        childOfRaceCircuit = true;
+                        break;
+                    }
+                }
+
+                if(!childOfRaceCircuit)
+                {
+                    DeselectAll();
+                }
             }
         }
         else //When clicking elsewhere

@@ -32,7 +32,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7632040412775226436}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3781118613315845826
 MeshFilter:
@@ -97,37 +97,6 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &2542706966892196055
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2794675290450449115}
-  m_Layer: 0
-  m_Name: CircuitPointGizmos
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2794675290450449115
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2542706966892196055}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7632040412153870410}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5883376884424310513
 GameObject:
   m_ObjectHideFlags: 0
@@ -186,38 +155,6 @@ MonoBehaviour:
   isClosed: 0
   prevIsClosed: 0
   totalLength: 0
---- !u!1 &7632040412153870411
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7632040412153870410}
-  m_Layer: 0
-  m_Name: Gizmos
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7632040412153870410
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7632040412153870411}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2794675290450449115}
-  m_Father: {fileID: 7632040412775226436}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7632040412775226437
 GameObject:
   m_ObjectHideFlags: 0
@@ -250,7 +187,6 @@ Transform:
   m_Children:
   - {fileID: 7632040414027512739}
   - {fileID: 2911561184905242766}
-  - {fileID: 7632040412153870410}
   - {fileID: 7632040412777488200}
   - {fileID: 840034157840326284}
   m_Father: {fileID: 0}
@@ -269,9 +205,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startingPositions: []
-  roads: []
+  roads:
+  - {fileID: 2928113086758332801}
   circuitCurve: {fileID: 7632040414027512738}
-  gizmos: {fileID: 7632040412153870411}
+  gizmos: {fileID: 0}
 --- !u!114 &1262779694864876003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -287,10 +224,8 @@ MonoBehaviour:
   cross_section_point_count: 3
   width_wise_vertex_count: 10
   length_wise_vertex_count_ratio: 1
+  raceCircuit: {fileID: 7632040412775226434}
   raceCurves: []
-  gizmoHolder: {fileID: 7632040412153870411}
-  circuitPointGizmoHolder: {fileID: 2542706966892196055}
-  circuitPointGizmoList: []
   circuitPointGizmoPrefab: {fileID: 4631999450709601621, guid: a98a4d05b5f374649b018c5fa9967d20, type: 3}
   smallGizmoPrefab: {fileID: 0}
   pointPrefab: {fileID: 0}
@@ -331,7 +266,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7632040412775226436}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2928113086758332801
 MonoBehaviour:
@@ -345,6 +280,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d85664a5e40123942a6b799285a44db4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tileX: 5
+  tileY: 5
   creator: {fileID: 1262779694864876003}
   associatedPoints:
   - {fileID: 7632040413826737994}

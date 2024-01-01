@@ -28,7 +28,8 @@ public class Road : MonoBehaviour
     public void buildRoad()
     {
         //Again, if editor stuff is required, move this to the Editor script
-        transform.position = associatedPoints[0].transform.position;
+        transform.position = Vector3.zero;
+
         averageWidth = 0;
         roadLength = 0;
         for(int i = 0; i < associatedPoints.Count; i++)
@@ -45,6 +46,7 @@ public class Road : MonoBehaviour
         int xCount = creator.width_wise_vertex_count;
         int yCount = (int)(creator.length_wise_vertex_count_ratio * xCount * roadLength / averageWidth);
         Debug.Log("Road will contain " + xCount + " vertices along width and " + yCount+ " vertices along length");
+        Debug.Log("Road is " + roadLength + " metres long, compared to the first segment which is " + associatedPoints[0].nextSegmentLength);
 
         if (mesh != null)
         {
@@ -54,28 +56,42 @@ public class Road : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh = new Mesh();
         mesh.name = "Grid";
 
-        vertices = new Vector3[(xCount + 1) * (xCount + 1)];
+        vertices = new Vector3[(xCount + 1) * (yCount + 1)];
         Vector2[] uv = new Vector2[vertices.Length];
 
 
-        Point currentPoint = associatedPoints[0];
-        float segmentLength = currentPoint.nextSegmentLength;
-        float cumulativeSegmentLength = segmentLength;
+        int currentPoint = 0;
+        float segmentLength = associatedPoints[currentPoint].nextSegmentLength;
+        float cumulativeSegmentLength = 0;
 
         for (int i = 0, z = 0; z <= yCount; z++)
         {
             float z_norm = (float)z / yCount;
 
-            float i_value = (z / yCount) * (roadLength / cumulativeSegmentLength);
+            float j_value = z_norm;
+
+            j_value = (((float)z / yCount) * (roadLength) - cumulativeSegmentLength) / segmentLength;
+            Debug.Log("j_value is now " + j_value);
+
+            while(j_value > 1 && currentPoint < associatedPoints.Count)
+            {
+                currentPoint += 1;
+                cumulativeSegmentLength += segmentLength;
+                segmentLength = associatedPoints[currentPoint].nextSegmentLength;
+
+                j_value = (((float)z / yCount) * (roadLength) - cumulativeSegmentLength) / segmentLength;
+                Debug.Log("More than 1! So now it's j_value is now " + j_value);
+            }
 
 
             for (int x = 0; x <= xCount; x++, i++)
             {
                 float x_norm = (float)x / xCount;
-                
+
+                float i_value = x_norm;
 
 
-                vertices[i] = new Vector3(x_norm, (Mathf.Sin(10 * x_norm) + Mathf.Cos(10 * z_norm)) * 0.1f, z_norm);
+                vertices[i] = associatedPoints[currentPoint].GetPointFromij(i_value, j_value) - associatedPoints[0].transform.position;
                 uv[i] = new Vector2((float)x / xCount * tileX, (float)z / yCount * tileY);
             }
         }
@@ -98,7 +114,7 @@ public class Road : MonoBehaviour
         mesh.triangles = triangles;
         mesh.RecalculateNormals();
 
-
+        transform.position = associatedPoints[0].transform.position;
 
         //Builds the road mesh
     }

@@ -33,6 +33,11 @@ public class Point : MonoBehaviour
 
     public CircuitPointGizmo myGizmo;
 
+    public void EnableGizmo(bool enable)
+    {
+        GetComponent<MeshRenderer>().enabled = enable;
+    }
+
     public void moveToGizmo(GameObject Gizmo)
     {
         moveToPosition(Gizmo.transform.position);
@@ -149,6 +154,71 @@ public class Point : MonoBehaviour
         Vector3 p1 = EvaluateQuadratic(b, c, d, t);
         return Vector3.Lerp(p0, p1, t);
     }
+
+    public Vector3 GetPointFromi(float i)
+    {
+        // [OPTIMIZE]
+
+        // NOTE we're assuming that i is across meaning there can be no branches when computing i
+        // meaning we can only have at max one forward point
+        // meaning this only works for CrossSection curves
+
+        // linearly searching for now
+        i = Mathf.Max(0, Mathf.Min(i, 1));
+
+        for (int index = 0; index < crossSectionCurve.points.Count; index++)
+        {
+            if (crossSectionCurve.points[index].normalizedPositionAlongCurve == i)
+            {
+                // we're exactly on the thing
+                return crossSectionCurve.points[index].pointPosition;
+            }
+            else if ((index < crossSectionCurve.points.Count - 1) && crossSectionCurve.points[index].normalizedPositionAlongCurve < i && crossSectionCurve.points[index + 1].normalizedPositionAlongCurve > i)
+            {
+                // remap the range i.e. ilerp [p[i].normalized, p[i + 1].normalized] -> 0, 1
+
+                // lerp: x = a + (b-a) * t
+                // ilerp x - a /  b - a
+
+                float a = crossSectionCurve.points[index].normalizedPositionAlongCurve;
+                float b = crossSectionCurve.points[index + 1].normalizedPositionAlongCurve;
+                float t = (i - a) / (b - a);
+                return Point.CalculateBezierPoint(crossSectionCurve.points[index].pointPosition,
+                                                    crossSectionCurve.points[index].controlPointPositionForward,
+                                                    crossSectionCurve.points[index + 1].controlPointPositionBackward,
+                                                    crossSectionCurve.points[index + 1].pointPosition,
+                                                    t);
+
+            }
+        }
+
+        Debug.Log("OUT OF RANGE SOMEHOW! FIX THIS!");
+        return Vector3.zero;
+        return crossSectionCurve.points[0].pointPosition;
+    }
+
+    // a and b refer to the anchor points in the big loop which contains the curves we're getting the point from
+    public Vector3 GetPointFromij(float i, float j)
+    {
+        Vector3 iaPos = GetPointFromi(i);
+        Vector3 ibPos = nextPoint.GetPointFromi(i);
+
+        // TODO: rethink this
+        // scaling the control points 
+        float curveLength = nextSegmentLength;
+
+        float curveLengthFromStraightLineDistanceEstimatorMultiplier = curveLength / (pointPosition - nextPoint.pointPosition).magnitude;
+        float dist = (iaPos - ibPos).magnitude;
+        float estimatedCurvedLength = dist * curveLengthFromStraightLineDistanceEstimatorMultiplier;
+        float scale = estimatedCurvedLength / curveLength;
+
+        Vector3 controlForward = ((controlPointPositionForward - pointPosition) * scale) + iaPos;
+        Vector3 controlBackward = ((nextPoint.controlPointPositionBackward - nextPoint.pointPosition) * scale) + ibPos;
+
+
+        return Point.CalculateBezierPoint(iaPos, controlForward, controlBackward, ibPos, j);
+    }
+
 
 
     // NOTE: function call is only valid if we contain a cross section

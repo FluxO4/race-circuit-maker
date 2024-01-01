@@ -14,19 +14,179 @@ public class RaceCircuitEditor : Editor
     public GameObject gizmoPrefab;
 
     RaceCircuitCreator creator;
-    RaceCircuit circuit;
-
-    private GameObject currentSelectedObject;
 
     private void OnSceneGUI()
     {
-        foreach (Curve curve in creator.raceCurves)
+        if (creator.circuitSelected)
+        {
+            if (creator.selectedRoad != null)
+            {
+                DrawRoadHandles(creator.selectedRoad);
+            }
+            else if (creator.selectedPoint != null)
+            {
+                DrawCircuitPointHandles(creator.selectedPoint);
+            }
+            else
+            {
+                foreach (Curve curve in creator.raceCurves)
+                {
+                    DrawCircuitCurveHandles(curve);
+                }
+            }
+        }
+
+
+       /* foreach (Curve curve in creator.raceCurves)
         {
             DrawHandles(curve);
-        }
+        }*/
 
     }
 
+    void DrawCircuitCurveHandles(Curve curve)
+    {
+        for(int i = 0; i < curve.points.Count; i++)
+        {
+            Point point = curve.points[i];
+            DrawCircuitPointHandles(point);
+
+            if (creator.showCurves)
+            {
+                if(i < curve.points.Count - 1)
+                {
+                    Point nextPoint = curve.points[i + 1];
+                    Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, null, 2);
+                }
+            }
+        }
+    }
+
+
+
+
+    void DrawRoadHandles(Road road)
+    {
+
+
+
+        for (int i = 0; i < road.associatedPoints.Count; i++)
+        {
+            Point point = road.associatedPoints[i];
+            DrawCircuitPointHandles(point);
+
+            if (creator.showCurves)
+            {
+                if (i < road.associatedPoints.Count - 1)
+                {
+                    Point nextPoint = road.associatedPoints[i + 1];
+                    Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, null, 2);
+                }
+            }
+        }
+    }
+
+
+    void DrawCircuitPointHandles(Point point)
+    {
+        Handles.color = Color.red;
+
+        Vector3 newPos = Handles.FreeMoveHandle(point.pointPosition, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+        if (newPos != point.pointPosition)
+        {
+            Undo.RecordObject(creator, "Move Anchor Point 1");
+            point.transform.position = newPos;
+            point.moveToTransform();
+            if (creator.autoSetControlPoints)
+            {
+                point.AutoSetAnchorControlPoints();
+            }
+        }
+
+        if (creator.editingCrossSection)
+        {
+            DrawCrossSectionCurveHandles(point);
+        }
+
+        if (creator.editingControlPoints)
+        {
+            DrawControlPointHandles(point);
+
+        }
+    }
+
+
+
+    void DrawCrossSectionCurveHandles(Point circuitPoint)
+    {
+        for(int i = 0; i < circuitPoint.crossSectionCurve.points.Count; i++)
+        {
+            Point point = circuitPoint.crossSectionCurve.points[i];
+
+            Handles.color = Color.cyan;
+            Vector3 newPos = Handles.FreeMoveHandle(point.pointPosition, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+
+            if (newPos != point.pointPosition)
+            {
+                Undo.RecordObject(creator, "Move Anchor Point 1");
+                point.pointPosition = newPos;
+                circuitPoint.PerpendicularizeCrossSection();
+                point.AutoSetAnchorControlPoints();
+            }
+
+            if(i < circuitPoint.crossSectionCurve.points.Count - 1)
+            {
+                Point nextPoint = circuitPoint.crossSectionCurve.points[i + 1];
+                Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, null, 2);
+            }
+
+        }
+    }
+
+
+
+    void DrawControlPointHandles(Point point)
+    {
+        Handles.color = Color.blue;
+
+        Handles.DrawLine(point.controlPointPositionForward, point.pointPosition, 2);
+        Handles.DrawLine(point.pointPosition, point.controlPointPositionBackward, 2);
+
+        Vector3 newPos = Handles.FreeMoveHandle(point.controlPointPositionForward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+        if (newPos != point.controlPointPositionForward)
+        {
+            Undo.RecordObject(creator, "Move Anchor Point 1");
+            point.controlPointPositionForward = newPos;
+
+            if (!creator.independentControlPoints)
+            {
+                float dist = (point.pointPosition - point.controlPointPositionBackward).magnitude;
+                Vector3 dir = (point.pointPosition - newPos).normalized;
+                point.controlPointPositionBackward = point.pointPosition + dir * dist;
+            }
+        }
+
+
+        newPos = Handles.FreeMoveHandle(point.controlPointPositionBackward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+        if (newPos != point.controlPointPositionBackward)
+        {
+            Undo.RecordObject(creator, "Move Anchor Point 2");
+            point.controlPointPositionBackward = newPos;
+
+            if (!creator.independentControlPoints)
+            {
+                float dist = (point.pointPosition - point.controlPointPositionForward).magnitude;
+                Vector3 dir = (point.pointPosition - newPos).normalized;
+                point.controlPointPositionForward = point.pointPosition + dir * dist;
+            }
+        }
+    }
+
+    
+
+
+
+    /*
     void DrawHandles(Curve curve, bool crossSection = false)
     {
         // assuming the first point in the list is the first point
@@ -85,62 +245,10 @@ public class RaceCircuitEditor : Editor
             // p2.PerpendicularizeCrossSection();
         }
     }
-
+    */
 
     private void OnEnable()
     {
-        //Selection.selectionChanged -= selectionChange;
         creator = (RaceCircuitCreator)target;
-        // assuming there RaceCircuitCreator always holds a valid reference to a RaceCircuit
-
-        // circuit = creator.raceCircuit;
-
-
-        /*  circuit.circuitCurve.Reinitialize();
-
-          foreach (Point point in circuit.circuitCurve.points)
-
-          creator.raceCircuit.circuitCurve.Reinitialize();
-          bool flag =  creator.raceCircuit.bigGizmoList.Count == 0;
-          foreach (Point point in creator.raceCircuit.circuitCurve.points)
-
-          {
-
-              point.crossSectionCurve.Reinitialize();
-              point.UpdateLengths();
-
-
-              point.NormalizeCrossSection();
-              point.AutoSetAnchorControlPoints();
-              foreach (Point crossSectionPoint in point.crossSectionCurve.points)
-              {
-                  crossSectionPoint.UpdateLengths();
-                  crossSectionPoint.AutoSetAnchorControlPoints();
-              }
-              point.crossSectionCurve.points.First().AutoSetStart();
-              point.crossSectionCurve.points.Last().AutoSetEnd();
-          }
-
-          circuit.circuitCurve.ComputeNormalizedPoints();
-          foreach (Point point in circuit.circuitCurve.points)
-          {
-              point.crossSectionCurve.ComputeNormalizedPoints();
-          }
-
-
-          foreach (Point p in circuit.circuitCurve.points)
-          {
-              Debug.Log($"{circuit.circuitCurve.totalCurveLength}: {p.normalizedPositionAlongCurve}");
-              foreach (Point c in p.crossSectionCurve.points)
-              {
-                  Debug.Log($"{p.crossSectionCurve.totalCurveLength}: {c.normalizedPositionAlongCurve}");
-              }
-          }*/
-
-        /*Debug.Log(creator);
-        Debug.Log(creator.raceCircuit.circuitCurve.points.Count);*/
-
-
-
     }
 }

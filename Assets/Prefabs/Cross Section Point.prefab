@@ -50,10 +50,15 @@ MonoBehaviour:
   Selected: 0
   pointPosition: {x: 0, y: 0, z: 0}
   controlPointPositionBackward: {x: 0, y: 0, z: 0}
-  backwardPoints: []
   controlPointPositionForward: {x: 0, y: 0, z: 0}
-  forwardPoints: []
+  nextPoint: {fileID: 0}
+  prevPoint: {fileID: 0}
+  parentCurve: {fileID: 0}
+  nextSegmentLength: 0
+  prevSegmentLength: 0
+  normalizedPositionAlongCurve: 0
   crossSectionCurve: {fileID: 0}
+  myGizmo: {fileID: 0}
 --- !u!1 &8581229624618047301
 GameObject:
   m_ObjectHideFlags: 0
@@ -72,7 +77,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &718051324824126815
 Transform:
   m_ObjectHideFlags: 0

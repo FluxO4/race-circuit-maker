@@ -15,10 +15,29 @@ public class RaceCircuitEditor : Editor
 
     RaceCircuitCreator creator;
 
+
+
     private void OnSceneGUI()
     {
+<<<<<<< Updated upstream
         creator.findClosestPoints();
         if (creator.circuitSelected)
+=======
+        {
+            Event guiEvent = Event.current;
+            Ray mouseRay = HandleUtility.GUIPointToWorldRay(guiEvent.mousePosition);
+
+
+            if (guiEvent.type == EventType.MouseDown && guiEvent.button == 0 && guiEvent.shift)
+            {
+                Debug.Log("MOUSE INPUT DETECTED!");
+                creator.mouseInput(guiEvent.mousePosition, mouseRay);
+            }
+        }
+
+
+            if (creator.circuitSelected)
+>>>>>>> Stashed changes
         {
             if (creator.selectedRoad != null)
             {
@@ -158,6 +177,7 @@ public class RaceCircuitEditor : Editor
         {
             Undo.RecordObject(creator, "Move Anchor Point 1");
             point.controlPointPositionForward = newPos;
+            creator.pointTransformChanged = true;
 
             if (!creator.independentControlPoints)
             {
@@ -173,6 +193,7 @@ public class RaceCircuitEditor : Editor
         {
             Undo.RecordObject(creator, "Move Anchor Point 2");
             point.controlPointPositionBackward = newPos;
+            creator.pointTransformChanged = true;
 
             if (!creator.independentControlPoints)
             {

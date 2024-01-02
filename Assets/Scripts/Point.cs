@@ -14,6 +14,8 @@ public class Point : MonoBehaviour
     public Vector3 controlPointPositionBackward;
     public Vector3 controlPointPositionForward;
 
+    public Vector3 relativeRotateHandlePosition = Vector3.up * 5;
+
     bool continuesBackward;
     bool continuesForward;
 
@@ -169,7 +171,7 @@ public class Point : MonoBehaviour
 
         for (int index = 0; index < crossSectionCurve.points.Count; index++)
         {
-            if (crossSectionCurve.points[index].normalizedPositionAlongCurve == i)
+            if (Mathf.Abs(crossSectionCurve.points[index].normalizedPositionAlongCurve - i) < 0.01f)
             {
                 // we're exactly on the thing
                 return crossSectionCurve.points[index].pointPosition;
@@ -265,6 +267,8 @@ public class Point : MonoBehaviour
 
         Vector3 edgeVector = crossSectionCurve.points.Last().pointPosition - crossSectionCurve.points.First().pointPosition;
 
+
+
         Vector3 ac = (controlPointPositionForward - controlPointPositionBackward).normalized;
 
         // we're only doing this if the two points aren't sharing the same euclidian point in space
@@ -273,6 +277,8 @@ public class Point : MonoBehaviour
             Vector3 fakeUp = Vector3.Cross(edgeVector, ac);
 
             Vector3 perpToCrossSectionPlane = Vector3.Cross(fakeUp, edgeVector).normalized;
+
+            relativeRotateHandlePosition = Vector3.Cross(edgeVector, perpToCrossSectionPlane).normalized;
 
             //if (Vector3.Dot(perpToCrossSectionPlane, ac) < 0)
             //    perpToCrossSectionPlane = -perpToCrossSectionPlane;

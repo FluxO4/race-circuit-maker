@@ -11,6 +11,7 @@ public class CrossSectionPointGizmo : MonoBehaviour
 
     public Point correspondingPoint;
     bool hasChanged = false;
+    Vector3 prevPos = Vector3.zero;
 
     // Update is called once per frame
     void Update()
@@ -20,15 +21,20 @@ public class CrossSectionPointGizmo : MonoBehaviour
         {
 
             correspondingPoint.moveToTransform();
-
             if (!correspondingPoint.creator.updateOnlyOnRelease)
             {
-                correspondingPoint.UpdateLength();
-                correspondingPoint.AutoSetAnchorControlPoints();
+                Vector3 difference = transform.position - prevPos;
 
-                correspondingPoint.creator.pointTransformChanged = true;
+                if (difference.sqrMagnitude > 0.01f)
+                {
+
+                    correspondingPoint.UpdateLength();
+                    correspondingPoint.AutoSetAnchorControlPoints();
+
+                    correspondingPoint.creator.pointTransformChanged = true;
+                }
+                prevPos = transform.position;
             }
-
 
             transform.hasChanged = false;
             hasChanged = true;
@@ -37,13 +43,20 @@ public class CrossSectionPointGizmo : MonoBehaviour
         {
             if (hasChanged)
             {
-                if (correspondingPoint.creator.updateOnlyOnRelease)
-                {
-                    correspondingPoint.UpdateLength();
-                    correspondingPoint.AutoSetAnchorControlPoints();
+                Vector3 difference = transform.position - prevPos;
 
-                    correspondingPoint.creator.pointTransformChanged = true;
+                if (difference.sqrMagnitude > 0.01f)
+                {
+                    if (correspondingPoint.creator.updateOnlyOnRelease)
+                    {
+                        correspondingPoint.UpdateLength();
+                        correspondingPoint.AutoSetAnchorControlPoints();
+
+                        correspondingPoint.creator.pointTransformChanged = true;
+                    }
+                    prevPos = transform.position;
                 }
+                
             }
 
             hasChanged = false;

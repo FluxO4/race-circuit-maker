@@ -22,13 +22,6 @@ public class RaceCircuitCreator : MonoBehaviour
     public RaceCircuit raceCircuit;
     public List<Curve> raceCurves;
 
-    // won't touch the gizmo stuff
-   /* public GameObject gizmoHolder;
-    public GameObject circuitPointGizmoHolder;
-    public List<GameObject> circuitPointGizmoList = new List<GameObject>();*/
-    /*public GameObject gizmoPrefab;*//**/
-
-
     //Prefabs:
     public GameObject circuitPointGizmoPrefab; // Might want multiple gizmo prefabs of multiplesizes
     public GameObject smallGizmoPrefab;
@@ -43,120 +36,6 @@ public class RaceCircuitCreator : MonoBehaviour
     [Range(0, 1)]
     public float tempJ = 0.5f;
     //PUT ALL EDITOR RELATED CODE HERE
-
-
-    //ADD FUNCTIONS AND VARIABLES, all are inspector button handlers
-    public void ADD_POINT_ALONG_TRACK()
-    {
-
-    }
-
-    public void ADD_POINT_OUTSIDE()
-    {
-
-    }
-
-    public void CONNECT()
-    {
-
-    }
-
-    public void ADD_ROAD()
-    {
-
-    }
-
-    public void REMOVE_ROAD()
-    {
-
-    }
-
-    public void EDIT_CROSS_SECTION()
-    {
-        //all gizmos are hidden or disabled or whatever, and new gizmos are created for only the cross-section points
-    }
-
-
-
-
-
-
-
-    //DRAWING FUNCTIONS AND VARIABLES
-
-
-    //void DrawBezierHandles(Point p1, Point p2, Color bezierColor, Color handleColor)
-    //{
-    //    Handles.color = handleColor;
-    //    Vector3 newPos = Handles.FreeMoveHandle(p1.controlPointPositionForward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
-
-
-    //    if (newPos != p1.controlPointPositionForward)
-    //    {
-    //        p1.controlPointPositionForward = newPos;
-
-    //        float dist = (p1.pointPosition - p1.controlPointPositionBackward).magnitude;
-    //        Vector3 dir = (p1.pointPosition - newPos).normalized;
-    //        p1.controlPointPositionBackward = p1.pointPosition + dir * dist;
-
-    //    }
-
-    //    newPos = Handles.FreeMoveHandle(p2.controlPointPositionBackward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
-    //    if (newPos != p2.controlPointPositionBackward)
-    //    {
-    //        p2.controlPointPositionBackward = newPos;
-
-    //        float dist = (p2.pointPosition - p2.controlPointPositionForward).magnitude;
-    //        Vector3 dir = (p2.pointPosition - newPos).normalized;
-    //        p2.controlPointPositionForward = p2.pointPosition + dir * dist;
-    //    }
-    //}
-
-    void DrawCurve(Curve curve, bool crossSection = false)
-    {
-        // assuming the first point in the list is the first point
-        // (though I guess it doesn't matter which one we start from)
-        Point firstPoint = curve.points[0];
-        Point point = firstPoint;
-        do
-        {
-            Point nextPoint = point.nextPoint;
-
-            if (nextPoint && (point.nextPoint != firstPoint || curve.isClosed) )
-                Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, EditorGUIUtility.whiteTexture, 2);
-
-            if (!crossSection)
-            {
-                DrawCurve(point.crossSectionCurve, true);
-            }
-
-            point = nextPoint;
-        } while (point && point != firstPoint);
-    }
-
-    private void DrawCircuitCurve()
-    {
-        foreach (Curve curve in raceCurves)
-        {
-            DrawCurve(curve);
-        }
-    }
-
-    private void DrawCrossSectionCurve(Point point)
-    {
-
-    }
-
-    private void BuildRoad()
-    {
-
-    }
-
-    void CreateGizmo()
-    {
-        // Creates a gizmo based on a prefab that is selected and used to move POINTs around
-    }
-
 
 
     //SELECTION FUNCITONS AND VARIABLES
@@ -179,6 +58,8 @@ public class RaceCircuitCreator : MonoBehaviour
     public float roadRebuildingFrequency = 0.2f;
 
 
+    #region SELECTION STUFF
+
     public void SelectCircuit()
     {
         Debug.Log("SELECTED CIRCUIT");
@@ -198,33 +79,19 @@ public class RaceCircuitCreator : MonoBehaviour
             foreach (Point point in curve.points)
             {
                 point.EnableGizmo(true);
-                
-                /*if (!point.myGizmo)
-                {
-                    GameObject t = Instantiate(circuitPointGizmoPrefab, point.transform.position, Quaternion.identity);
-                    t.transform.SetParent(gizmoHolder.transform);
-                    t.GetComponent<CircuitPointGizmo>().correspondingPoint = point;
-                    point.myGizmo = t.GetComponent<CircuitPointGizmo>();
-                    t.GetComponent<CircuitPointGizmo>().creator = this;
-                    circuitPointGizmoList.Add(t);
-                }*/
             }
         }
 
     }
 
-    public void SelectRoad(Road selectedRoad)
+    public void SelectRoad(Road _selectedRoad)
     {
-        //Highlight the road somehow. Maybe give it a temporary material or something
-        //Spline is shown for only the POINTS on the road
-        //Only road points have gizmos, others are deleted
+        selectedRoad = _selectedRoad;
     }
 
     public void SelectPoint(Point _selectedPoint)
     {
         selectedPoint = _selectedPoint;
-        //if Circuit is selected, circuit stays selected, and moving the gizmo moves the corresponding POINT
-
 
     }
 
@@ -240,23 +107,12 @@ public class RaceCircuitCreator : MonoBehaviour
             {
                 selectedPoint = null;
 
+                //THE THING BELOW MOVES SELECTION TO ANOTHER OBJECT, USEFUL WHILE CLICKING ON MANY THINGS AT ONCE
                 /*EditorApplication.delayCall += () =>
                 {
                     Selection.activeGameObject = this.gameObject;
                 };*/
             }
-
-            /*if (circuitPointGizmoList.Count > 0)
-            {
-                for (int i = circuitPointGizmoList.Count - 1; i >= 0; i = i - 1)
-                {
-                    //circuitPointGizmoList[i].GetComponent<CircuitPointGizmo>().correspondingPoint.myGizmo = null;
-                    DestroyImmediate(circuitPointGizmoList[i]);
-                }
-                circuitPointGizmoList.Clear();
-            }
-            circuitSelected = false;
-            */
 
             foreach (Curve curve in raceCurves)
             {
@@ -270,14 +126,201 @@ public class RaceCircuitCreator : MonoBehaviour
 
         selectedRoad = null;
         selectedPoint = null;
+    }
 
 
+    private void OnSelectionChanged() //Called when selection changes in the editor
+    {
+        GameObject currentSelectedObject = Selection.activeGameObject;
+
+        if (currentSelectedObject != null)
+        {
+            Debug.Log("Selected " + currentSelectedObject.name);
+            if (currentSelectedObject == gameObject)
+            {
+                SelectCircuit();
+            }
+            else if (currentSelectedObject.GetComponent<CircuitPointGizmo>())
+            {
+                SelectPoint(currentSelectedObject.GetComponent<CircuitPointGizmo>().correspondingPoint);
+            }
+            else if (currentSelectedObject.GetComponent<Road>())
+            {
+                SelectRoad(currentSelectedObject.GetComponent<Road>());
+            }
+            else
+            {
+                Transform t = currentSelectedObject.transform;
+                bool childOfRaceCircuit = false;
+
+                while (t.parent != null)
+                {
+                    t = t.parent;
+                    if (t == transform)
+                    {
+                        childOfRaceCircuit = true;
+                        break;
+                    }
+                }
+
+                if (!childOfRaceCircuit)
+                {
+                    DeselectAll();
+                }
+            }
+        }
+        else //When clicking elsewhere
+        {
+            DeselectAll();
+        }
+    }
+
+    #endregion
+
+
+    #region USER CONTROL FUNCTIONS AND VARIABLES
+
+    public bool AddPoint = false;
+
+
+    public void mouseInput(Vector2 screenPos, Ray inputRayWS)
+    {
+        if (AddPoint)
+        {
+            findClosestPoints(inputRayWS);
+        }
 
     }
 
-    public void ButtonRefresh()
+    public Vector3 ClosestPointOnLine(Ray ray, Vector3 point)
     {
-        //Reads the selection state and updates buttons
+        Vector3 lineToPoint = point - ray.origin;
+        Vector3 projectedVector = Vector3.Project(lineToPoint, ray.direction);
+        Vector3 projectedPoint = ray.origin + projectedVector;
+
+        return projectedPoint;
+    }
+
+    public void findClosestPoints(Ray inputRayWS)
+    {
+        /*position*/
+        //Vector3 mousePoint = screen2xzplane(guiEvent);
+
+
+        Point closestPoint = raceCurves[0].points[0];
+        float minDistance = float.MaxValue;
+        Vector3 closestPosition = Vector3.zero;
+
+        foreach (Curve curve in raceCurves)
+        {
+            foreach (Point point in curve.points)
+            {
+                Vector3 tempClosestPosition = ClosestPointOnLine(inputRayWS, point.pointPosition);
+                Vector3 differenceVector = tempClosestPosition - point.pointPosition;
+                float calcDistance = (new Vector3(differenceVector.x, differenceVector.y * 10, differenceVector.z)).sqrMagnitude;
+
+                if (calcDistance < minDistance)
+                {
+                    closestPoint = point;
+                    minDistance = calcDistance;
+                    closestPosition = tempClosestPosition;
+                }
+            }
+        }
+
+        Debug.Log(closestPoint + " " + closestPoint.pointPosition);
+        testSphere.transform.position = closestPosition;
+
+
+        Curve closestCurve = closestPoint.parentCurve;
+        int closestIndex = closestCurve.points.IndexOf(closestPoint);
+
+        Point otherPoint = null;
+        Point leftPoint;
+        Point rightPoint;
+
+        if (closestCurve.isClosed)
+        {
+            leftPoint = closestIndex > 0 ? closestCurve.points[closestIndex - 1] : closestCurve.points[closestCurve.points.Count - 1];
+            rightPoint = closestIndex < closestCurve.points.Count - 1 ? closestCurve.points[closestIndex + 1] : closestCurve.points[0];
+        }
+        else
+        {
+            leftPoint = closestIndex > 0 ? closestCurve.points[closestIndex - 1] : null;
+            rightPoint = closestIndex < closestCurve.points.Count - 1 ? closestCurve.points[closestIndex + 1] :null;
+        }
+
+        if (leftPoint != null && rightPoint != null)
+        {
+            Vector3 leftRay = leftPoint.pointPosition - closestPosition;
+            Vector3 rightRay = rightPoint.pointPosition - closestPosition;
+            Vector3 closestRay = closestPoint.pointPosition - closestPosition;
+
+            float left_angle = Vector3.Angle(leftRay, closestRay);
+            float right_angle = Vector3.Angle(rightRay, closestRay);
+
+            if (left_angle > right_angle)
+            {
+                Debug.Log("Left Point: " + leftPoint + " Position: " + leftPoint.pointPosition);
+                otherPoint = leftPoint;
+            }
+            else
+            {
+                Debug.Log("Right Point: " + rightPoint + " Position: " + rightPoint.pointPosition);
+                otherPoint = rightPoint;
+            }
+        }else if(leftPoint == null)
+        {
+            otherPoint = rightPoint;
+        }else if (rightPoint == null)
+        {
+            otherPoint = leftPoint;
+        }
+
+        Debug.Log("MAIN POINT IS " + closestPoint.name + " OTHER POINT IS " + otherPoint.name);
+    }
+
+    #endregion
+
+
+    #region UNITY MESSAGES
+
+    private void OnDrawGizmos()
+    {
+        foreach (Curve curve in raceCurves)
+        {
+            if (curve.isClosed != curve.prevIsClosed)
+            {
+                curve.Reinitialize();
+                curve.prevIsClosed = curve.isClosed;
+            }
+        }
+    }
+
+    public bool pointTransformChanged = false;
+
+    Coroutine roadRebuildLimiter = null;
+    public IEnumerator RoadRebuildingLimiter()
+    {
+        for (; ; )
+        {
+            if (pointTransformChanged)
+            {
+                Debug.Log("REBUILDING ROADS!");
+
+                foreach (Road road in raceCircuit.roads)
+                {
+
+                    road.buildRoad();
+                }
+
+                pointTransformChanged = false;
+            }
+
+
+            yield return new WaitForSeconds(0.2f);
+        }
+
     }
 
     private void Update()
@@ -287,6 +330,8 @@ public class RaceCircuitCreator : MonoBehaviour
             DestroyImmediate(this);
         }
     }
+
+
 
     void OnEnable()
     {
@@ -375,10 +420,9 @@ public class RaceCircuitCreator : MonoBehaviour
         Selection.selectionChanged -= OnSelectionChanged;
     }
 
-    private void OnSelectionChanged() //Called when selection changes in the editor
-    {
-        GameObject currentSelectedObject = Selection.activeGameObject;
+    #endregion
 
+<<<<<<< Updated upstream
         if (currentSelectedObject != null)
         {
             Debug.Log("Selected " + currentSelectedObject.name);
@@ -609,6 +653,8 @@ public class RaceCircuitCreator : MonoBehaviour
             }
         }
     }
+=======
+>>>>>>> Stashed changes
 
     Vector3 screen2xzplane(Event guiEvent)
     {
@@ -672,45 +718,3 @@ public class RaceCircuitCreator : MonoBehaviour
 
 }
 
-/*
-public static class InitHelper
-{
-    public static RaceCircuitCreator raceCircuitCreator;
-
-
-    //[InitializeOnLoadMethod]
-    static void StartUp()
-    {
-        //creator = (RaceCircuitCreator)target;
-        raceCircuitCreator = GameObject.FindGameObjectWithTag("RaceCircuitRootObject").GetComponent<RaceCircuitCreator>();
-        Debug.Log("Started");
-        Debug.Log("Found a creator root object w ith name: " + raceCircuitCreator);
-
-        Selection.selectionChanged += OnSelectionChanged;
-    }
-
-
-    private static void OnSelectionChanged() //Called when selection changes in the editor
-    {
-        GameObject currentSelectedObject = Selection.activeGameObject;
-        if (currentSelectedObject != null)
-        {
-            if (currentSelectedObject == raceCircuitCreator.gameObject)
-            {
-                raceCircuitCreator.SelectCircuit();
-            }
-            else if (currentSelectedObject.GetComponent<CircuitPointGizmo>())
-            {
-                raceCircuitCreator.SelectPoint(currentSelectedObject.GetComponent<CircuitPointGizmo>().correspondingPoint);
-            }
-            else if (currentSelectedObject.GetComponent<Road>())
-            {
-                raceCircuitCreator.SelectRoad(currentSelectedObject.GetComponent<Road>());
-            }
-        }
-        else //When clicking elsewhere
-        {
-            raceCircuitCreator.DeselectAll();
-        }
-    }
-}*/

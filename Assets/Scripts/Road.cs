@@ -42,6 +42,9 @@ public class Road : MonoBehaviour
         }
         averageWidth = averageWidth / associatedPoints.Count;
 
+        tileX = 1;
+        tileY = roadLength / averageWidth;
+
 
         int xCount = creator.width_wise_vertex_count;
         int yCount = (int)(creator.length_wise_vertex_count_ratio * xCount * roadLength / averageWidth);

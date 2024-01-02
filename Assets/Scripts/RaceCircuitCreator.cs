@@ -20,7 +20,6 @@ public class RaceCircuitCreator : MonoBehaviour
 
     //References
     public RaceCircuit raceCircuit;
-    public List<Curve> raceCurves;
 
     //Prefabs:
     public GameObject circuitPointGizmoPrefab; // Might want multiple gizmo prefabs of multiplesizes
@@ -54,6 +53,9 @@ public class RaceCircuitCreator : MonoBehaviour
     
     public bool updateOnlyOnRelease = true;
 
+    [Range(1, 5)]
+    public float rotatorHandleLength = 3.0f;
+
     [Range(0.05f, 1f)]
     public float roadRebuildingFrequency = 0.2f;
 
@@ -74,7 +76,7 @@ public class RaceCircuitCreator : MonoBehaviour
         // Draw(raceCircuit.circuitCurve);
 
         //Gizmos are created at each POINT on the circuit curve
-        foreach (Curve curve in raceCurves)
+        foreach (Curve curve in raceCircuit.circuitCurves)
         {
             foreach (Point point in curve.points)
             {
@@ -114,7 +116,7 @@ public class RaceCircuitCreator : MonoBehaviour
                 };*/
             }
 
-            foreach (Curve curve in raceCurves)
+            foreach (Curve curve in raceCircuit.circuitCurves)
             {
                 foreach (Point point in curve.points)
                 {
@@ -207,11 +209,11 @@ public class RaceCircuitCreator : MonoBehaviour
         //Vector3 mousePoint = screen2xzplane(guiEvent);
 
 
-        Point closestPoint = raceCurves[0].points[0];
+        Point closestPoint = raceCircuit.circuitCurves[0].points[0];
         float minDistance = float.MaxValue;
         Vector3 closestPosition = Vector3.zero;
 
-        foreach (Curve curve in raceCurves)
+        foreach (Curve curve in raceCircuit.circuitCurves)
         {
             foreach (Point point in curve.points)
             {
@@ -287,7 +289,7 @@ public class RaceCircuitCreator : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        foreach (Curve curve in raceCurves)
+        foreach (Curve curve in raceCircuit.circuitCurves)
         {
             if (curve.isClosed != curve.prevIsClosed)
             {
@@ -347,7 +349,7 @@ public class RaceCircuitCreator : MonoBehaviour
         raceCircuit = GetComponent<RaceCircuit>();
 
 
-        foreach (Curve curve in raceCurves)
+        foreach (Curve curve in raceCircuit.circuitCurves)
         {
             curve.Reinitialize();
 
@@ -367,7 +369,7 @@ public class RaceCircuitCreator : MonoBehaviour
         }
 
         // NOTE: we'll do this only when the corresponding gizmo moves but that's only after @Bella adds them
-        foreach (Curve curve in raceCurves)
+        foreach (Curve curve in raceCircuit.circuitCurves)
         {
             foreach (Point point in curve.points)
             {
@@ -382,7 +384,7 @@ public class RaceCircuitCreator : MonoBehaviour
             }
         }
 
-        foreach (Curve curve in raceCurves)
+        foreach (Curve curve in raceCircuit.circuitCurves)
         {
             curve.NormalizeCurvePoints();
             foreach (Point point in curve.points)

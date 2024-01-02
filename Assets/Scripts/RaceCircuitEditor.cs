@@ -46,7 +46,7 @@ public class RaceCircuitEditor : Editor
             }
             else
             {
-                foreach (Curve curve in creator.raceCurves)
+                foreach (Curve curve in creator.raceCircuit.circuitCurves)
                 {
                     DrawCircuitCurveHandles(curve);
                 }
@@ -54,11 +54,46 @@ public class RaceCircuitEditor : Editor
         }
         
 
+        foreach (Curve curve in creator.raceCircuit.circuitCurves)
+        {
+            DrawRotationHandle(curve);
+        }
+
        /* foreach (Curve curve in creator.raceCurves)
         {
             DrawHandles(curve);
         }*/
 
+    }
+
+    void DrawRotationHandle(Curve curve)
+    {
+        Handles.color = Color.yellow;
+        foreach(Point point in curve.points)
+        {
+            Vector3 handlePos = point.pointPosition + point.relativeRotateHandlePosition;
+            Handles.DrawLine(point.pointPosition, handlePos);
+            Vector3 newPos = Handles.FreeMoveHandle(handlePos, Quaternion.identity, 0.3f, Vector3.zero, Handles.SphereHandleCap);
+
+            if (newPos != handlePos)
+            {
+                Vector3 ac = (point.controlPointPositionForward - point.controlPointPositionBackward).normalized;
+
+                newPos = Vector3.ProjectOnPlane(newPos - point.pointPosition, ac).normalized * creator.rotatorHandleLength;
+
+                Quaternion rotation = Quaternion.FromToRotation(point.relativeRotateHandlePosition, newPos);
+
+                point.transform.rotation = point.transform.rotation * rotation;
+                point.relativeRotateHandlePosition = newPos;
+
+                // point.PerpendicularizeCrossSection();
+                foreach(Point csPoint in point.crossSectionCurve.points)
+                {
+                    csPoint.AutoSetAnchorControlPoints();
+                }
+            }
+
+        }
     }
 
     void DrawCircuitCurveHandles(Curve curve)

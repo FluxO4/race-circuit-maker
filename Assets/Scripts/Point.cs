@@ -21,6 +21,7 @@ public class Point : MonoBehaviour
     public Point prevPoint;
 
     public Curve parentCurve;
+    public RaceCircuitCreator creator;
 
     public float nextSegmentLength;
     public float prevSegmentLength;
@@ -98,12 +99,12 @@ public class Point : MonoBehaviour
         controlPointPositionForward = anchorPos + dir * neighbourDistances[1] * .5f;
     }
 
-    public void AutoSetStart()
+    void AutoSetStart()
     {
         controlPointPositionForward = (pointPosition + nextPoint.controlPointPositionBackward) * .5f;
     }
 
-    public void AutoSetEnd()
+    void AutoSetEnd()
     {
         controlPointPositionBackward = (prevPoint.controlPointPositionForward + pointPosition) * .5f;
     }
@@ -193,7 +194,7 @@ public class Point : MonoBehaviour
         }
 
         Debug.Log("OUT OF RANGE SOMEHOW! FIX THIS!");
-        return Vector3.zero;
+       // return Vector3.zero;
         return crossSectionCurve.points[0].pointPosition;
     }
 
@@ -224,6 +225,10 @@ public class Point : MonoBehaviour
     // NOTE: function call is only valid if we contain a cross section
     public void PerpendicularizeCrossSection()
     {
+        if(crossSectionCurve == null)
+        {
+            return;
+        }
         /*
          ////
         ////if (perp.sqrMagnitude == 0) // meaning the vectors were parallel (which is the case if we're auto setting the control points)

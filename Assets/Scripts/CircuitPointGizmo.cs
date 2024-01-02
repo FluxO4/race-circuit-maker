@@ -7,6 +7,7 @@ public class CircuitPointGizmo : MonoBehaviour
 {
 
     public Point correspondingPoint;
+    
 
     bool hasChanged = false;
 
@@ -21,13 +22,27 @@ public class CircuitPointGizmo : MonoBehaviour
     {
         if (transform.hasChanged)
         {
-            correspondingPoint.transform.position = transform.position;
             correspondingPoint.moveToTransform();
 
-            foreach (Point crossSectionPoint in correspondingPoint.crossSectionCurve.points)
+            if (!correspondingPoint.creator.updateOnlyOnRelease)
             {
-                crossSectionPoint.moveToTransform();
+                correspondingPoint.UpdateLength();
+
+                correspondingPoint.PerpendicularizeCrossSection();
+
+                if (correspondingPoint.creator.autoSetControlPoints)
+                {
+                    foreach (Point point in correspondingPoint.crossSectionCurve.points)
+                    {
+                        point.AutoSetAnchorControlPoints();
+                    }
+                }
+
+                correspondingPoint.creator.pointTransformChanged = true;
             }
+
+            
+
 
             hasChanged = true;
             transform.hasChanged = false;
@@ -36,12 +51,25 @@ public class CircuitPointGizmo : MonoBehaviour
         {
             if (hasChanged)
             {
-                Debug.Log("Released");
+                if (correspondingPoint.creator.updateOnlyOnRelease)
+                {
+                    correspondingPoint.UpdateLength();
 
-                correspondingPoint.PerpendicularizeCrossSection();
+                    correspondingPoint.PerpendicularizeCrossSection();
+
+                    if (correspondingPoint.creator.autoSetControlPoints)
+                    {
+                        foreach (Point point in correspondingPoint.crossSectionCurve.points)
+                        {
+                            point.AutoSetAnchorControlPoints();
+                        }
+                    }
+
+                    correspondingPoint.creator.pointTransformChanged = true;
+                }
+
+                
             }
-
-
 
             hasChanged = false;
         }

@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-[CustomEditor(typeof(RaceCircuitCreator))]
+[CustomEditor(typeof(RaceCircuitCreator)), CanEditMultipleObjects]
 public class RaceCircuitEditor : Editor
 {
     /*Prefabs*/

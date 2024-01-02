@@ -45,8 +45,8 @@ public class Road : MonoBehaviour
 
         int xCount = creator.width_wise_vertex_count;
         int yCount = (int)(creator.length_wise_vertex_count_ratio * xCount * roadLength / averageWidth);
-        Debug.Log("Road will contain " + xCount + " vertices along width and " + yCount+ " vertices along length");
-        Debug.Log("Road is " + roadLength + " metres long, compared to the first segment which is " + associatedPoints[0].nextSegmentLength);
+        //Debug.Log("Road will contain " + xCount + " vertices along width and " + yCount+ " vertices along length");
+        //Debug.Log("Road is " + roadLength + " metres long, compared to the first segment which is " + associatedPoints[0].nextSegmentLength);
 
         if (mesh != null)
         {
@@ -71,7 +71,7 @@ public class Road : MonoBehaviour
             float j_value = z_norm;
 
             j_value = (((float)z / yCount) * (roadLength) - cumulativeSegmentLength) / segmentLength;
-            Debug.Log("j_value is now " + j_value);
+            //Debug.Log("j_value is now " + j_value);
 
             while(j_value > 1 && currentPoint < associatedPoints.Count)
             {
@@ -80,7 +80,7 @@ public class Road : MonoBehaviour
                 segmentLength = associatedPoints[currentPoint].nextSegmentLength;
 
                 j_value = (((float)z / yCount) * (roadLength) - cumulativeSegmentLength) / segmentLength;
-                Debug.Log("More than 1! So now it's j_value is now " + j_value);
+              //  Debug.Log("More than 1! So now it's j_value is now " + j_value);
             }
 
 

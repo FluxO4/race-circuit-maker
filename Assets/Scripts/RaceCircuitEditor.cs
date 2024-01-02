@@ -19,10 +19,8 @@ public class RaceCircuitEditor : Editor
 
     private void OnSceneGUI()
     {
-<<<<<<< Updated upstream
-        creator.findClosestPoints();
+
         if (creator.circuitSelected)
-=======
         {
             Event guiEvent = Event.current;
             Ray mouseRay = HandleUtility.GUIPointToWorldRay(guiEvent.mousePosition);
@@ -36,8 +34,7 @@ public class RaceCircuitEditor : Editor
         }
 
 
-            if (creator.circuitSelected)
->>>>>>> Stashed changes
+        if (creator.circuitSelected)
         {
             if (creator.selectedRoad != null)
             {

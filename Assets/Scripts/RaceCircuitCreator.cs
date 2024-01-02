@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEditor;
 using System.Linq;
 using System.Collections;
+using System;
+using Unity.VisualScripting;
 
 [ExecuteAlways]
 public class RaceCircuitCreator : MonoBehaviour
@@ -429,8 +431,7 @@ public class RaceCircuitCreator : MonoBehaviour
         {
             if (pointTransformChanged)
             {
-                Debug.Log("REBUILDING ROADS!");
-
+                /*Debug.Log("REBUILDING ROADS!");*/
                 foreach (Road road in raceCircuit.roads)
                 {
 
@@ -606,6 +607,66 @@ public class RaceCircuitCreator : MonoBehaviour
                 Vector3 dir = (point.pointPosition - newPos).normalized;
                 point.controlPointPositionForward = point.pointPosition + dir * dist;
             }
+        }
+    }
+
+    Vector3 screen2xzplane(Event guiEvent)
+    {
+        Ray ray = HandleUtility.GUIPointToWorldRay(guiEvent.mousePosition);
+        Vector3 direction = ray.direction;
+        Vector3 origin = ray.origin;
+        float result_y = 0;
+        Vector3 new_vector = origin + (origin.y - result_y) / (-direction.y) * direction;
+        Debug.Log(new_vector + " " + origin + " " + direction);
+        return new_vector;
+    }
+    public void findClosestPoints()
+    {
+        Event guiEvent = Event.current;
+        if (guiEvent.type == EventType.MouseDown && guiEvent.button == 0)
+        {
+            /*position*/
+            Vector3 mousePoint = screen2xzplane(guiEvent);
+            
+            Point closestPoint = raceCurves[0].points[0];
+            float minDistance = float.MaxValue;
+            foreach (Curve curve in raceCurves)
+            {
+                foreach(Point point in curve.points)
+                {
+                    float calcDistance = Vector3.Distance(mousePoint, point.pointPosition);
+                    if (calcDistance < minDistance)
+                    {
+                        closestPoint = point;
+                        minDistance = calcDistance;
+                    }
+                }
+            }
+            /*Debug.Log(closestPoint +" " +closestPoint.pointPosition);*/
+
+            Curve closestCurve = closestPoint.parentCurve;
+            int closestIndex = closestCurve.points.IndexOf(closestPoint);
+            Point leftPoint = closestIndex > 0 ? closestCurve.points[closestIndex - 1] : closestCurve.points[closestCurve.points.Count - 1];
+            Point rightPoint = closestIndex < closestCurve.points.Count - 1 ? closestCurve.points[closestIndex + 1] : closestCurve.points[0];
+            if (leftPoint != null && rightPoint != null)
+            {
+                Ray leftRay = new Ray(mousePoint, leftPoint.pointPosition - mousePoint);
+                Ray rightRay = new Ray(mousePoint, rightPoint.pointPosition - mousePoint);
+                Ray closestRay = new Ray(mousePoint, closestPoint.pointPosition - mousePoint);
+
+                float left_angle = Vector3.Angle(leftRay.direction, closestRay.direction);
+                float right_angle = Vector3.Angle(rightRay.direction, closestRay.direction);
+
+                if (left_angle > right_angle)
+                {
+                    Debug.Log("Left Point: " + leftPoint + " Position: " + leftPoint.pointPosition);
+                }
+                else
+                {
+                    Debug.Log("Right Point: " + rightPoint + " Position: " + rightPoint.pointPosition);
+                }
+            }
+
         }
     }
 

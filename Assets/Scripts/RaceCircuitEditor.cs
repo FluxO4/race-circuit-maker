@@ -17,6 +17,7 @@ public class RaceCircuitEditor : Editor
 
     private void OnSceneGUI()
     {
+        creator.findClosestPoints();
         if (creator.circuitSelected)
         {
             if (creator.selectedRoad != null)
@@ -35,7 +36,7 @@ public class RaceCircuitEditor : Editor
                 }
             }
         }
-
+        
 
        /* foreach (Curve curve in creator.raceCurves)
         {
@@ -251,4 +252,6 @@ public class RaceCircuitEditor : Editor
     {
         creator = (RaceCircuitCreator)target;
     }
+
+
 }

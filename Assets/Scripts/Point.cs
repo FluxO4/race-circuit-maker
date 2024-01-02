@@ -193,7 +193,7 @@ public class Point : MonoBehaviour
             }
         }
 
-        Debug.Log("OUT OF RANGE SOMEHOW! FIX THIS!");
+        /*Debug.Log("OUT OF RANGE SOMEHOW! FIX THIS!");*/
        // return Vector3.zero;
         return crossSectionCurve.points[0].pointPosition;
     }

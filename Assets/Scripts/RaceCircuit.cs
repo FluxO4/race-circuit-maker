@@ -21,7 +21,7 @@ public class RaceCircuit : MonoBehaviour
     public List<Road> roads;
 
 
-    public Curve circuitCurve;
+    public List<Curve> circuitCurves;
     public GameObject gizmos;
     
     // Start is called before the first frame update

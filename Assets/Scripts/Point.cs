@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ public class Point : MonoBehaviour
     public Vector3 controlPointPositionBackward;
     public Vector3 controlPointPositionForward;
 
-    public Vector3 relativeRotateHandlePosition = Vector3.up * 5;
+    public Vector3 relativeRotateHandlePosition = Vector3.up;
 
     bool continuesBackward;
     bool continuesForward;
@@ -195,9 +196,9 @@ public class Point : MonoBehaviour
             }
         }
 
-        /*Debug.Log("OUT OF RANGE SOMEHOW! FIX THIS!");*/
+        Debug.Log("OUT OF RANGE SOMEHOW! FIX THIS!");
        // return Vector3.zero;
-        return crossSectionCurve.points[0].pointPosition;
+        return crossSectionCurve.points.Last().pointPosition;
     }
 
     // a and b refer to the anchor points in the big loop which contains the curves we're getting the point from
@@ -265,6 +266,8 @@ public class Point : MonoBehaviour
         ////}
         ///*/
 
+        Debug.Log("Perp babeeee");
+
         Vector3 edgeVector = crossSectionCurve.points.Last().pointPosition - crossSectionCurve.points.First().pointPosition;
 
 
@@ -278,12 +281,15 @@ public class Point : MonoBehaviour
 
             Vector3 perpToCrossSectionPlane = Vector3.Cross(fakeUp, edgeVector).normalized;
 
-            relativeRotateHandlePosition = Vector3.Cross(edgeVector, perpToCrossSectionPlane).normalized;
 
             //if (Vector3.Dot(perpToCrossSectionPlane, ac) < 0)
             //    perpToCrossSectionPlane = -perpToCrossSectionPlane;
 
             Quaternion rotation = Quaternion.FromToRotation(perpToCrossSectionPlane, ac);
+
+            // relativeRotateHandlePosition = Vector3.ProjectOnPlane(relativeRotateHandlePosition - pointPosition, perpToCrossSectionPlane) + pointPosition;
+            // relativeRotateHandlePosition = rotation * (relativeRotateHandlePosition - pointPosition) + pointPosition;
+            // relativeRotateHandlePosition = relativeRotateHandlePosition.normalized * 5;
 
             foreach (Point point in crossSectionCurve.points)
             {

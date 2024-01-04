@@ -15,7 +15,7 @@ public class Point : MonoBehaviour
     public Vector3 controlPointPositionBackward;
     public Vector3 controlPointPositionForward;
 
-    public Vector3 relativeRotateHandlePosition = Vector3.up;
+    public Vector3 relativeRotateHandlePosition = Vector3.zero;
 
     bool continuesBackward;
     bool continuesForward;
@@ -168,7 +168,7 @@ public class Point : MonoBehaviour
         // meaning this only works for CrossSection curves
 
         // linearly searching for now
-        i = Mathf.Max(0, Mathf.Min(i, 1));
+        i = Mathf.Max(0, Mathf.Min(i, crossSectionCurve.points.Last().normalizedPositionAlongCurve));
 
         for (int index = 0; index < crossSectionCurve.points.Count; index++)
         {
@@ -225,6 +225,16 @@ public class Point : MonoBehaviour
 
 
 
+    public Vector3 GetUp()
+    {
+        // [OPTIMIZE]
+        // TODO cache in edge vector and ac
+        Vector3 edgeVector = (crossSectionCurve.points.Last().pointPosition - crossSectionCurve.points.First().pointPosition);
+        Vector3 ac = controlPointPositionForward - controlPointPositionBackward;
+
+        return Vector3.Cross(ac, edgeVector).normalized * creator.smallerRailingHeight;
+    }
+
     // NOTE: function call is only valid if we contain a cross section
     public void PerpendicularizeCrossSection()
     {
@@ -266,11 +276,7 @@ public class Point : MonoBehaviour
         ////}
         ///*/
 
-        Debug.Log("Perp babeeee");
-
         Vector3 edgeVector = crossSectionCurve.points.Last().pointPosition - crossSectionCurve.points.First().pointPosition;
-
-
 
         Vector3 ac = (controlPointPositionForward - controlPointPositionBackward).normalized;
 
@@ -281,6 +287,10 @@ public class Point : MonoBehaviour
 
             Vector3 perpToCrossSectionPlane = Vector3.Cross(fakeUp, edgeVector).normalized;
 
+            if (relativeRotateHandlePosition.sqrMagnitude == 0)
+            {
+                relativeRotateHandlePosition = Vector3.Cross(perpToCrossSectionPlane, edgeVector).normalized * creator.rotatorHandleLength;
+            }
 
             //if (Vector3.Dot(perpToCrossSectionPlane, ac) < 0)
             //    perpToCrossSectionPlane = -perpToCrossSectionPlane;

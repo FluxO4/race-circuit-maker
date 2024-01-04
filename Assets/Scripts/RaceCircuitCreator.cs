@@ -18,6 +18,12 @@ public class RaceCircuitCreator : MonoBehaviour
     [Range(0.1f, 10f)]
     public float length_wise_vertex_count_ratio = 1;
 
+    [Range(2, 20)]
+    public int smallerRailingHeight;
+
+    [Range(2, 20)]
+    public int largerRailingHeight;
+
     //References
     public RaceCircuit raceCircuit;
 

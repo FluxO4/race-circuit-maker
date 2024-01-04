@@ -14,11 +14,14 @@ public class Road : MonoBehaviour
     public List<Point> associatedPoints;
 
     float averageWidth = 1;
-    float roadLength = 1;
+    public float roadLength = 1;
 
     private Mesh mesh;
     private Vector3[] vertices;
 
+    public List<Railing> railings = new List<Railing>();
+
+    public int yCount = 0;
 
     public void RoadHighlight(bool activate)
     {
@@ -47,7 +50,7 @@ public class Road : MonoBehaviour
 
 
         int xCount = creator.width_wise_vertex_count;
-        int yCount = (int)(creator.length_wise_vertex_count_ratio * xCount * roadLength / averageWidth);
+        yCount = (int)(creator.length_wise_vertex_count_ratio * xCount * roadLength / averageWidth);
         //Debug.Log("Road will contain " + xCount + " vertices along width and " + yCount+ " vertices along length");
         //Debug.Log("Road is " + roadLength + " metres long, compared to the first segment which is " + associatedPoints[0].nextSegmentLength);
 
@@ -118,6 +121,12 @@ public class Road : MonoBehaviour
         mesh.RecalculateNormals();
 
         transform.position = associatedPoints[0].transform.position;
+
+        foreach (Railing railing in railings)
+        {
+            railing.parent = this;
+            railing.build();
+        }
 
         //Builds the road mesh
     }

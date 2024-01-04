@@ -130,6 +130,7 @@ public class Road : MonoBehaviour
         foreach (Railing railing in railings)
         {
             railing.parent = this;
+            railing.height = creator.smallerRailingHeight;
             railing.build();
         }
 
@@ -137,7 +138,7 @@ public class Road : MonoBehaviour
         {
             bridge.parent = this;
             bridge.build();
-            bridge.transform.position = transform.position;
+            // bridge.transform.position = transform.position;
         }
 
         //Builds the road mesh

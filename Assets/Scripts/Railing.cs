@@ -5,12 +5,12 @@ public class Railing : MonoBehaviour
 {
     public float min;
     public float max;
+    public float height;
 
     [Range(0, 1)]
     public int side; // 0 is left, 1 is right
 
     public Road parent;
-
     Mesh mesh;
 
     public void build()
@@ -56,7 +56,7 @@ public class Railing : MonoBehaviour
             int nextPoint = Mathf.Min(currentPoint + 1, parent.associatedPoints.Count - 1);
             Vector3 nextUp = parent.associatedPoints[nextPoint].GetUp();
 
-            Vector3 up = Vector3.Lerp(currentUp, nextUp, j_value) * parent.creator.smallerRailingHeight;
+            Vector3 up = Vector3.Lerp(currentUp, nextUp, j_value) * height;
 
             vertices[i + side] = parent.associatedPoints[currentPoint].GetPointFromij(side, j_value) - parent.associatedPoints[0].transform.position + up;
             vertices[i + 1 - side] = parent.associatedPoints[currentPoint].GetPointFromij(side, j_value) - parent.associatedPoints[0].transform.position;

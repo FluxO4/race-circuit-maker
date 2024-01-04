@@ -82,8 +82,8 @@ public class Bridge : MonoBehaviour
             Vector3 up = Vector3.Lerp(currentUp, nextUp, j_value).normalized;
             Vector3 right = Vector3.Lerp(currentEV, nextEV, j_value).normalized;
 
-            Vector3 leftOrigin = parent.associatedPoints[currentPoint].GetPointFromij(0, j_value);
-            Vector3 rightOrigin = parent.associatedPoints[currentPoint].GetPointFromij(1, j_value);
+            Vector3 leftOrigin = parent.associatedPoints[currentPoint].GetPointFromij(0, j_value) - parent.transform.position;
+            Vector3 rightOrigin = parent.associatedPoints[currentPoint].GetPointFromij(1, j_value) - parent.transform.position;
 
             for (int shapeIndex = 0; shapeIndex < bridgeShapePoints.Count - 1; ++shapeIndex)
             {

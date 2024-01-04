@@ -11,6 +11,7 @@ public class Road : MonoBehaviour
 
 
     public RaceCircuitCreator creator;
+    public MeshCollider myMeshCollider;
     public List<Point> associatedPoints;
 
     float averageWidth = 1;
@@ -120,6 +121,7 @@ public class Road : MonoBehaviour
         mesh.triangles = triangles;
         mesh.RecalculateNormals();
 
+        myMeshCollider.sharedMesh = mesh;
         transform.position = associatedPoints[0].transform.position;
 
         foreach (Railing railing in railings)

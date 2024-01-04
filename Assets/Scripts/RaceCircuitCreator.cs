@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections;
 using System;
 using Unity.VisualScripting;
+using System.Drawing;
 
 [ExecuteAlways]
 public class RaceCircuitCreator : MonoBehaviour
@@ -196,6 +197,7 @@ public class RaceCircuitCreator : MonoBehaviour
         if (AddPoint)
         {
             findClosestPoints(inputRayWS);
+
         }
 
     }
@@ -280,13 +282,48 @@ public class RaceCircuitCreator : MonoBehaviour
         }else if(leftPoint == null)
         {
             otherPoint = rightPoint;
+       
         }else if (rightPoint == null)
         {
             otherPoint = leftPoint;
+            
         }
 
         Debug.Log("MAIN POINT IS " + closestPoint.name + " OTHER POINT IS " + otherPoint.name);
+
+        int mainPointIndex = closestCurve.points.IndexOf(closestPoint);
+        int secondPointIndex = closestCurve.points.IndexOf(otherPoint);
+        if(mainPointIndex > secondPointIndex){mainPointIndex = secondPointIndex;}
+        Point newpoint = (PrefabUtility.InstantiatePrefab(pointPrefab, closestCurve.transform) as GameObject).GetComponent<Point>();
+        closestCurve.points.Insert(mainPointIndex + 1, newpoint);
+        /*Prev of second point*/
+        closestPoint.nextPoint.prevPoint = newpoint;
+        /* New point*/
+        newpoint.nextPoint = closestPoint.nextPoint;
+        newpoint.prevPoint = closestPoint;
+        /* Next of closest point*/
+        closestPoint.nextPoint = newpoint;
+
+        /*Other Properties*/
+        newpoint.parentCurve = closestCurve;
+        newpoint.moveToTransform();
+        newpoint.creator = this;
+
+        /*Roads*/
+        foreach(Road road in raceCircuit.roads)
+        {
+            foreach(Point point in road.associatedPoints)
+            {
+                if(closestPoint ==  point)
+                {
+                    road.associatedPoints = closestCurve.points;
+                    road.buildRoad();
+                }
+            }
+            
+        }
     }
+
 
     #endregion
 

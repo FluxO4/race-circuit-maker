@@ -20,6 +20,7 @@ public class RollerBallFollowerCamera: MonoBehaviour
        
 
         float moveVertical = Input.GetAxis("Vertical");
+
         float rotateHorizontal = Input.GetAxis("Horizontal");
 
         Vector3 force = (Vector3.ProjectOnPlane(transform.forward, Vector3.up)).normalized * moveVertical * speed * Time.fixedDeltaTime;

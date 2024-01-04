@@ -228,12 +228,18 @@ public class Point : MonoBehaviour
     public Vector3 GetUp()
     {
         // [OPTIMIZE]
-        // TODO cache in edge vector and ac
-        Vector3 edgeVector = (crossSectionCurve.points.Last().pointPosition - crossSectionCurve.points.First().pointPosition);
+        // TODO cache edge vector and ac
         Vector3 ac = controlPointPositionForward - controlPointPositionBackward;
-
-        return Vector3.Cross(ac, edgeVector).normalized * creator.smallerRailingHeight;
+        return Vector3.Cross(ac, GetEV()).normalized;
     }
+
+    public Vector3 GetEV()
+    {
+        // [OPTIMIZE]
+        // TODO cache edge vector
+        return (crossSectionCurve.points.Last().pointPosition - crossSectionCurve.points.First().pointPosition).normalized;
+    }
+
 
     // NOTE: function call is only valid if we contain a cross section
     public void PerpendicularizeCrossSection()

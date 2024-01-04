@@ -56,7 +56,7 @@ public class Railing : MonoBehaviour
             int nextPoint = Mathf.Min(currentPoint + 1, parent.associatedPoints.Count - 1);
             Vector3 nextUp = parent.associatedPoints[nextPoint].GetUp();
 
-            Vector3 up = Vector3.Lerp(currentUp, nextUp, j_value);
+            Vector3 up = Vector3.Lerp(currentUp, nextUp, j_value) * parent.creator.smallerRailingHeight;
 
             vertices[i + side] = parent.associatedPoints[currentPoint].GetPointFromij(side, j_value) - parent.associatedPoints[0].transform.position + up;
             vertices[i + 1 - side] = parent.associatedPoints[currentPoint].GetPointFromij(side, j_value) - parent.associatedPoints[0].transform.position;
@@ -91,6 +91,9 @@ public class Railing : MonoBehaviour
 
         mesh.triangles = triangles;
         mesh.RecalculateNormals();
+
+        GetComponent<MeshCollider>().sharedMesh = mesh;
+
 
         transform.position = parent.associatedPoints[0].transform.position;
     }

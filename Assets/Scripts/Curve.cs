@@ -13,7 +13,7 @@ public class Curve : MonoBehaviour
     [HideInInspector]
     public bool prevIsClosed = false;
 
-    public bool IsClosedProperty { get { return isClosed; } set { Reinitialize(); isClosed = value; } }
+    public bool IsClosedProperty { get { return isClosed; } set { AutoSetPreviousAndNextPoints(); isClosed = value; } }
 
     public float totalLength = 0;
 
@@ -31,7 +31,7 @@ public class Curve : MonoBehaviour
     
 
 
-    public void Reinitialize()
+    public void AutoSetPreviousAndNextPoints()
     {
         points.Clear();
 
@@ -42,13 +42,22 @@ public class Curve : MonoBehaviour
             Point point = child.GetComponent<Point>();
 
             Point nextPoint = nextChild.GetComponent<Point>();
-            point.moveToTransform();
 
+            point.gameObject.name = "Point " + i.ToString();
             point.nextPoint = nextPoint;
             point.nextPoint.prevPoint = point;
 
             point.parentCurve = this;
             point.creator = creator;
+
+            if (point.crossSectionCurve)
+            {
+                foreach(Point cpoint in point.crossSectionCurve.points)
+                {
+                    CrossSectionPointGizmo t = cpoint.GetComponent<CrossSectionPointGizmo>();
+                    if (t) t.parentPoint = point;
+                }
+            }
 
             points.Add(point);
         }
@@ -62,6 +71,12 @@ public class Curve : MonoBehaviour
 
     public void NormalizeCurvePoints()
     {
+        for(int i = 0; i < points.Count; i++)
+        {
+            points[i].UpdateLength();
+        }
+
+
         totalLength = 0;
 
         {

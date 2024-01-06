@@ -13,18 +13,10 @@ public class RaceCircuitCreator : MonoBehaviour
     [Range(2, 10)]
     public int cross_section_point_count = 3;
 
-    [Range(2, 20)]
-    public int width_wise_vertex_count = 10;
 
-    [Range(0.1f, 10f)]
-    public float length_wise_vertex_count_ratio = 1;
 
-    [Range(2, 20)]
-    public int smallerRailingHeight;
 
-    [Range(2, 20)]
-    public int largerRailingHeight;
-
+    
     //References
     public RaceCircuit raceCircuit;
 
@@ -140,6 +132,10 @@ public class RaceCircuitCreator : MonoBehaviour
 
     private void OnSelectionChanged() //Called when selection changes in the editor
     {
+        if(this.gameObject == null)
+        {
+            Destroy(this.gameObject);
+        }
         GameObject currentSelectedObject = Selection.activeGameObject;
 
         if (currentSelectedObject != null)
@@ -209,6 +205,22 @@ public class RaceCircuitCreator : MonoBehaviour
         Vector3 projectedPoint = ray.origin + projectedVector;
 
         return projectedPoint;
+    }
+
+    public void PerpendicularizeAllCrossSections()
+    {
+        foreach (Curve curve in raceCircuit.circuitCurves)
+        {
+            foreach (Point point in curve.points)
+            {
+                point.PerpendicularizeCrossSection();
+
+                foreach (Point crossSectionPoint in point.crossSectionCurve.points)
+                {
+                    crossSectionPoint.AutoSetAnchorControlPoints();
+                }
+            }
+        }
     }
 
     public void findClosestPoints(Ray inputRayWS)
@@ -293,34 +305,63 @@ public class RaceCircuitCreator : MonoBehaviour
 
         int mainPointIndex = closestCurve.points.IndexOf(closestPoint);
         int secondPointIndex = closestCurve.points.IndexOf(otherPoint);
-        if(mainPointIndex > secondPointIndex){mainPointIndex = secondPointIndex;}
-        Point newpoint = (PrefabUtility.InstantiatePrefab(pointPrefab, closestCurve.transform) as GameObject).GetComponent<Point>();
-        closestCurve.points.Insert(mainPointIndex + 1, newpoint);
-        /*Prev of second point*/
-        closestPoint.nextPoint.prevPoint = newpoint;
-        /* New point*/
-        newpoint.nextPoint = closestPoint.nextPoint;
-        newpoint.prevPoint = closestPoint;
-        /* Next of closest point*/
-        closestPoint.nextPoint = newpoint;
 
-        /*Other Properties*/
-        newpoint.parentCurve = closestCurve;
-        newpoint.moveToTransform();
-        newpoint.creator = this;
+        if(mainPointIndex > secondPointIndex)
+        {
+            int t = mainPointIndex;
+            mainPointIndex = secondPointIndex;
+            secondPointIndex = t;
+
+            closestPoint = closestCurve.points[mainPointIndex];
+            otherPoint = closestCurve.points[secondPointIndex];
+        }
+        if(secondPointIndex - mainPointIndex != 1)
+        {
+            Debug.LogError("Problem with finding two closest points");
+        }
+
+
+        Point newpoint = (PrefabUtility.InstantiatePrefab(pointPrefab, closestCurve.transform) as GameObject).GetComponent<Point>();
+        newpoint.transform.SetSiblingIndex(secondPointIndex);
+        closestCurve.AutoSetPreviousAndNextPoints();
+        closestCurve.NormalizeCurvePoints();
+
+        newpoint.pointPosition = closestPosition;
+        newpoint.rotatorPointPosition = newpoint.transform.up;
+
+        Vector3 avgUp = (closestPoint.transform.up + otherPoint.transform.up).normalized;
+        Vector3 avgZ = (closestPoint.transform.forward + otherPoint.transform.forward).normalized;
+        Matrix4x4 rotationMat = new Matrix4x4(-Vector3.Cross(avgZ, avgUp), avgUp, avgZ, Vector4.zero);
+        newpoint.transform.rotation = rotationMat.rotation;
+
+        newpoint.AutoSetAnchorControlPoints();
+
+        newpoint.crossSectionCurve.creator = this;
+        
+        newpoint.crossSectionCurve.AutoSetPreviousAndNextPoints();
+        newpoint.crossSectionCurve.NormalizeCurvePoints();
+        newpoint.PerpendicularizeCrossSection();
+        newpoint.crossSectionCurve.AutoSetAllControlPoints();
 
         /*Roads*/
         foreach(Road road in raceCircuit.roads)
         {
-            foreach(Point point in road.associatedPoints)
+            for(int i = 0; i < road.associatedPoints.Count; i++)
             {
-                if(closestPoint ==  point)
+                if (road.associatedPoints[i] == closestCurve.points[mainPointIndex])
                 {
-                    road.associatedPoints = closestCurve.points;
-                    road.buildRoad();
+                    if (i < road.associatedPoints.Count - 1)
+                    {
+                        road.associatedPoints.Insert(i + 1, newpoint);
+                    }
+                    else
+                    {
+                        road.associatedPoints.Add(newpoint);
+                    }
+                    pointTransformChanged = true;
+                    break;
                 }
             }
-            
         }
     }
 
@@ -336,7 +377,7 @@ public class RaceCircuitCreator : MonoBehaviour
         {
             if (curve.isClosed != curve.prevIsClosed)
             {
-                curve.Reinitialize();
+                curve.AutoSetPreviousAndNextPoints();
                 curve.prevIsClosed = curve.isClosed;
             }
         }
@@ -394,20 +435,20 @@ public class RaceCircuitCreator : MonoBehaviour
 
         foreach (Curve curve in raceCircuit.circuitCurves)
         {
-            curve.Reinitialize();
+            curve.AutoSetPreviousAndNextPoints();
 
             foreach (Point point in curve.points)
             {
-                point.crossSectionCurve.Reinitialize();
+                point.crossSectionCurve.AutoSetPreviousAndNextPoints();
 
-                point.PerpendicularizeCrossSection();
+                //point.PerpendicularizeCrossSection();
 
 
-                point.AutoSetAnchorControlPoints();
+                /*point.AutoSetAnchorControlPoints();
                 foreach (Point crossSectionPoint in point.crossSectionCurve.points)
                 {
                     crossSectionPoint.AutoSetAnchorControlPoints();
-                }
+                }*/
             }
         }
 

@@ -177,6 +177,14 @@ public class Bridge : MonoBehaviour
         transform.position = parent.associatedPoints[0].transform.position;
     }
 
+    public void removeMesh()
+    {
+        if (mesh != null)
+        {
+            DestroyImmediate(mesh, true);
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {

@@ -4,11 +4,18 @@ using UnityEngine;
 
 public class Road : MonoBehaviour
 {
+    [Range(2, 20)]
+    public int width_wise_vertex_count = 10;
+
+    [Range(0.1f, 10f)]
+    public float length_wise_vertex_count_ratio = 1;
+
     [Range(1, 20)]
     public float tileX = 5;
     [Range(1, 20)]
     public float tileY = 5;
 
+    
 
     public RaceCircuitCreator creator;
     public MeshCollider myMeshCollider;
@@ -52,8 +59,8 @@ public class Road : MonoBehaviour
         tileY = roadLength / averageWidth;
 
 
-        int xCount = creator.width_wise_vertex_count;
-        yCount = (int)(creator.length_wise_vertex_count_ratio * xCount * roadLength / averageWidth);
+        int xCount = width_wise_vertex_count;
+        yCount = (int)(length_wise_vertex_count_ratio * xCount * roadLength / averageWidth);
         //Debug.Log("Road will contain " + xCount + " vertices along width and " + yCount+ " vertices along length");
         //Debug.Log("Road is " + roadLength + " metres long, compared to the first segment which is " + associatedPoints[0].nextSegmentLength);
 
@@ -129,15 +136,28 @@ public class Road : MonoBehaviour
 
         foreach (Railing railing in railings)
         {
-            railing.parent = this;
-            railing.height = creator.smallerRailingHeight;
-            railing.build();
+            if (railing.gameObject.activeSelf)
+            {
+                railing.parent = this;
+                railing.build();
+            }
+            else
+            {
+                railing.removeMesh();
+            }
         }
 
         if (bridge)
         {
-            bridge.parent = this;
-            bridge.build();
+            if (bridge.gameObject.activeSelf)
+            {
+                bridge.parent = this;
+                bridge.build();
+            }
+            else
+            {
+                bridge.removeMesh();
+            }
             // bridge.transform.position = transform.position;
         }
 

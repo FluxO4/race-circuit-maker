@@ -1,7 +1,6 @@
 
 using System;
 using System.Collections.Generic;
-
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -10,6 +9,88 @@ using UnityEngine.UIElements;
 [CustomEditor(typeof(RaceCircuitCreator)), CanEditMultipleObjects]
 public class RaceCircuitEditor : Editor
 {
+
+
+  /*  public override VisualElement CreateInspectorGUI()
+    {
+        // Create a new VisualElement to be the root of our inspector UI
+        VisualElement myInspector = new VisualElement();
+
+        // Add a simple label
+        myInspector.Add(new Label("This is a custom inspector"));
+
+        // Return the finished inspector UI
+        return myInspector;
+    }*/
+
+    bool isButtonPressed = false;
+    GUIStyle toggleButtonStyle = null;
+
+    bool displayDebugInspector = true;
+
+    public override void OnInspectorGUI()
+    {
+        creator = (RaceCircuitCreator)target;
+        EditorGUI.BeginChangeCheck();
+
+
+
+        if (toggleButtonStyle == null)
+        {
+            toggleButtonStyle = new GUIStyle(EditorStyles.miniButton);
+        }
+
+        if (GUILayout.Button("Perpendicularize points"))
+        {
+            creator.PerpendicularizeAllCrossSections();
+        }
+
+
+        isButtonPressed = GUILayout.Toggle(isButtonPressed, "Add Point", toggleButtonStyle);
+
+        displayDebugInspector = GUILayout.Toggle(displayDebugInspector, "Show Debug Inspector", toggleButtonStyle);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            if (isButtonPressed)
+            {
+                OnButtonPressed();
+            }
+            else
+            {
+                OnButtonUnpressed();
+            }
+        }
+
+        if (displayDebugInspector) {
+
+            GUILayout.Label("Debug Inspector");
+
+            DrawDefaultInspector();
+        }
+    }
+
+    public void OnButtonPressed()
+    {
+        Debug.Log("Add button pressed");
+
+    }
+
+
+    public void OnButtonUnpressed()
+    {
+        Debug.Log("Add button unpressed");
+
+    }
+
+
+
+
+
+
+
+
+
     /*Prefabs*/
     public GameObject gizmoPrefab;
 
@@ -56,7 +137,7 @@ public class RaceCircuitEditor : Editor
 
         foreach (Curve curve in creator.raceCircuit.circuitCurves)
         {
-            DrawRotationHandle(curve);
+            DrawRotatorHandle(curve);
         }
 
        /* foreach (Curve curve in creator.raceCurves)
@@ -66,31 +147,21 @@ public class RaceCircuitEditor : Editor
 
     }
 
-    void DrawRotationHandle(Curve curve)
+
+
+
+    void DrawRotatorHandle(Curve curve)
     {
         Handles.color = Color.yellow;
         foreach(Point point in curve.points)
         {
-            Vector3 handlePos = point.pointPosition + point.relativeRotateHandlePosition;
+            Vector3 handlePos = point.rotatorPointPosition;
             Handles.DrawLine(point.pointPosition, handlePos);
             Vector3 newPos = Handles.FreeMoveHandle(handlePos, Quaternion.identity, 0.3f, Vector3.zero, Handles.SphereHandleCap);
 
             if (newPos != handlePos)
             {
-                Vector3 ac = (point.controlPointPositionForward - point.controlPointPositionBackward).normalized;
-
-                newPos = Vector3.ProjectOnPlane(newPos - point.pointPosition, ac).normalized * creator.rotatorHandleLength;
-
-                Quaternion rotation = Quaternion.FromToRotation(point.relativeRotateHandlePosition, newPos);
-
-                point.transform.rotation = point.transform.rotation * rotation;
-                point.relativeRotateHandlePosition = newPos;
-
-                // point.PerpendicularizeCrossSection();
-                foreach(Point csPoint in point.crossSectionCurve.points)
-                {
-                    csPoint.AutoSetAnchorControlPoints();
-                }
+                point.rotatorPointPosition = newPos;
             }
 
         }
@@ -119,9 +190,6 @@ public class RaceCircuitEditor : Editor
 
     void DrawRoadHandles(Road road)
     {
-
-
-
         for (int i = 0; i < road.associatedPoints.Count; i++)
         {
             Point point = road.associatedPoints[i];
@@ -148,7 +216,7 @@ public class RaceCircuitEditor : Editor
         {
             Undo.RecordObject(creator, "Move Anchor Point 1");
             point.transform.position = newPos;
-            point.moveToTransform();
+
             if (creator.autoSetControlPoints)
             {
                 point.AutoSetAnchorControlPoints();
@@ -157,7 +225,7 @@ public class RaceCircuitEditor : Editor
 
         if (creator.editingCrossSection)
         {
-            DrawCrossSectionCurveHandles(point);
+            DrawCrossSectionPointHandles(point);
         }
 
         if (creator.editingControlPoints)
@@ -169,9 +237,10 @@ public class RaceCircuitEditor : Editor
 
 
 
-    void DrawCrossSectionCurveHandles(Point circuitPoint)
+    void DrawCrossSectionPointHandles(Point circuitPoint)
     {
-        for(int i = 0; i < circuitPoint.crossSectionCurve.points.Count; i++)
+        int c = circuitPoint.crossSectionCurve.points.Count;
+        for (int i = 0; i < c; i++)
         {
             Point point = circuitPoint.crossSectionCurve.points[i];
 
@@ -181,8 +250,20 @@ public class RaceCircuitEditor : Editor
             if (newPos != point.pointPosition)
             {
                 Undo.RecordObject(creator, "Move Anchor Point 1");
-                point.pointPosition = newPos;
-                circuitPoint.PerpendicularizeCrossSection();
+                newPos = Vector3.ProjectOnPlane(newPos - circuitPoint.pointPosition, circuitPoint.transform.forward) + circuitPoint.pointPosition;
+                //point.ProjectSelf(circuitPoint.pointPosition, circuitPoint.GetAC());
+
+                if (i == 0 || i == c - 1)
+                {
+                    newPos = Vector3.Project(newPos - circuitPoint.pointPosition, circuitPoint.transform.right) + circuitPoint.pointPosition;
+                    point.pointPosition = newPos;
+                    circuitPoint.transformToAlignEndPoints();
+                }
+                else
+                {
+                    point.pointPosition = newPos;
+                }
+
                 point.AutoSetAnchorControlPoints();
             }
 
@@ -205,11 +286,16 @@ public class RaceCircuitEditor : Editor
         Handles.DrawLine(point.pointPosition, point.controlPointPositionBackward, 2);
 
         Vector3 newPos = Handles.FreeMoveHandle(point.controlPointPositionForward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+        
+        
         if (newPos != point.controlPointPositionForward)
         {
+            newPos = Vector3.ProjectOnPlane(newPos - point.pointPosition, point.transform.up) + point.pointPosition;
+
             Undo.RecordObject(creator, "Move Anchor Point 1");
             point.controlPointPositionForward = newPos;
             creator.pointTransformChanged = true;
+
 
             if (!creator.independentControlPoints)
             {
@@ -223,9 +309,13 @@ public class RaceCircuitEditor : Editor
         newPos = Handles.FreeMoveHandle(point.controlPointPositionBackward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
         if (newPos != point.controlPointPositionBackward)
         {
+            newPos = Vector3.ProjectOnPlane(newPos - point.pointPosition, point.transform.up) + point.pointPosition;
+
             Undo.RecordObject(creator, "Move Anchor Point 2");
             point.controlPointPositionBackward = newPos;
             creator.pointTransformChanged = true;
+            //point.PerpendicularizeCrossSection(true);
+            
 
             if (!creator.independentControlPoints)
             {
@@ -237,69 +327,6 @@ public class RaceCircuitEditor : Editor
     }
 
     
-
-
-
-    /*
-    void DrawHandles(Curve curve, bool crossSection = false)
-    {
-        // assuming the first point in the list is the first point
-        // (though I guess it doesn't matter which one we start from)
-        Point firstPoint = curve.points[0];
-        Point point = firstPoint;
-        do
-        {
-            Point nextPoint = point.nextPoint;
-
-            if (!crossSection || (point.nextPoint != firstPoint && nextPoint != null))
-                DrawBezierBetweenPoints(point, nextPoint, crossSection ? Color.red : Color.blue);
-
-            if (!crossSection)
-            {
-                DrawHandles(point.crossSectionCurve, true);
-            }
-
-            point = nextPoint;
-        } while (point && point != firstPoint);
-    }
-
-    void DrawBezierBetweenPoints(Point p1, Point p2, Color handleColor)
-    {
-        if (p1 == null || p2 == null)
-            return;
-        // Handles.DrawBezier(p1.transform.position, p2.transform.position, p1.controlPointPositionForward, p2.controlPointPositionBackward, bezierColor, null, 2);
-        Handles.color = handleColor;
-        Vector3 newPos = Handles.FreeMoveHandle(p1.controlPointPositionForward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
-
-        Handles.DrawLine(p1.controlPointPositionForward, p1.controlPointPositionBackward, 2);
-
-        if (newPos != p1.controlPointPositionForward)
-        {
-            Undo.RecordObject(creator, "Move Anchor Point 1");
-            p1.controlPointPositionForward = newPos;
-
-            float dist = (p1.pointPosition - p1.controlPointPositionBackward).magnitude;
-            Vector3 dir = (p1.pointPosition - newPos).normalized;
-            p1.controlPointPositionBackward = p1.pointPosition + dir * dist;
-
-            // p1.PerpendicularizeCrossSection();
-
-        }
-
-        newPos = Handles.FreeMoveHandle(p2.controlPointPositionBackward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
-        if (newPos != p2.controlPointPositionBackward)
-        {
-            Undo.RecordObject(creator, "Move Anchor Point 2");
-            p2.controlPointPositionBackward = newPos;
-
-            float dist = (p2.pointPosition - p2.controlPointPositionForward).magnitude;
-            Vector3 dir = (p2.pointPosition - newPos).normalized;
-            p2.controlPointPositionForward = p2.pointPosition + dir * dist;
-
-            // p2.PerpendicularizeCrossSection();
-        }
-    }
-    */
 
     private void OnEnable()
     {

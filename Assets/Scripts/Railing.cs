@@ -3,7 +3,12 @@ using UnityEngine;
 
 public class Railing : MonoBehaviour
 {
+    [Range(2, 20)]
+    public float railingHeight = 2;
+
+    [Range(0,1)]
     public float min;
+    [Range(0,1)]
     public float max;
     public float height;
 
@@ -15,6 +20,10 @@ public class Railing : MonoBehaviour
 
     public void build()
     {
+        if(min > max)
+        {
+            min = max * 0.5f;
+        }
         side = Mathf.Clamp(side, 0, 1) > 0.5 ? 1 : 0;
         transform.position = Vector3.zero;
 
@@ -56,7 +65,7 @@ public class Railing : MonoBehaviour
             int nextPoint = Mathf.Min(currentPoint + 1, parent.associatedPoints.Count - 1);
             Vector3 nextUp = parent.associatedPoints[nextPoint].GetUp();
 
-            Vector3 up = Vector3.Lerp(currentUp, nextUp, j_value) * height;
+            Vector3 up = Vector3.Lerp(currentUp, nextUp, j_value) * railingHeight;
 
             vertices[i + side] = parent.associatedPoints[currentPoint].GetPointFromij(side, j_value) - parent.associatedPoints[0].transform.position + up;
             vertices[i + 1 - side] = parent.associatedPoints[currentPoint].GetPointFromij(side, j_value) - parent.associatedPoints[0].transform.position;
@@ -67,8 +76,6 @@ public class Railing : MonoBehaviour
 
             // Instantiate(parent.creator.testSphere, parent.associatedPoints[currentPoint].GetPointFromij(0, j_value) - parent.associatedPoints[0].transform.position, Quaternion.identity);
             // Instantiate(parent.creator.testSphere, parent.associatedPoints[currentPoint].GetPointFromij(0, j_value) - parent.associatedPoints[0].transform.position + up, Quaternion.identity);
-
-
 
 
             i += 2;
@@ -97,6 +104,16 @@ public class Railing : MonoBehaviour
 
         transform.position = parent.associatedPoints[0].transform.position;
     }
+
+
+    public void removeMesh()
+    {
+        if (mesh != null)
+        {
+            DestroyImmediate(mesh, true);
+        }
+    }
+
 
     // Start is called before the first frame update
     void Start()

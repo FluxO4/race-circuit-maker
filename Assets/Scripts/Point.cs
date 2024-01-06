@@ -5,17 +5,73 @@ using UnityEngine;
 
 public class Point : MonoBehaviour
 {
+    [Range(1, 10)]
+    public float rotatorDistance = 5;
+
+
     public int PointIndex;
 
     public bool GizmoVisibility; //If true, a gizmo is shown that can be selected
     public bool Selected; //If true, the gizmo is highlighted, and can be moved
 
-    public Vector3 pointPosition;
+    [SerializeField]
+    Transform controlPointBackward;
+    [SerializeField]
+    Transform controlPointForward;
+    [SerializeField]
+    Transform rotatorPoint;
 
-    public Vector3 controlPointPositionBackward;
-    public Vector3 controlPointPositionForward;
 
-    public Vector3 relativeRotateHandlePosition = Vector3.zero;
+
+    public Vector3 pointPosition
+    {
+        get
+        {
+            return transform.position;
+        }
+
+        set
+        {
+            transform.position = value;
+        }
+
+    }
+
+    public Vector3 controlPointPositionBackward
+    {
+        get
+        {
+            return controlPointBackward.position;
+        }
+
+        set
+        {
+            transform.rotation = Quaternion.FromToRotation(transform.forward, controlPointPositionForward - value) * transform.rotation;
+            controlPointBackward.position = value;
+        }
+    }
+    public Vector3 controlPointPositionForward
+    {
+        get { return controlPointForward.position; }
+        set {
+            transform.rotation = Quaternion.FromToRotation(transform.forward, value - controlPointPositionBackward) * transform.rotation;
+            controlPointForward.position = value; 
+        }
+    }
+
+    public Vector3 rotatorPointPosition
+    {
+        get { return rotatorPoint.position; }
+        set
+        {
+            Vector3 newRotatorPosition = Vector3.ProjectOnPlane(value - transform.position, transform.forward) + transform.position;
+
+            transform.rotation = Quaternion.FromToRotation(transform.up, value - transform.position) * transform.rotation;
+
+            rotatorPoint.position = transform.position + transform.up * rotatorDistance;
+        }
+    }
+
 
     bool continuesBackward;
     bool continuesForward;
@@ -42,27 +98,10 @@ public class Point : MonoBehaviour
         GetComponent<MeshRenderer>().enabled = enable;
     }
 
-    public void moveToGizmo(GameObject Gizmo)
-    {
-        moveToPosition(Gizmo.transform.position);
-    }
-
     public void moveToPosition(Vector3 position)
     {
-        transform.position = position;
-        moveToTransform();
-    }
-
-    public void moveToTransform()
-    {
-        Vector3 diff = transform.position - pointPosition;
-
-        pointPosition = transform.position;
-        controlPointPositionForward += diff;
-        controlPointPositionBackward += diff;
-
+        pointPosition = position;
         UpdateLength();
-        // update other required stuff as well
     }
 
     public void UpdateLength()
@@ -240,81 +279,97 @@ public class Point : MonoBehaviour
         return (crossSectionCurve.points.Last().pointPosition - crossSectionCurve.points.First().pointPosition).normalized;
     }
 
+    public Vector3 GetAC()
+    {
+        return (controlPointPositionForward - controlPointPositionBackward);
+    }
 
     // NOTE: function call is only valid if we contain a cross section
-    public void PerpendicularizeCrossSection()
+
+
+    //If the position of control points have changed, this should be called to appropriately rotate the point object
+
+    //If the position of rotator point has changed, this should be called to appropriate rotate the point object
+
+    public void transformToAlignEndPoints()
+    {
+        Vector3 edgeMidpoint = (crossSectionCurve.points.Last().pointPosition + crossSectionCurve.points.First().pointPosition) * 0.5f;
+        Vector3 shift = pointPosition - edgeMidpoint;
+
+        foreach (Point point in crossSectionCurve.points)
+        {
+            Vector3 newPos = point.pointPosition + shift;
+            point.pointPosition = newPos;
+        }
+
+        pointPosition -= shift;
+    }
+
+    public void ProjectCrossSection()
+    {
+        if (crossSectionCurve == null)
+        {
+            return;
+        }
+
+        foreach (Point point in crossSectionCurve.points)
+        {
+            Vector3 newPos = Vector3.ProjectOnPlane(point.pointPosition - pointPosition, transform.forward) + pointPosition;
+            // TODO do this for the controlPoints as well
+            point.moveToPosition(newPos);
+        }
+    }
+
+    public void ProjectSelf(Vector3 origin, Vector3 normal)
+    {
+        Vector3 newPos = Vector3.ProjectOnPlane(pointPosition - origin, normal) + origin;
+        moveToPosition(newPos);
+    }
+
+    public void PerpendicularizeCrossSection(bool autoset = false)
     {
         if(crossSectionCurve == null)
         {
             return;
         }
-        /*
-         ////
-        ////if (perp.sqrMagnitude == 0) // meaning the vectors were parallel (which is the case if we're auto setting the control points)
-        ////{
-        ////    // get a vector to any of the points in the cross section (we're computing some kind of up vector
-        ////    // since we can't rely on unity's up being accurate because the road rotates in 3d
-        ////    Vector3 blah = crossSectionCurve.points.First().pointPosition;
-        ////    Vector3 vectorToBlah = blah - pointPosition;
-        ////    Vector3 perpToBlahAndAB = Vector3.Cross(ab, vectorToBlah).normalized;
 
-        ////    // now we go along this perpendicular axis to get ab and bc that aren't parallel
-        ////    Vector3 pt = pointPosition + perpToBlahAndAB;
-        ////    ab = pt - a;
-        ////    bc = c - pt;
-        ////    perp = Vector3.Cross(ab, bc).normalized;
-        ////}
-        ////
-        ////if (crossSectionCurve == null)
-        ////    return;
+        //Overhauled by cyborg-chan to add further constraints, which simplify calculations
+        //Constraints are: anchorPoint is always in the middle of the two end points, and two end points are along the local x axis of the anchor
+        //All cross section points are in the plane represented by anchor's forward as normal
 
-        ////Vector3 ac = controlPointPositionForward - controlPointPositionBackward;
+        //First, moving all points to satisfy the midpoint constraint
+        Vector3 edgeMidpoint = (crossSectionCurve.points.Last().pointPosition + crossSectionCurve.points.First().pointPosition) *0.5f;
+        Vector3 shift = pointPosition - edgeMidpoint;
 
-        ////foreach (Point point in crossSectionCurve.points)
-        ////{
-        ////    Vector3 newPos = Vector3.ProjectOnPlane(point.pointPosition - pointPosition, ac) + pointPosition;
+        foreach (Point point in crossSectionCurve.points)
+        {
+            Vector3 newPos = point.pointPosition + shift;
+            point.pointPosition = newPos;
+        }
 
-        ////    float dist = (point.pointPosition - pointPosition).magnitude;
-        ////    Vector3 dir = (newPos - pointPosition).normalized;
-        ////    point.moveToPosition(pointPosition + dir * dist);
+        //Then we rotate all cross section points so they are in the xy plane of our anchor
+        foreach (Point point in crossSectionCurve.points)
+        {
+            Quaternion firstRotation = Quaternion.FromToRotation((point.pointPosition - pointPosition).normalized, Vector3.ProjectOnPlane(point.pointPosition - pointPosition, transform.forward).normalized);
 
-        ////    point.moveToPosition(newPos);
-        ////}
-        ///*/
+            Vector3 newPos = firstRotation * (point.pointPosition - pointPosition) + pointPosition;
+            point.pointPosition = newPos;
+        }
 
         Vector3 edgeVector = crossSectionCurve.points.Last().pointPosition - crossSectionCurve.points.First().pointPosition;
+        Quaternion secondRotation = Quaternion.FromToRotation(edgeVector.normalized, transform.right);
 
-        Vector3 ac = (controlPointPositionForward - controlPointPositionBackward).normalized;
 
-        // we're only doing this if the two points aren't sharing the same euclidian point in space
-        if (edgeVector.sqrMagnitude != 0)
+        //Then we rotate all cross section points so that the end points reach the x axis
+        foreach (Point point in crossSectionCurve.points)
         {
-            Vector3 fakeUp = Vector3.Cross(edgeVector, ac);
-
-            Vector3 perpToCrossSectionPlane = Vector3.Cross(fakeUp, edgeVector).normalized;
-
-            if (relativeRotateHandlePosition.sqrMagnitude == 0)
-            {
-                relativeRotateHandlePosition = Vector3.Cross(perpToCrossSectionPlane, edgeVector).normalized * creator.rotatorHandleLength;
-            }
-
-            //if (Vector3.Dot(perpToCrossSectionPlane, ac) < 0)
-            //    perpToCrossSectionPlane = -perpToCrossSectionPlane;
-
-            Quaternion rotation = Quaternion.FromToRotation(perpToCrossSectionPlane, ac);
-
-            // relativeRotateHandlePosition = Vector3.ProjectOnPlane(relativeRotateHandlePosition - pointPosition, perpToCrossSectionPlane) + pointPosition;
-            // relativeRotateHandlePosition = rotation * (relativeRotateHandlePosition - pointPosition) + pointPosition;
-            // relativeRotateHandlePosition = relativeRotateHandlePosition.normalized * 5;
-
-            foreach (Point point in crossSectionCurve.points)
-            {
-                Vector3 newPos = Vector3.ProjectOnPlane(point.pointPosition - pointPosition, perpToCrossSectionPlane) + pointPosition;
-                point.moveToPosition((rotation * (newPos - pointPosition)) + pointPosition);
-                // TODO do this for the controlPoints as well
-            }
-
+            Vector3 newPos = secondRotation * (point.pointPosition - pointPosition) + pointPosition;
+            point.moveToPosition(newPos);
+            point.AutoSetAnchorControlPoints();
         }
+
+
+        //Once these constraints have been set, any user-driven update on the points should keep them true, hence this function does not need to be called after point updates. So it will only be activated by a button press in the inspector and nowhere else
 
     }
 

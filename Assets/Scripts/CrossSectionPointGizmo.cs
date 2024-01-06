@@ -8,9 +8,11 @@ using UnityEditor;
 public class CrossSectionPointGizmo : MonoBehaviour
 {
 
+    public Point parentPoint;
 
     public Point correspondingPoint;
     bool hasChanged = false;
+    public bool isEndPoint = false;
     Vector3 prevPos = Vector3.zero;
 
     // Update is called once per frame
@@ -19,18 +21,16 @@ public class CrossSectionPointGizmo : MonoBehaviour
         if (!correspondingPoint) correspondingPoint = GetComponent<Point>();
         if (transform.hasChanged)
         {
+            
+            
+            correspondingPoint.AutoSetAnchorControlPoints();
 
-            correspondingPoint.moveToTransform();
             if (!correspondingPoint.creator.updateOnlyOnRelease)
             {
                 Vector3 difference = transform.position - prevPos;
 
-                if (difference.sqrMagnitude > 0.01f)
+                if (difference.sqrMagnitude > 0.0001f)
                 {
-
-                    correspondingPoint.UpdateLength();
-                    correspondingPoint.AutoSetAnchorControlPoints();
-
                     correspondingPoint.creator.pointTransformChanged = true;
                 }
                 prevPos = transform.position;
@@ -43,18 +43,20 @@ public class CrossSectionPointGizmo : MonoBehaviour
         {
             if (hasChanged)
             {
-                Vector3 difference = transform.position - prevPos;
+                correspondingPoint.UpdateLength();
 
-                if (difference.sqrMagnitude > 0.01f)
+
+                if (correspondingPoint.creator.updateOnlyOnRelease)
                 {
-                    if (correspondingPoint.creator.updateOnlyOnRelease)
+                    Vector3 difference = transform.position - prevPos;
+
+                    if (difference.sqrMagnitude > 0.0001f)
                     {
-                        correspondingPoint.UpdateLength();
-                        correspondingPoint.AutoSetAnchorControlPoints();
 
                         correspondingPoint.creator.pointTransformChanged = true;
+
+                        prevPos = transform.position;
                     }
-                    prevPos = transform.position;
                 }
                 
             }

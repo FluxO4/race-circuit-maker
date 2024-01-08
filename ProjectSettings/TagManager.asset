@@ -7,6 +7,7 @@ TagManager:
   - CentrePoint
   - CrossSection
   - RaceCircuitRootObject
+  - Railings
   layers:
   - Default
   - TransparentFX
@@ -21,7 +22,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - ObstacleLayer
   - 
   - 
   - 

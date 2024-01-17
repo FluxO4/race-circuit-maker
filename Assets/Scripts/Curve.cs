@@ -28,7 +28,10 @@ public class Curve : MonoBehaviour
         }
     }
 
-    
+    public void ReorganiseChildren()
+    {
+
+    }
 
 
     public void AutoSetPreviousAndNextPoints()
@@ -46,14 +49,19 @@ public class Curve : MonoBehaviour
             point.gameObject.name = "Point " + i.ToString();
             point.nextPoint = nextPoint;
             point.nextPoint.prevPoint = point;
+            point.pointIndex = i;
 
             point.parentCurve = this;
             point.creator = creator;
 
             if (point.crossSectionCurve)
             {
+                point.crossSectionCurve.creator = creator;
+                point.crossSectionCurve.AutoSetAllControlPoints();
                 foreach(Point cpoint in point.crossSectionCurve.points)
                 {
+                    cpoint.creator = creator;
+
                     CrossSectionPointGizmo t = cpoint.GetComponent<CrossSectionPointGizmo>();
                     if (t) t.parentPoint = point;
                 }
@@ -68,7 +76,94 @@ public class Curve : MonoBehaviour
             points.Last().nextPoint = null;
         }
     }
+    public void NormalizeCurvePoints()
+    {
+        for (int i = 0; i < points.Count; i++)
+        {
+            points[i].UpdateLength();
+        }
 
+        totalLength = 0;
+
+        for (int i = 0; i < points.Count; i++)
+        {
+            Point point = points[i];
+            totalLength += point.nextSegmentLength;
+        }
+
+        float accumulator = 0;
+        for (int i = 0; i < points.Count; i++)
+        {
+            Point point = points[i];
+
+
+            if (!isClosed)
+            {
+                accumulator += point.prevSegmentLength;
+                point.normalizedPositionAlongCurve = accumulator / totalLength;
+            }
+            else
+            {
+                point.normalizedPositionAlongCurve = accumulator / totalLength;
+                accumulator += point.nextSegmentLength;
+            }
+        }
+    }
+
+
+    public Vector3 LerpAlongCurve(float value01)
+    {
+        value01 = Mathf.Clamp01(value01);
+        if (isClosed)
+        {
+            if(value01 == 0 || value01 == 1)
+            {
+                return points[0].pointPosition;
+            }
+            int beforePoint = 0;
+            int afterPoint = 1;
+            for(int i = 0; i < points.Count; i++)
+            {
+                if (points[i].normalizedPositionAlongCurve >= value01)
+                {
+                    afterPoint = i;
+                    beforePoint = i - 1;
+                    break;
+                }
+            }
+            float localLerper = value01 - points[beforePoint].normalizedPositionAlongCurve;
+
+            return Point.CalculateBezierPoint(points[beforePoint].pointPosition, points[beforePoint].controlPointPositionForward, points[afterPoint].controlPointPositionBackward, points[afterPoint].pointPosition, localLerper);
+
+        }
+        else
+        {
+            if (value01 == 0)
+            {
+                return points[0].pointPosition;
+            }else if(value01 == 1)
+            {
+                return points[points.Count - 1].pointPosition;
+            }
+
+
+            int beforePoint = points.Count - 1;
+            int afterPoint = 0;
+            for (int i = 0; i < points.Count; i++)
+            {
+                if (points[i].normalizedPositionAlongCurve >= value01)
+                {
+                    afterPoint = i;
+                    beforePoint = i - 1;
+                    break;
+                }
+            }
+            float localLerper = value01 - points[beforePoint].normalizedPositionAlongCurve;
+
+            return Point.CalculateBezierPoint(points[beforePoint].pointPosition, points[beforePoint].controlPointPositionForward, points[afterPoint].controlPointPositionBackward, points[afterPoint].pointPosition, localLerper);
+        }
+    }
+    /*
     public void NormalizeCurvePoints()
     {
         for(int i = 0; i < points.Count; i++)
@@ -110,7 +205,7 @@ public class Curve : MonoBehaviour
                 point = nextPoint;
             } while (point && point != firstPoint);
         }
-    }
+    }*/
 
 }
 

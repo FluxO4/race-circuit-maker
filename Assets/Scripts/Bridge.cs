@@ -62,11 +62,15 @@ public class Bridge : MonoBehaviour
             float j_value = (((float)z / yCount) * (parent.roadLength) - cumulativeSegmentLength) / segmentLength;
             //Debug.Log("j_value is now " + j_value);
 
-            while (j_value > 1 && currentPoint < parent.associatedPoints.Count)
+            while (j_value > 1 && currentPoint < parent.associatedPoints.Count-1)
             {
                 currentPoint += 1;
                 cumulativeSegmentLength += segmentLength;
                 segmentLength = parent.associatedPoints[currentPoint].nextSegmentLength;
+                if(segmentLength == 0)
+                {
+                    segmentLength = 1;
+                }
 
                 j_value = (((float)z / yCount) * (parent.roadLength) - cumulativeSegmentLength) / segmentLength;
                 //  Debug.Log("More than 1! So now it's j_value is now " + j_value);

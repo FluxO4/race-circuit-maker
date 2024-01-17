@@ -10,6 +10,7 @@ public class CircuitPointGizmo : MonoBehaviour
     public Point correspondingPoint;
     Vector3 prevPos = Vector3.zero;
     bool hasChanged = false;
+    bool stillInEditor = true;
 
     // Start is called before the first frame update
     void Start()
@@ -67,7 +68,54 @@ public class CircuitPointGizmo : MonoBehaviour
 
         if (EditorApplication.isPlaying)
         {
+            stillInEditor = false;
             DestroyImmediate(this);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (!EditorApplication.isPlayingOrWillChangePlaymode && stillInEditor && correspondingPoint.active && !correspondingPoint.creator.creatingCurve)
+        {
+            Debug.Log("STILL IN EDITOR, SO REMOVING ALL REFERENCES TO THIS POINT SOMEHOW");
+            if (correspondingPoint.prevPoint)
+            {
+                correspondingPoint.prevPoint.nextPoint = correspondingPoint.nextPoint;
+                
+                correspondingPoint.prevPoint.AutoSetAnchorControlPoints();
+                
+            }
+            if (correspondingPoint.nextPoint)
+            {
+                correspondingPoint.nextPoint.prevPoint = correspondingPoint.prevPoint;
+                correspondingPoint.nextPoint.AutoSetAnchorControlPoints();
+            }
+
+            if (correspondingPoint.prevPoint)
+            {
+
+                correspondingPoint.prevPoint.UpdateLength();
+
+            }
+            if (correspondingPoint.nextPoint)
+            {
+                correspondingPoint.nextPoint.UpdateLength();
+            }
+
+            if (correspondingPoint.parentCurve.points.Count > correspondingPoint.pointIndex)
+            {
+                correspondingPoint.parentCurve.points.RemoveAt(correspondingPoint.pointIndex);
+                correspondingPoint.parentCurve.NormalizeCurvePoints();
+            }
+
+           foreach(Road road in correspondingPoint.includedInRoads)
+            {
+                road.associatedPoints.Remove(correspondingPoint);
+            }
+
+            Debug.Log("REFERENCES IN CURVE AND ROAD REMOVED");
+            correspondingPoint.creator.pointTransformChanged = true;
+            //correspondingPoint.creator.initialise();
         }
     }
 }

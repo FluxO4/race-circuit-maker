@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Road : MonoBehaviour
 {
     [Range(2, 20)]
@@ -38,9 +39,24 @@ public class Road : MonoBehaviour
         //I dunno, gives it a temporary material or something to brighten it up, or maybe unity editor library has highlighting functions of its own. If the latter is the case, move this function to the editor script and add Road as a parameter, let's not inherit UnityEditor in this script
     }
 
+    public void initializeRoad()
+    {
+        foreach(Point point in associatedPoints)
+        {
+            if(!point.includedInRoads.Contains(this))
+                point.includedInRoads.Add(this);
+        }
+    }
+
     public void buildRoad()
     {
         //Again, if editor stuff is required, move this to the Editor script
+        if(associatedPoints.Count <= 1)
+        {
+            return;
+        }
+
+
         transform.position = Vector3.zero;
 
         averageWidth = 0;
@@ -89,11 +105,16 @@ public class Road : MonoBehaviour
             j_value = (((float)z / yCount) * (roadLength) - cumulativeSegmentLength) / segmentLength;
             //Debug.Log("j_value is now " + j_value);
 
-            while(j_value > 1 && currentPoint < associatedPoints.Count)
+            while(j_value > 1 && currentPoint < associatedPoints.Count-1)
             {
                 currentPoint += 1;
                 cumulativeSegmentLength += segmentLength;
+                
                 segmentLength = associatedPoints[currentPoint].nextSegmentLength;
+                if (segmentLength == 0)
+                {
+                    segmentLength = 1;
+                }
 
                 j_value = (((float)z / yCount) * (roadLength) - cumulativeSegmentLength) / segmentLength;
               //  Debug.Log("More than 1! So now it's j_value is now " + j_value);

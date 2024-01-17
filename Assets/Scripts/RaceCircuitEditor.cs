@@ -23,10 +23,12 @@ public class RaceCircuitEditor : Editor
         return myInspector;
     }*/
 
-    bool isButtonPressed = false;
+
+
+
     GUIStyle toggleButtonStyle = null;
 
-    bool displayDebugInspector = true;
+    bool displayDebugInspector = false;
 
     public override void OnInspectorGUI()
     {
@@ -40,26 +42,78 @@ public class RaceCircuitEditor : Editor
             toggleButtonStyle = new GUIStyle(EditorStyles.miniButton);
         }
 
+        creator.EDIT = GUILayout.Toggle(creator.EDIT, "EDIT", toggleButtonStyle);
+
+        if (!creator.EDIT) {
+
+            return; 
+        
+        }
+
+
+
         if (GUILayout.Button("Perpendicularize points"))
         {
             creator.PerpendicularizeAllCrossSections();
         }
 
 
-        isButtonPressed = GUILayout.Toggle(isButtonPressed, "Add Point", toggleButtonStyle);
+        //isButtonPressed = GUILayout.Toggle(isButtonPressed, "Add Point", toggleButtonStyle);
+
+        creator.AddPoint = GUILayout.Toggle(creator.AddPoint, "Add Point", toggleButtonStyle);
+
+        creator.selectPoints = GUILayout.Toggle(creator.selectPoints, "Select Points", toggleButtonStyle);
+
+        creator.creatingCurve = GUILayout.Toggle(creator.creatingCurve, "Create Curve", toggleButtonStyle);
+
+        if (creator.selectPoints)
+        {
+            
+
+            GUILayout.Label("Selected points:");
+            foreach(Point point in creator.selectedPoints)
+            {
+                GUILayout.Label(" - " + point.parentCurve.name + ": " + point.name);
+
+            }
+
+            if (creator.selectedPoints.Count > 0)
+            {
+                GUILayout.BeginHorizontal();
+
+
+                if (creator.selectedPoints.Count > 1 && creator.continuousPoints)
+                {
+                    if (GUILayout.Button("Build New Road"))
+                    {
+                        creator.buildNewRoadFromSelectedPoints();
+                        Debug.Log("New road built!");
+                    }
+                }
+
+                GUILayout.EndHorizontal();
+            }
+
+
+            
+
+
+        }
 
         displayDebugInspector = GUILayout.Toggle(displayDebugInspector, "Show Debug Inspector", toggleButtonStyle);
 
         if (EditorGUI.EndChangeCheck())
         {
-            if (isButtonPressed)
+            if (creator.selectPoints)
             {
-                OnButtonPressed();
+                
             }
             else
             {
-                OnButtonUnpressed();
+                creator.DeselectAllPoints();
             }
+
+            
         }
 
         if (displayDebugInspector) {
@@ -97,9 +151,12 @@ public class RaceCircuitEditor : Editor
     RaceCircuitCreator creator;
 
 
+    private int controlID = -1; // To store the control ID
 
     private void OnSceneGUI()
     {
+        if (!creator.EDIT) return;
+
 
         if (creator.circuitSelected)
         {
@@ -107,38 +164,81 @@ public class RaceCircuitEditor : Editor
             Ray mouseRay = HandleUtility.GUIPointToWorldRay(guiEvent.mousePosition);
 
 
-            if (guiEvent.type == EventType.MouseDown && guiEvent.button == 0 && guiEvent.shift)
+            if (creator.AddPoint || creator.creatingCurve)
             {
-                Debug.Log("MOUSE INPUT DETECTED!");
-                creator.mouseInput(guiEvent.mousePosition, mouseRay);
-            }
-        }
-
-
-        if (creator.circuitSelected)
-        {
-            if (creator.selectedRoad != null)
-            {
-                DrawRoadHandles(creator.selectedRoad);
-            }
-            else if (creator.selectedPoint != null)
-            {
-                DrawCircuitPointHandles(creator.selectedPoint);
-            }
-            else
-            {
-                foreach (Curve curve in creator.raceCircuit.circuitCurves)
+                if (guiEvent.type == EventType.MouseDown)
                 {
-                    DrawCircuitCurveHandles(curve);
+                    controlID = GUIUtility.GetControlID(FocusType.Passive);
+                    GUIUtility.hotControl = controlID;
+                }
+
+                if (GUIUtility.hotControl == controlID && guiEvent.type == EventType.MouseUp && guiEvent.button == 0)
+                {
+                    if (creator.AddPoint)
+                    {
+                        creator.addPoint(mouseRay);
+                        creator.AddPoint = false;
+                        GUIUtility.hotControl = 0;
+                        controlID = -1;
+                        guiEvent.Use();
+                    }
+
+                    if (creator.creatingCurve)
+                    {
+                        Debug.Log("Mouse button up detected");
+                        creator.addPointToCurveBuffer(mouseRay);
+
+                        GUIUtility.hotControl = 0;
+                        controlID = -1;
+                        guiEvent.Use();
+                    }
+                }
+
+                if (GUIUtility.hotControl == controlID && guiEvent.type == EventType.MouseUp && guiEvent.button == 1)
+                {
+                    if (creator.creatingCurve)
+                    {
+                        creator.finishCreatingCurve();
+
+                        GUIUtility.hotControl = 0;
+                        controlID = -1;
+                        guiEvent.Use();
+                    }
+                }
+
+
+                if (creator.creatingCurve)
+                {
+
+                    DrawBufferCurveHandles(mouseRay);
+
+                    if (guiEvent.type == EventType.KeyDown && guiEvent.keyCode == KeyCode.Escape)
+                    {
+                        creator.abortCreatingCurve();
+                    }
+
+                    if (guiEvent.type == EventType.KeyDown && (guiEvent.keyCode == KeyCode.Return || guiEvent.keyCode == KeyCode.KeypadEnter))
+                    {
+                        creator.finishCreatingCurve();
+                    }
+
+
                 }
             }
-        }
-        
 
-        foreach (Curve curve in creator.raceCircuit.circuitCurves)
-        {
-            DrawRotatorHandle(curve);
+
+            if (controlID ==-1)
+            foreach (Curve curve in creator.raceCircuit.circuitCurves)
+            {
+                DrawCircuitCurveHandles(curve);
+            }
+                
+            
+            
+            
         }
+
+        
 
        /* foreach (Curve curve in creator.raceCurves)
         {
@@ -156,8 +256,9 @@ public class RaceCircuitEditor : Editor
         foreach(Point point in curve.points)
         {
             Vector3 handlePos = point.rotatorPointPosition;
+            
             Handles.DrawLine(point.pointPosition, handlePos);
-            Vector3 newPos = Handles.FreeMoveHandle(handlePos, Quaternion.identity, 0.3f, Vector3.zero, Handles.SphereHandleCap);
+            Vector3 newPos = Handles.FreeMoveHandle(handlePos, Quaternion.identity, 2f, Vector3.zero, Handles.SphereHandleCap);
 
             if (newPos != handlePos)
             {
@@ -176,15 +277,84 @@ public class RaceCircuitEditor : Editor
 
             if (creator.showCurves)
             {
-                if(i < curve.points.Count - 1)
+                if (curve.isClosed)
                 {
-                    Point nextPoint = curve.points[i + 1];
-                    Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, null, 2);
+                    if (i < curve.points.Count)
+                    {
+                        Point nextPoint = curve.points[i].nextPoint;
+                        Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, null, 2);
+                    }
+                }
+                else
+                {
+                    if (i < curve.points.Count - 1)
+                    {
+                        Point nextPoint = curve.points[i + 1];
+                        Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, null, 2);
+                    }
                 }
             }
         }
     }
 
+
+    void DrawBufferCurveHandles(Ray ray)
+    {
+        Curve curve = creator.curveBuffer;
+
+        if (curve)
+        {
+
+            for (int i = 0; i < curve.points.Count; i++)
+            {
+                Point point = curve.points[i];
+                DrawCircuitPointHandles(point);
+
+
+                if (curve.isClosed)
+                {
+                    if (i < curve.points.Count)
+                    {
+                        Point nextPoint = curve.points[i].nextPoint;
+                        Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, null, 2);
+                    }
+                }
+                else
+                {
+                    if (i < curve.points.Count - 1)
+                    {
+                        Point nextPoint = curve.points[i + 1];
+                        Handles.DrawBezier(point.transform.position, nextPoint.transform.position, point.controlPointPositionForward, nextPoint.controlPointPositionBackward, Color.green, null, 2);
+                    }
+                }
+
+            }
+
+
+            Vector3 mousePos = ray.origin;
+            if (ray.direction.y == 0)
+            {
+                if (ray.origin.y != creator.curveBufferHeight)
+                {
+                    return;
+                }
+            }
+
+            float t = (creator.curveBufferHeight - ray.origin.y) / ray.direction.y;
+
+            if (t < 0)
+            {
+                return;
+            }
+
+            mousePos = ray.origin + t * ray.direction;
+
+            if(curve.points.Count > 0)
+            Handles.DrawBezier(curve.points[^1].transform.position, mousePos, curve.points[^1].controlPointPositionForward, (mousePos + curve.points[^1].controlPointPositionForward) *0.5f, Color.green, null, 2);
+
+
+        }
+    }
 
 
 
@@ -209,9 +379,40 @@ public class RaceCircuitEditor : Editor
 
     void DrawCircuitPointHandles(Point point)
     {
-        Handles.color = Color.red;
+        Handles.color = point.Selected ? creator.selectedPointColor: creator.pointGizmoColor ;
+        //Handles.DrawSolidDisc(point.pointPosition, SceneView.GetAllSceneCameras()[0].transform.position - point.pointPosition, 2);
+        Event e = Event.current;
+        int controlID = GUIUtility.GetControlID(FocusType.Passive);
+        switch (e.GetTypeForControl(controlID))
+        {
+            case EventType.MouseDown:
+                if (HandleUtility.nearestControl == controlID && e.button == 0)
+                {
+                    Debug.Log("Handle clicked!");
 
-        Vector3 newPos = Handles.FreeMoveHandle(point.pointPosition, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+
+
+                    if (creator.selectPoints)
+                    {
+                        if (point.Selected)
+                        {
+                            creator.DeselectPoint(point);
+                        }
+                        else
+                        {
+                            creator.SelectPoint(point);
+                        }
+                    }
+                    // Handle logic when the handle is clicked but newPos isn't different
+                }
+                break;
+        }
+
+
+        Vector3 newPos = Handles.FreeMoveHandle(controlID, point.pointPosition, Quaternion.identity, 4f, Vector2.zero, Handles.SphereHandleCap);
+
+        if (creator.selectPoints) return;
+
         if (newPos != point.pointPosition)
         {
             Undo.RecordObject(creator, "Move Anchor Point 1");
@@ -232,6 +433,18 @@ public class RaceCircuitEditor : Editor
         {
             DrawControlPointHandles(point);
 
+        }
+
+
+        Handles.color = Color.yellow;
+        Vector3 handlePos = point.rotatorPointPosition;
+
+        Handles.DrawLine(point.pointPosition, handlePos);
+        Vector3 newPo2 = Handles.FreeMoveHandle(handlePos, Quaternion.identity, 2f, Vector3.zero, Handles.SphereHandleCap);
+
+        if (newPo2 != handlePos)
+        {
+            point.rotatorPointPosition = newPo2;
         }
     }
 
@@ -285,7 +498,7 @@ public class RaceCircuitEditor : Editor
         Handles.DrawLine(point.controlPointPositionForward, point.pointPosition, 2);
         Handles.DrawLine(point.pointPosition, point.controlPointPositionBackward, 2);
 
-        Vector3 newPos = Handles.FreeMoveHandle(point.controlPointPositionForward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+        Vector3 newPos = Handles.FreeMoveHandle(point.controlPointPositionForward, Quaternion.identity, 2f, Vector2.zero, Handles.SphereHandleCap);
         
         
         if (newPos != point.controlPointPositionForward)
@@ -294,7 +507,7 @@ public class RaceCircuitEditor : Editor
 
             Undo.RecordObject(creator, "Move Anchor Point 1");
             point.controlPointPositionForward = newPos;
-            creator.pointTransformChanged = true;
+            //creator.pointTransformChanged = true;
 
 
             if (!creator.independentControlPoints)
@@ -306,14 +519,14 @@ public class RaceCircuitEditor : Editor
         }
 
 
-        newPos = Handles.FreeMoveHandle(point.controlPointPositionBackward, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+        newPos = Handles.FreeMoveHandle(point.controlPointPositionBackward, Quaternion.identity, 2f, Vector2.zero, Handles.SphereHandleCap);
         if (newPos != point.controlPointPositionBackward)
         {
             newPos = Vector3.ProjectOnPlane(newPos - point.pointPosition, point.transform.up) + point.pointPosition;
 
             Undo.RecordObject(creator, "Move Anchor Point 2");
             point.controlPointPositionBackward = newPos;
-            creator.pointTransformChanged = true;
+            //creator.pointTransformChanged = true;
             //point.PerpendicularizeCrossSection(true);
             
 

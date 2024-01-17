@@ -1,18 +1,28 @@
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using UnityEngine;
-
+using UnityEditor;
 public class Point : MonoBehaviour
 {
     [Range(1, 10)]
     public float rotatorDistance = 5;
 
 
-    public int PointIndex;
+    public List<Road> includedInRoads = new List<Road>();
+
+    public int pointIndex;
 
     public bool GizmoVisibility; //If true, a gizmo is shown that can be selected
-    public bool Selected; //If true, the gizmo is highlighted, and can be moved
+
+    bool _selected = false;
+    public bool Selected
+    {
+        get { return _selected; }
+        set
+        {
+            _selected = value;
+        }
+    } //If true, the gizmo is highlighted, and can be moved
 
     [SerializeField]
     Transform controlPointBackward;
@@ -89,14 +99,71 @@ public class Point : MonoBehaviour
 
     public float normalizedPositionAlongCurve;
 
+    public bool active = true;
+
     public Curve crossSectionCurve;
 
     public CircuitPointGizmo myGizmo;
 
-    public void EnableGizmo(bool enable)
+    public void ChangeCrossSectionPointCount(int newPointCount)
     {
-        GetComponent<MeshRenderer>().enabled = enable;
+        if (newPointCount == crossSectionCurve.points.Count)
+        {
+            return;
+        }
+        else
+        {
+            crossSectionCurve.NormalizeCurvePoints();
+
+            List<Vector3> newPointPositions = new List<Vector3>();
+            newPointPositions.Add(crossSectionCurve.points[0].pointPosition);
+            if(newPointCount > 2)
+            {
+                //add intermediate poits
+                float jumpLength = 1f / newPointCount;
+                
+                for(int i = 0; i < newPointCount - 2; i++)
+                {
+                    newPointPositions.Add(crossSectionCurve.LerpAlongCurve(jumpLength));
+                    jumpLength += jumpLength;
+                }
+
+            }
+            newPointPositions.Add(crossSectionCurve.points[crossSectionCurve.points.Count - 1].pointPosition);
+
+
+            Point refPoint = (PrefabUtility.InstantiatePrefab(crossSectionCurve.points[0], crossSectionCurve.transform) as GameObject).GetComponent<Point>();
+            for(int i = 0; i < crossSectionCurve.points.Count; i++)
+            {
+                crossSectionCurve.points[i].active = false;
+                DestroyImmediate(crossSectionCurve.points[i]);
+            }
+
+
+            crossSectionCurve.points.Clear();
+            for(int i = 0; i < newPointPositions.Count; i++)
+            {
+                crossSectionCurve.points.Add((PrefabUtility.InstantiatePrefab(refPoint, crossSectionCurve.transform) as GameObject).GetComponent<Point>());
+            }
+            refPoint.active = false;
+            DestroyImmediate(refPoint);
+
+            crossSectionCurve.AutoSetPreviousAndNextPoints();
+
+
+
+            for (int i = 0; i < crossSectionCurve.points.Count; i++)
+            {
+                crossSectionCurve.points[i].UpdateLength();
+            }
+
+            crossSectionCurve.AutoSetAllControlPoints();
+            crossSectionCurve.NormalizeCurvePoints();
+
+
+        }
     }
+
 
     public void moveToPosition(Vector3 position)
     {
@@ -143,11 +210,13 @@ public class Point : MonoBehaviour
 
     void AutoSetStart()
     {
+        if(nextPoint)
         controlPointPositionForward = (pointPosition + nextPoint.controlPointPositionBackward) * .5f;
     }
 
     void AutoSetEnd()
     {
+        if(prevPoint)
         controlPointPositionBackward = (prevPoint.controlPointPositionForward + pointPosition) * .5f;
     }
 
@@ -243,6 +312,12 @@ public class Point : MonoBehaviour
     // a and b refer to the anchor points in the big loop which contains the curves we're getting the point from
     public Vector3 GetPointFromij(float i, float j)
     {
+        if(nextPoint == null)
+        {
+            Debug.Log("Trying to get ij for i = " + i + " and j = " + j);
+            return GetPointFromi(i);
+        }
+
         Vector3 iaPos = GetPointFromi(i);
         Vector3 ibPos = nextPoint.GetPointFromi(i);
 

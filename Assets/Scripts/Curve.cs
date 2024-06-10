@@ -158,7 +158,9 @@ public class Curve : MonoBehaviour
                     break;
                 }
             }
-            float localLerper = value01 - points[beforePoint].normalizedPositionAlongCurve;
+            float distanceBefore = points[beforePoint].normalizedPositionAlongCurve;
+            float distanceAfter = points[afterPoint].normalizedPositionAlongCurve;
+            float localLerper = (value01 - distanceBefore) / (distanceAfter - distanceBefore);
 
             return Point.CalculateBezierPoint(points[beforePoint].pointPosition, points[beforePoint].controlPointPositionForward, points[afterPoint].controlPointPositionBackward, points[afterPoint].pointPosition, localLerper);
         }

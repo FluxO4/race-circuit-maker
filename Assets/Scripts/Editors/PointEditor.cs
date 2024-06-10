@@ -10,16 +10,20 @@ public class PointEditor : SharedEditorMethods
     {
         GUILayout.Label("Point Cross Section Properties", EditorStyles.boldLabel);
 
-        // CrossSectionPointCount slider
-        int pointCount = EditorGUILayout.IntSlider("CrossSectionPointCount", myPoint.crossSectionPointCount, 2, 10);
-        if (pointCount != myPoint.crossSectionPointCount)
+        if (myPoint.crossSectionCurve != null)
         {
-            myPoint.crossSectionPointCount = pointCount;
-            OnCrossSectionPointCountChanged(); // Call your function here
-        }
 
-        GUILayout.Space(10); // Add some space for visual separation
-        GUILayout.Label("Debug Inspector");
+            // CrossSectionPointCount slider
+            int pointCount = EditorGUILayout.IntSlider("CrossSectionPointCount", myPoint.crossSectionPointCount, 2, 10);
+            if (pointCount != myPoint.crossSectionPointCount)
+            {
+                myPoint.crossSectionPointCount = pointCount;
+                OnCrossSectionPointCountChanged(); // Call your function here
+            }
+
+            GUILayout.Space(10); // Add some space for visual separation
+            GUILayout.Label("Debug Inspector");
+        }
         DrawDefaultInspector();
     }
 
@@ -37,6 +41,7 @@ public class PointEditor : SharedEditorMethods
 
     private void OnSceneGUI()
     {
+        if (myPoint.crossSectionCurve == null) return;
         DrawCircuitPointHandles(myPoint, myPoint.creator);
     }
 

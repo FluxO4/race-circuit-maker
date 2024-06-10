@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using System.ComponentModel;
+using Unity.VisualScripting;
 public class Point : MonoBehaviour
 {
     [Range(2, 10)]
@@ -118,6 +119,7 @@ public class Point : MonoBehaviour
     {
 
         //Change tactics here, instead of removing everything and starting over, just add what is needed and reorganise
+        if (newPointCount < 2 || newPointCount > 10) return; // Adding hard limits because this is a sensitive thing
 
         if (newPointCount == crossSectionCurve.points.Count)
         {
@@ -125,52 +127,74 @@ public class Point : MonoBehaviour
         }
         else
         {
+            //Normalising the points again, just in case
             crossSectionCurve.NormalizeCurvePoints();
+
+            //Collecting the new positions for the new points; using a jump value and lerping along the curve
 
             List<Vector3> newPointPositions = new List<Vector3>();
             newPointPositions.Add(crossSectionCurve.points[0].pointPosition);
+
             if(newPointCount > 2)
             {
                 //add intermediate poits
-                float jumpLength = 1f / newPointCount;
+                float jumpLength = 1f / (newPointCount-1);
                 
-                for(int i = 0; i < newPointCount - 2; i++)
+                for(int i = 1; i <= newPointCount - 2; i++)
                 {
-                    newPointPositions.Add(crossSectionCurve.LerpAlongCurve(jumpLength));
-                    jumpLength += jumpLength;
+                    newPointPositions.Add(crossSectionCurve.LerpAlongCurve(jumpLength * i));
+                    Debug.Log("Added a curve point at lerp position: " + jumpLength * i);
                 }
 
             }
+
             newPointPositions.Add(crossSectionCurve.points[crossSectionCurve.points.Count - 1].pointPosition);
 
+            //Instantiating testspheres for debug purposes
+            /*
+            for (int i = 0; i < newPointPositions.Count; i++) { 
+                Instantiate(creator.testSphere, newPointPositions[i], Quaternion.identity);
+            }*/
 
-            Point refPoint = (PrefabUtility.InstantiatePrefab(crossSectionCurve.points[0], crossSectionCurve.transform) as GameObject).GetComponent<Point>();
-            for(int i = 0; i < crossSectionCurve.points.Count; i++)
+            //If there are more points needed, we instantiate and add new points to the curve
+            if(newPointCount > crossSectionCurve.points.Count)
             {
-                crossSectionCurve.points[i].active = false;
-                DestroyImmediate(crossSectionCurve.points[i]);
+                while(newPointCount > crossSectionCurve.points.Count)
+                {
+                    crossSectionCurve.points.Add((PrefabUtility.InstantiatePrefab(creator.crossSectionPointPrefab, crossSectionCurve.transform) as GameObject).GetComponent<Point>());
+                }
             }
 
-
-            crossSectionCurve.points.Clear();
-            for(int i = 0; i < newPointPositions.Count; i++)
+            //If there are less needed, we delete some of the points
+            else
             {
-                crossSectionCurve.points.Add((PrefabUtility.InstantiatePrefab(refPoint, crossSectionCurve.transform) as GameObject).GetComponent<Point>());
+                while(crossSectionCurve.points.Count > newPointCount)
+                {
+                    Point toDestroy = crossSectionCurve.points[^1];
+                    crossSectionCurve.points.RemoveAt(crossSectionCurve.points.Count - 1);
+                    DestroyImmediate(toDestroy.gameObject);
+                }
             }
-            refPoint.active = false;
-            DestroyImmediate(refPoint);
 
-            crossSectionCurve.AutoSetPreviousAndNextPoints();
-
-
-
+            //Setting the new positions to all the points
             for (int i = 0; i < crossSectionCurve.points.Count; i++)
             {
-                crossSectionCurve.points[i].UpdateLength();
+                crossSectionCurve.points[i].pointPosition = newPointPositions[i];
+                crossSectionCurve.points[i].parentCurve = crossSectionCurve;
+                crossSectionCurve.points[i].creator = creator;
+                
             }
+            crossSectionCurve.AutoSetPreviousAndNextPoints();
 
+            //Autosettitng all control points
             crossSectionCurve.AutoSetAllControlPoints();
+
+
+
+            PerpendicularizeCrossSection();
+
             crossSectionCurve.NormalizeCurvePoints();
+            creator.pointTransformChanged = true;
 
 
         }

@@ -50,6 +50,7 @@ public class RaceCircuitCreator : MonoBehaviour
     //Prefabs:
     public GameObject curvePrefab;
     public GameObject pointPrefab;
+    public GameObject crossSectionPointPrefab;
     public GameObject roadPrefab;
 
     public GameObject testSphere;

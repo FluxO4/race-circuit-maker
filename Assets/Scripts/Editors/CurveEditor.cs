@@ -14,6 +14,8 @@ public class CurveEditor : SharedEditorMethods
 
     private void OnSceneGUI()
     {
+        if (myCurve.points.Count == 0) return;
+        if (myCurve.points[0].crossSectionCurve == null) return;
         DrawCircuitCurveHandles(myCurve, myCurve.creator);
     }
 

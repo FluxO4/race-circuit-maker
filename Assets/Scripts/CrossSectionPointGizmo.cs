@@ -21,9 +21,11 @@ public class CrossSectionPointGizmo : MonoBehaviour
         if (!correspondingPoint) correspondingPoint = GetComponent<Point>();
         if (transform.hasChanged)
         {
-            
-            
-            correspondingPoint.AutoSetAnchorControlPoints();
+
+
+            //correspondingPoint.AutoSetAnchorControlPoints();
+            if(correspondingPoint.parentCurve != null)
+            correspondingPoint.parentCurve.AutoSetAllControlPoints();
 
             if (!correspondingPoint.creator.updateOnlyOnRelease)
             {

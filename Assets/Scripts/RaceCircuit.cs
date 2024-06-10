@@ -7,22 +7,15 @@ public class RaceCircuit : MonoBehaviour
     
     public void positionAlongCircuit()
     {
-
-
+        //To return the position of a point along the circuit, normalised
     }
 
-    public void positionGivenDistanceAhead()
-    {
-        //It's a fast approximation
-
-    }
 
     public List<GameObject> startingPositions;
     public List<Road> roads;
 
 
     public List<Curve> circuitCurves;
-    public GameObject gizmos;
     
     // Start is called before the first frame update
     void Start()

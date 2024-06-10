@@ -163,6 +163,8 @@ public class Curve : MonoBehaviour
             return Point.CalculateBezierPoint(points[beforePoint].pointPosition, points[beforePoint].controlPointPositionForward, points[afterPoint].controlPointPositionBackward, points[afterPoint].pointPosition, localLerper);
         }
     }
+
+    //Old technique, less efficient
     /*
     public void NormalizeCurvePoints()
     {

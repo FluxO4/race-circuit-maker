@@ -2,8 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
+using System.ComponentModel;
 public class Point : MonoBehaviour
 {
+    [Range(2, 10)]
+    public int crossSectionPointCount = 5;
+
+    
+
     [Range(1, 10)]
     public float rotatorDistance = 5;
 
@@ -83,16 +89,17 @@ public class Point : MonoBehaviour
     }
 
 
-    bool continuesBackward;
-    bool continuesForward;
-
+    [ReadOnly(true)]
     public Point nextPoint;
+    [ReadOnly(true)]
     public Point prevPoint;
 
     public Curve parentCurve;
     public RaceCircuitCreator creator;
 
+    [ReadOnly(true)]
     public float nextSegmentLength;
+    [ReadOnly(true)]
     public float prevSegmentLength;
 
     float circuitPosition; // % along the circuit's length. Initially, this will just be distance along curve, but ideally this needs to be normalised average time taken to reach here from the starting point
@@ -105,8 +112,13 @@ public class Point : MonoBehaviour
 
     public CircuitPointGizmo myGizmo;
 
+
+
     public void ChangeCrossSectionPointCount(int newPointCount)
     {
+
+        //Change tactics here, instead of removing everything and starting over, just add what is needed and reorganise
+
         if (newPointCount == crossSectionCurve.points.Count)
         {
             return;

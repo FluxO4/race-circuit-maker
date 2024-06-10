@@ -922,15 +922,15 @@ public class RaceCircuitCreator : MonoBehaviour
 
         foreach(Road road in raceCircuit.roads)
         {
-            road.gameObject.hideFlags = HideFlags.NotEditable;
+            road.gameObject.hideFlags = HideFlags.None; //NotEditable on release
             if (!Application.isPlaying) EditorUtility.SetDirty(road.gameObject);
 
-            road.bridge.gameObject.hideFlags = HideFlags.NotEditable;
+            road.bridge.gameObject.hideFlags = HideFlags.None;
             if (!Application.isPlaying) EditorUtility.SetDirty(road.bridge.gameObject);
 
             foreach (Railing railing in road.railings)
             {
-                railing.gameObject.hideFlags = HideFlags.NotEditable;
+                railing.gameObject.hideFlags = HideFlags.None;
                 if (!Application.isPlaying) EditorUtility.SetDirty(railing.gameObject);
             }
             road.enabled = true;

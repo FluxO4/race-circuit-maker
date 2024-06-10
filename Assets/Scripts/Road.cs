@@ -16,13 +16,21 @@ public class Road : MonoBehaviour
     [Range(1, 20)]
     public float tileY = 5;
 
+    [Range(0, 1)]
+    public float tileOffsetX = 0;
+    [Range(0, 1)]
+    public float tileOffsetY = 0;
+
     
+
+    
+    public List<Point> associatedPoints;
 
     public RaceCircuitCreator creator;
     public MeshCollider myMeshCollider;
-    public List<Point> associatedPoints;
 
     float averageWidth = 1;
+    [HideInInspector]
     public float roadLength = 1;
 
     private Mesh mesh;
@@ -30,6 +38,7 @@ public class Road : MonoBehaviour
 
     public List<Railing> railings = new List<Railing>();
 
+    [HideInInspector]
     public int yCount = 0;
 
     public Bridge bridge;
@@ -185,15 +194,4 @@ public class Road : MonoBehaviour
         //Builds the road mesh
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

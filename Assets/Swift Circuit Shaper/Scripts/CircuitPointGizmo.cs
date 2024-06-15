@@ -21,6 +21,7 @@ public class CircuitPointGizmo : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!correspondingPoint.creator) return;
         if (transform.hasChanged)
         {
 

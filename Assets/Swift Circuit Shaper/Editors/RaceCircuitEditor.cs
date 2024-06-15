@@ -52,10 +52,10 @@ public class RaceCircuitEditor : SharedEditorMethods
 
 
 
-        if (GUILayout.Button("Perpendicularize points"))
+       /* if (GUILayout.Button("Perpendicularize points"))
         {
             creator.PerpendicularizeAllCrossSections();
-        }
+        }*/
 
 
         //isButtonPressed = GUILayout.Toggle(isButtonPressed, "Add Point", toggleButtonStyle);

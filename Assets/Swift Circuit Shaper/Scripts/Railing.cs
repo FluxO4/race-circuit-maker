@@ -6,9 +6,9 @@ public class Railing : MonoBehaviour
     [Range(2, 20)]
     public float railingHeight = 2;
 
-    [Range(0,1)]
+    [Range(0, 1)]
     public float min;
-    [Range(0,1)]
+    [Range(0, 1)]
     public float max;
     public float height;
 
@@ -20,10 +20,22 @@ public class Railing : MonoBehaviour
 
     public void build()
     {
-        if(min > max)
+        if (min > max)
         {
-            min = max * 0.5f;
+            min = max - 0.1f;
         }
+
+
+        int xCount = 1;
+        int minz = (int)(min * parent.yCount);
+        int maxz = (int)(max * parent.yCount);
+        int yCount = maxz - minz;
+
+        if (minz >= maxz)
+        {
+            return;
+        }
+
         side = Mathf.Clamp(side, 0, 1) > 0.5 ? 1 : 0;
         transform.position = Vector3.zero;
 
@@ -35,9 +47,6 @@ public class Railing : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh = new Mesh();
         mesh.name = "Ribbon";
 
-        int xCount = 1;
-        int yCount = (int) ((float) parent.yCount * (max - min));
-
         Vector3[] vertices = new Vector3[(xCount + 1) * (yCount + 1)];
         Vector2[] uv = new Vector2[vertices.Length];
 
@@ -46,12 +55,14 @@ public class Railing : MonoBehaviour
         float segmentLength = parent.associatedPoints[currentPoint].nextSegmentLength;
         float cumulativeSegmentLength = 0;
 
-        for (int i = 0, z = (int)(min * yCount); z <= yCount; z++)
+
+
+        for (int i = 0, z = minz; z <= maxz; z++)
         {
-            float j_value = (((float)z / yCount) * (parent.roadLength) - cumulativeSegmentLength) / segmentLength;
+            float j_value = (((float)z / parent.yCount) * (parent.roadLength) - cumulativeSegmentLength) / segmentLength;
             //Debug.Log("j_value is now " + j_value);
 
-            while (j_value > 1 && currentPoint < parent.associatedPoints.Count-1)
+            while (j_value > 1 && currentPoint < parent.associatedPoints.Count - 1)
             {
                 currentPoint += 1;
                 cumulativeSegmentLength += segmentLength;
@@ -61,7 +72,7 @@ public class Railing : MonoBehaviour
                     segmentLength = 1;
                 }
 
-                j_value = (((float)z / yCount) * (parent.roadLength) - cumulativeSegmentLength) / segmentLength;
+                j_value = (((float)z / parent.yCount) * (parent.roadLength) - cumulativeSegmentLength) / segmentLength;
                 //  Debug.Log("More than 1! So now it's j_value is now " + j_value);
             }
 
@@ -73,10 +84,10 @@ public class Railing : MonoBehaviour
 
             vertices[i + side] = parent.associatedPoints[currentPoint].GetPointFromij(side, j_value) - parent.associatedPoints[0].transform.position + up;
             vertices[i + 1 - side] = parent.associatedPoints[currentPoint].GetPointFromij(side, j_value) - parent.associatedPoints[0].transform.position;
-            
 
-            uv[i] = new Vector2(0, (float)z / yCount * parent.tileY * (max - min));
-            uv[i + 1] = new Vector2(1, (float)z / yCount * parent.tileY * (max - min));
+
+            uv[i] = new Vector2(0, (float)z / parent.yCount * parent.tileY * (max - min));
+            uv[i + 1] = new Vector2(1, (float)z / parent.yCount * parent.tileY * (max - min));
 
             // Instantiate(parent.creator.testSphere, parent.associatedPoints[currentPoint].GetPointFromij(0, j_value) - parent.associatedPoints[0].transform.position, Quaternion.identity);
             // Instantiate(parent.creator.testSphere, parent.associatedPoints[currentPoint].GetPointFromij(0, j_value) - parent.associatedPoints[0].transform.position + up, Quaternion.identity);
@@ -84,6 +95,8 @@ public class Railing : MonoBehaviour
 
             i += 2;
         }
+
+
 
         mesh.vertices = vertices;
         mesh.uv = uv;

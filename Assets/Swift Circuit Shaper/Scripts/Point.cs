@@ -113,7 +113,7 @@ public class Point : MonoBehaviour
 
     public CircuitPointGizmo myGizmo;
 
-
+   
 
     public void ChangeCrossSectionPointCount(int newPointCount)
     {

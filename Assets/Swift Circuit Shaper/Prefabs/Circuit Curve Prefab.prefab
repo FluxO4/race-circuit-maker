@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 9197201940198760027}
   - component: {fileID: 3633223875308074699}
   m_Layer: 0
-  m_Name: Circuit Curve
+  m_Name: Circuit Curve Prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

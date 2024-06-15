@@ -31,6 +31,7 @@ public class PointEditor : SharedEditorMethods
     private void OnCrossSectionPointCountChanged()
     {
         //Update the cross section
+        if (!myPoint.creator) return;
 
         myPoint.ChangeCrossSectionPointCount(myPoint.crossSectionPointCount);
 

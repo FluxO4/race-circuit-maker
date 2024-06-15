@@ -18,7 +18,10 @@ public class CrossSectionPointGizmo : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!correspondingPoint.creator) return;
+
         if (!correspondingPoint) correspondingPoint = GetComponent<Point>();
+
         if (transform.hasChanged)
         {
 

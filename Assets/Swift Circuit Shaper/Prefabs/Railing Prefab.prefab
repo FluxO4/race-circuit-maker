@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2584575639901713036}
   - component: {fileID: 7659069521836561651}
   m_Layer: 0
-  m_Name: Railing
+  m_Name: Railing Prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

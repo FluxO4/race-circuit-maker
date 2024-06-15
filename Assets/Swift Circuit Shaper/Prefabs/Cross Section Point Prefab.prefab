@@ -105,7 +105,7 @@ GameObject:
   - component: {fileID: 8549491754585533732}
   - component: {fileID: 1797439127270281626}
   m_Layer: 0
-  m_Name: Cross Section Point
+  m_Name: Cross Section Point Prefab
   m_TagString: CrossSection
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

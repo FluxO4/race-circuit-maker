@@ -4,6 +4,7 @@ using UnityEditor;
 using System.Linq;
 using System.Collections;
 using System;
+using UnityEngine.TerrainTools;
 
 
 [ExecuteAlways]
@@ -616,6 +617,7 @@ public class RaceCircuitCreator : MonoBehaviour
     {
         Road newRoad = (PrefabUtility.InstantiatePrefab(roadPrefab, raceCircuit.transform) as GameObject).GetComponent<Road>();
         raceCircuit.roads.Add(newRoad);
+        newRoad.creator = this;
         newRoad.associatedPoints.Clear();
         for (int i = 0; i < selectedPoints.Count; i++)
         {
@@ -779,6 +781,10 @@ public class RaceCircuitCreator : MonoBehaviour
 
     void OnEnable()
     {
+        if (!raceCircuit)
+        {
+            raceCircuit = transform.GetComponent<RaceCircuit>();
+        }
         if (EDIT)
         {
             SetEditMode();
@@ -835,10 +841,12 @@ public class RaceCircuitCreator : MonoBehaviour
             foreach (Point point in curve.points)
             {
                 // point.PerpendicularizeCrossSection();
+                point.creator = this;
                 point.UpdateLength();
 
                 foreach (Point crossSectionPoint in point.crossSectionCurve.points)
                 {
+                    crossSectionPoint.creator = this;
                     crossSectionPoint.UpdateLength();
                     crossSectionPoint.AutoSetAnchorControlPoints();
                 }
@@ -850,6 +858,7 @@ public class RaceCircuitCreator : MonoBehaviour
         foreach (Curve curve in raceCircuit.circuitCurves)
         {
             curve.NormalizeCurvePoints();
+            curve.creator = this;
             foreach (Point point in curve.points)
             {
                 point.crossSectionCurve.NormalizeCurvePoints();
@@ -860,6 +869,7 @@ public class RaceCircuitCreator : MonoBehaviour
 
         foreach (Road road in raceCircuit.roads)
         {
+            road.creator = this;
             road.initializeRoad();
             road.buildRoad();
 

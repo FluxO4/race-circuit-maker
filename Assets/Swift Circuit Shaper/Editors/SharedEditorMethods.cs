@@ -8,6 +8,7 @@ public class SharedEditorMethods : Editor
 {
     public void DrawRotatorHandle(Curve curve)
     {
+        
         Handles.color = Color.yellow;
         foreach (Point point in curve.points)
         {
@@ -26,6 +27,7 @@ public class SharedEditorMethods : Editor
 
     public void DrawCircuitCurveHandles(Curve curve, RaceCircuitCreator creator)
     {
+        if (!creator) return;
         for (int i = 0; i < curve.points.Count; i++)
         {
             Point point = curve.points[i];
@@ -56,6 +58,7 @@ public class SharedEditorMethods : Editor
 
     public void DrawBufferCurveHandles(Ray ray, RaceCircuitCreator creator)
     {
+        if (!creator) return;
         Curve curve = creator.curveBuffer;
 
         if (curve)
@@ -116,6 +119,7 @@ public class SharedEditorMethods : Editor
 
     public void DrawRoadHandles(Road road, RaceCircuitCreator creator)
     {
+        if (!creator) return;
         for (int i = 0; i < road.associatedPoints.Count; i++)
         {
             Point point = road.associatedPoints[i];
@@ -135,6 +139,7 @@ public class SharedEditorMethods : Editor
 
     public void DrawCircuitPointHandles(Point point, RaceCircuitCreator creator)
     {
+        if (!creator) return;
         Handles.color = point.Selected ? creator.selectedPointColor : creator.pointGizmoColor;
         //Handles.DrawSolidDisc(point.pointPosition, SceneView.GetAllSceneCameras()[0].transform.position - point.pointPosition, 2);
         Event e = Event.current;
@@ -208,6 +213,7 @@ public class SharedEditorMethods : Editor
 
     public void DrawCrossSectionPointHandles(Point circuitPoint, RaceCircuitCreator creator)
     {
+        if (!creator) return;
         int c = circuitPoint.crossSectionCurve.points.Count;
         for (int i = 0; i < c; i++)
         {
@@ -249,6 +255,7 @@ public class SharedEditorMethods : Editor
 
     public void DrawControlPointHandles(Point point, RaceCircuitCreator creator)
     {
+        if (!creator) return;
         Handles.color = Color.blue;
 
         Handles.DrawLine(point.controlPointPositionForward, point.pointPosition, 2);

@@ -15,7 +15,7 @@ public class SharedEditorMethods : Editor
             Vector3 handlePos = point.rotatorPointPosition;
 
             Handles.DrawLine(point.pointPosition, handlePos);
-            Vector3 newPos = Handles.FreeMoveHandle(handlePos, Quaternion.identity, 2f, Vector3.zero, Handles.SphereHandleCap);
+            var fmh_18_64_638837851977127130 = Quaternion.identity; Vector3 newPos = Handles.FreeMoveHandle(handlePos, 2f, Vector3.zero, Handles.SphereHandleCap);
 
             if (newPos != handlePos)
             {
@@ -170,7 +170,7 @@ public class SharedEditorMethods : Editor
         }
 
 
-        Vector3 newPos = Handles.FreeMoveHandle(controlID, point.pointPosition, Quaternion.identity, 4f, Vector2.zero, Handles.SphereHandleCap);
+        var fmh_173_81_638837851977157199 = Quaternion.identity; Vector3 newPos = Handles.FreeMoveHandle(controlID, point.pointPosition, 4f, Vector2.zero, Handles.SphereHandleCap);
 
         if (creator.selectPoints) return;
 
@@ -201,7 +201,7 @@ public class SharedEditorMethods : Editor
         Vector3 handlePos = point.rotatorPointPosition;
 
         Handles.DrawLine(point.pointPosition, handlePos);
-        Vector3 newPo2 = Handles.FreeMoveHandle(handlePos, Quaternion.identity, 2f, Vector3.zero, Handles.SphereHandleCap);
+        var fmh_204_60_638837851977160141 = Quaternion.identity; Vector3 newPo2 = Handles.FreeMoveHandle(handlePos, 2f, Vector3.zero, Handles.SphereHandleCap);
 
         if (newPo2 != handlePos)
         {
@@ -220,7 +220,7 @@ public class SharedEditorMethods : Editor
             Point point = circuitPoint.crossSectionCurve.points[i];
 
             Handles.color = Color.cyan;
-            Vector3 newPos = Handles.FreeMoveHandle(point.pointPosition, Quaternion.identity, 0.3f, Vector2.zero, Handles.SphereHandleCap);
+            var fmh_223_74_638837851977163594 = Quaternion.identity; Vector3 newPos = Handles.FreeMoveHandle(point.pointPosition, 0.3f, Vector2.zero, Handles.SphereHandleCap);
 
             if (newPos != point.pointPosition)
             {
@@ -261,7 +261,7 @@ public class SharedEditorMethods : Editor
         Handles.DrawLine(point.controlPointPositionForward, point.pointPosition, 2);
         Handles.DrawLine(point.pointPosition, point.controlPointPositionBackward, 2);
 
-        Vector3 newPos = Handles.FreeMoveHandle(point.controlPointPositionForward, Quaternion.identity, 2f, Vector2.zero, Handles.SphereHandleCap);
+        var fmh_264_84_638837851977167048 = Quaternion.identity; Vector3 newPos = Handles.FreeMoveHandle(point.controlPointPositionForward, 2f, Vector2.zero, Handles.SphereHandleCap);
 
 
         if (newPos != point.controlPointPositionForward)
@@ -282,7 +282,7 @@ public class SharedEditorMethods : Editor
         }
 
 
-        newPos = Handles.FreeMoveHandle(point.controlPointPositionBackward, Quaternion.identity, 2f, Vector2.zero, Handles.SphereHandleCap);
+        var fmh_285_77_638837851977169422 = Quaternion.identity; newPos = Handles.FreeMoveHandle(point.controlPointPositionBackward, 2f, Vector2.zero, Handles.SphereHandleCap);
         if (newPos != point.controlPointPositionBackward)
         {
             newPos = Vector3.ProjectOnPlane(newPos - point.pointPosition, point.transform.up) + point.pointPosition;

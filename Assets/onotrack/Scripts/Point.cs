@@ -350,7 +350,7 @@ public class Point : MonoBehaviour
     {
         if(nextPoint == null)
         {
-            Debug.Log("Trying to get ij for i = " + i + " and j = " + j);
+//            Debug.Log("Trying to get ij for i = " + i + " and j = " + j);
             return GetPointFromi(i);
         }
 

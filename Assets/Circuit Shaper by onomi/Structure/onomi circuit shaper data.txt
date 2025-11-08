@@ -1,0 +1,253 @@
+onomi circuit shaper
+
+(decoupled library approach)
+
+
+The engine layer, namespace OnomiCircuitShaperEngine
+
+//Data classes, contains pure data that is stored and used as the basis for race track creation, namespace is OnomiCircuitShaperEngine.Data
+//These are meant to hold all the information required to build all the roads and other meshes of the race track, except shading and texturing. This means it should be able to deterministically produce the same race track every time.
+//They are also meant to be able to be wrapped into a little json packaged file that can be saved and loaded for track data transfer agnostic of game engine (so for data transfer between Unity and Godot for example, though the user will have to still manage adding materials and textures)
+
+Class: OnomiCircuitShaperData
+Data: CircuitData circuitData
+Data: CircuitAndEditorSettings settingsDat
+
+Class: CircuitAndEditorSettings //Meant to provide settings to edit realm classes
+Data: Circuit CircuitReference
+Data: float ScaleMultiplier
+Data: bool AutoSetControlPoints
+Data: bool IndependentControlPoints
+Data: float RotatorPointDistance
+
+Class: CircuitData
+Data: List<CircuitRoad> CircuitRoads
+Data: List<CircuitCurve> CircuitCurves
+
+Class: PointData
+Data: Vector3 PointPosition
+Data: Vector3 ForwardControlPointPosition
+Data: Vector3 BackwardControlPointPosition
+Data: Vector3 UpDirection
+Data: bool IndependentControlPoints
+
+Class: CircuitPointData inherits PointData //Circuit points positions are simply global, or in Unity Case are added to the base transform
+Data: CurveData CrossSectionCurve
+
+Class: CrossSectionPointData inherits PointData //Cross section points positions are special; first they are 2D so z value is always 0, and x and y directions refer to units of the parent circuit point's across direction and up direction respectively, and are origined at the parent circuit point's position
+
+Class: CurveData
+Data: List<PointData> CurvePoints
+Data: Bool IsClosed = true
+
+Class: RoadData
+Data: List<PointData> AssociatedPoints
+Data: int WidthWiseVertexCount
+Data: int LengthWiseVertexCountPerUnitWidthWiseVertexCount
+Data: Vector2 UVTile
+Data: Vector2 UVOffset
+Data: float Min
+Data: float Max
+Class: List<RailingData>
+Class: BridgeData
+
+Class: RailingData
+Data: float RailingHeight
+Data: float Min
+Data: float Max
+Data: float HorizontalPosition
+
+Class: BridgeData
+Data: bool UseTemplate
+Data: List<Vector2> BridgeShapePoints
+Data: Vector2 UVTile
+Data: float TemplateEdgeWidth
+Data: float TemplateBridgeHeight
+Data: float TemplateFlangeWidth
+Data: float TemplateFlangeHeight
+Data: float TemplateFlangeDepth
+Data: float TemplateCurbHeight
+
+
+
+
+
+
+
+// Edit Realm Object Classes, contains cached data and these get instantiated and populated when entering "edit mode". Namespace is OnomiCircuitShaper.Engine.EditRealm
+
+// These are meant to only exist while edit mode is enabled. Their main purpose is to provide ways to edit - act on the data, while keeping the data consistent.
+
+//The Circuit class holds on to all the curves and roads and calls functions in them.
+Class: Circuit
+Data: CircuitData Data
+Data: CircuitAndEditorSettings Settings
+Data: Dictionary<CurveData, Curve> Curves
+Data: Dictionary<RoadData, Road> Roads
+Function: BeginEditFromData(CircuitData circuitData) //Upon creation
+Function: EndEdit() //Destruction
+Function: BuildAll() //Will build all the roads (which in turn will build their own railings and bridges)
+
+
+Class: Point
+Data: CircuitAndEditorSettings Settings
+Data: PointData Data
+Data: int PointIndex
+Data: Point NextPoint
+Data: Point PreviousPoint
+Get Property: Vector3 GetRightVector //This is simply the normalised cross product of forward and up vectors
+Get Property: Vector3 GetForwardVector //This is the average between the normal directions of positive forward control point and negative backward control point from the point position
+Get Property: Vector3 GetUpVector //This is the point position plus the up direction in the data
+Get Property: Vector3 PointPosition //This is the point position from PointData
+Get Property: Vector3 ForwardControlPointPosition //From point data
+Get Property: Vector3 BackwardControlPointPosition //From point data
+Get Property: Vector3 RotatorPointPosition //A certain units (from settings) above the point, towards the up direction
+Function: AutoSetControlpoints()
+Event: PointStateChanged sends Point
+
+Class: CircuitPoint inherits Point
+Data: CrossSectionCurve crossSectionCurve
+Get Property: Vector3 GetLeftEndPointPosition
+Get Property: Vector3 GetRightEndPointPosition
+Function: MoveCircuitPoint(Vector3 NewPosition) //Same as setting point position
+Function: MoveForwardControlPoint(Vector3 NewPosition) //When control points are moved, it changes the
+Function: MoveBackwardControlPoint(Vector3 NewPosition)
+Function: RotateCircuitPoint(Vector3 GlobalEulerDelta) //Rotation changes the control point positions and up directions to appropriately change the stored "rotation" (making the calculated forward vector, up vector, and across vector point in the correct directions)
+
+Class: CrossSectionPoint inherits Point
+Function: MoveCrossSectionPoint(Vector3 NewPosition) //This is converted to the required (AcrossVector, UpVector) units coordinate system centred at the parent circuit points position. Moves point and calls an event to make the parent curve autoset all control points because cross section points' control points can not be manually set
+
+Class: Curve
+Data: CircuitAndEditorSettings Settings
+Data: CurveData Data
+Data: Dictionary<PointData, Point> Points
+Function: AutoSetControlPoints() //Correctly sets the control points for all its points (doing the ends after the middles if not closed). This will occur every time a circuit point is changed only if the AutoSetControlPoints setting is true. However for cross section curves this will occur every time.
+
+
+Class: CircuitCurve inherits Curve
+Get and Set Property: IsClosed //When changed, goes through the points in the first and last indices and updates their neighbours accordingly
+Function: AddPointAtIndex(Vector3 pointPosition, int index) //Creates a new point at the position and sets its index, and updates all points to be consistent
+Function: AddPointOnCurve(Vector3 rayStart, Vector3 rayDirection) //Takes a ray, find the closest point on the curve and figures out which points that is between and inserts a new point to the correct index using the AddPointAtIndex function
+Function: RemovePoint(Point point) //Removes the given point and adjusts indices, neighbours, lengh values, normalised position values, etc. accordingly
+Event: CurveStateChanged sends Curve
+
+Class: CrossSectionCurve inherits Curve
+//CrossSectionCurves are always open, never closed
+Function: ChangeCrossSectionPointCount(int newCount) //Keeps the end points, but interpolates the rest to change the count
+Function: HandleCrossSectionPointChanged() //Listens to the PointStateChanged for cross section points, and auto sets control points for all of them to keep it smooth
+
+
+
+Class: Road
+Data: CircuitAndEditorSettings Settings
+Data: RoadData Data
+Data: Dictionary<PointData, Point> AssociatedPoints
+Data: Dictonary<RailingData, Railing> Railings
+Data: BridgeData bridgeData
+Function: BuildRoadFromPoints(List<Point> Points)
+Event: RoadRebuilt sends Road
+
+Similar classes for bridge and railing
+
+
+
+
+
+Processor classes:
+
+Static Class: CircuitMathematics
+Static Function: Vector3 BezierEvaluateQuadratic(Vector3 a, Vector3 b, Vector3 c, float t)
+Static Function: Vector3 BezierEvaluateCubic(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float t)
+Static Function: float EstimateCurveLength(Vector3 a, Vector3 b, Vector3 c, Vector3 d, int subdivisions = 10)
+Static Function: Vector3 LerpPointsOnCurve(Point a, Point b, float position) //Equivalent to get point from i in old point implementation
+Static Function: Vector3 LerpCircuitPointsOnSurface(CircuitPoint a, CircuitPoint b, Vector2 position) //Equivalent to get point from ij in old point implementation
+
+Static Class: CircuitPointProcessor
+Static Function: TransformToAlignEndPoints(CircuitPoint circuitPoint)
+Static Function: ProjectAndPerpendiculariseCrossSection(CircuitPoint circuitPoint)
+Static Function: AutoSetControlPoints(CircuitPoint circuitPoint)
+Static Function: ChangeCrossSectionPointCount(CircuitPoint circuitPoint, int newPointCount)
+
+Static Class: CurveProcessor
+Static Function: AutoSetAllControlPoints(Curve curve)
+Static Function: NormaliseCurvePoints(Curve curve)
+Static Function: Vector3 LerpAlongCurve(Curve curve, float value01)
+
+Static Class: RoadProcessor
+Static Function: (Vector2[] Vertices, Vector2[] UVs, int[] Triangles) BuildRoadMesh(Road road)
+Static Function: (Vector2[] Vertices, Vector2[] UVs, int[] Triangles) BuildBridgeMesh(Bridge bridge)
+Static Function: (Vector2[] Vertices, Vector2[] UVs, int[] Triangles) BuildRailingMesh(Railing railing)
+
+
+Interface classes
+
+Interface: iCircuitShaper // Provides interfacing functions to higher objects (like inputs from user edits, or outputs toward scene objects)
+Data: CircuitData currentData
+Function: CircuitData GetData()
+Function: SetData(CircuitData circuitData)
+Function: CircuitData LoadFromJson()
+Function: SaveToJson(CircuitData circuitData)
+Function: BeginEdit()
+Function: QuitEdit()
+Function: AddPointAsNewCurve(Vector3 position)
+Function: AddPointToCurve(CurveData curveData, Vector3 position)
+Function: RemoveCircuitPoint(CircuitPointData circuitPointData)
+Function: MoveCircuitPoint(CircuitPointData circuitPointToMove, Vector3 newPosition)
+Function: MoveCrossSectionPoint(CrossSectionPointData crossSectionPointToMove, Vector3 newPosition)
+Function: CreateNewRoadFromPoints(PointData pointData)
+Function: RemoveRoad(RoadData roadData)
+Event: RoadBuilt sends (RoadData roadData, Vector3[] Vertices, Vector3[] UVs, int[] Triangles) 
+Event: BridgeBuilt sends (RoadData roadData, BridgeData bridgeData, Vector3[] Vertices, Vector3[] UVs, int[] Triangles) 
+Event: RailingBuilt sends (RoadData roadData, RailingData railingData, Vector3[] Vertices, Vector3[] UVs, int[] Triangles) 
+
+Class: CircuitShaper implements iCircuitShaper
+//Interface implementation here
+
+
+
+
+
+Unity classes
+
+Monobehaviour class: OnomiCircuitShaper
+Data: CircuitAndEditorSettings circuitSettings
+Data: CircuitData circuitData
+Data: Dictionary<RoadData, SceneRoad> SceneRoads
+
+
+Monobehaviour class: SceneRoad
+
+
+//No scriptable object classes, decided against it in the end, it's not really that necessary since a prefab is enough for any use case we can imagine
+
+Editor: OnomiCircuitShaperEditor
+Buttons: Buttons to begin and stop editing, freeze or unfreeze (make roads selectable and unselectable)
+Function: SelectPointAndDeselectOthers(PointData Point) //When clicking on points without dragging
+Function: SelectPoint(PointData Point) //When shift clicking on points without dragging
+Function: DeselectPoint(PointData Point) //When shift clicking on selected points without dragging
+Function: DeselectAllPoints() //When clicking at something other than selected point gizmoz
+
+
+Editor: SceneRoad
+
+
+
+
+
+
+Application Description
+
+OnomiCircuitShaper is a prefab/scene object. At its simplest, it doesn't contain any data, and when placed in a scene and selected, the inspector simply shows an indication "No Data" with options as buttons to "Create Data" and "Load Data From json" with a file input field.
+
+Upon "Create Data", a CircuitData and a CircuitAndEditorSettings is created with default values. By default, CircuitData simply has empty lists of curves and roads. Edit mode is then enabled.
+
+Upon "Load Data From json", either the file is not found or invalid or is successfully loaded after which Edit mode is automatically enabled, and one build call is made to create the roads and other meshes as needed.
+
+
+When Edit mode is enabled, all curves are seen as lines, and points can be seen on them as editor disk gizmos.
+
+Toggles in the inspector:
+ - Show Control Points //When enabled, the points' control points and rotator point are shows.
+
+
+

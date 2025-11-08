@@ -18,5 +18,18 @@ namespace OnomiCircuitShaper.Engine.Data
         /// This provides a smoother, more intuitive editing experience for beginners.
         /// </summary>
         public bool AutoSetControlPoints = true;
+
+                /// <summary>
+        /// If true, the forward and backward control points of a point can be moved
+        /// independently. If false, moving one will mirror the movement in the other
+        /// to maintain a smooth curve. This is a global default.
+        /// </summary>
+        public bool IndependentControlPoints = false;
+
+        /// <summary>
+        /// The distance from the anchor point at which the "roll" or "twist" rotator
+        /// handle should be drawn in the editor.
+        /// </summary>
+        public float RotatorPointDistance = 2.0f;
     }
 }

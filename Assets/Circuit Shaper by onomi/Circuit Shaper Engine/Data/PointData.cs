@@ -32,5 +32,11 @@ namespace OnomiCircuitShaper.Engine.Data
         /// controlling the orientation (or "roll") of the track, allowing for banked corners.
         /// </summary>
         public Vector3 UpDirection = Vector3.UnitY;
+
+                /// <summary>
+        /// A per-point override for the global IndependentControlPoints setting.
+        /// If this is true or false, it will be used. If null, the global setting is used.
+        /// </summary>
+        public bool? IndependentControlPointsOverride = null;
     }
 }

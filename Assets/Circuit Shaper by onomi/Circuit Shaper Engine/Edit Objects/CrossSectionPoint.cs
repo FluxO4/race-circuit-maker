@@ -7,7 +7,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
     /// Represents a live, editable point on a cross-section curve. Its position is stored
     /// relative to its parent CircuitPoint (X = across, Y = up, Z = 0).
     /// </summary>
-    public class CrossSectionPoint : Point
+    public class CrossSectionPoint : Point<CrossSectionPointData>
     {
         /// <summary>
         /// The parent circuit point that this cross-section point is attached to.

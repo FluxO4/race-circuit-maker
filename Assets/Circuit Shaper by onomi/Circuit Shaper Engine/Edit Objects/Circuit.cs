@@ -1,5 +1,6 @@
 using OnomiCircuitShaper.Engine.Data;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace OnomiCircuitShaper.Engine.EditRealm
 {
@@ -20,15 +21,33 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         public CircuitAndEditorSettings Settings { get; private set; }
 
         /// <summary>
-        /// A dictionary mapping the raw CurveData to the live, editable Curve objects.
-        /// Strongly-typed to concrete curve implementations to match the EditRealm generics.
+        /// A list of live, editable Curve objects that mirror `CircuitData.CircuitCurves`.
+        /// Keep this list in the same order as the data list for easy indexing and syncing.
         /// </summary>
-        public Dictionary<CircuitCurveData, CircuitCurve> Curves { get; private set; } = new Dictionary<CircuitCurveData, CircuitCurve>();
+        public List<CircuitCurve> Curves { get; private set; } = new List<CircuitCurve>();
 
         /// <summary>
-        /// A dictionary mapping the raw RoadData to the live, editable Road objects.
+        /// A list of live, editable Road objects that mirror `CircuitData.CircuitRoads`.
         /// </summary>
-        public Dictionary<RoadData, Road> Roads { get; private set; } = new Dictionary<RoadData, Road>();
+        public List<Road> Roads { get; private set; } = new List<Road>();
+
+        /// <summary>
+        /// Helper: find the live curve wrapper for a given data object (reference equality).
+        /// </summary>
+        public CircuitCurve GetCurveForData(CircuitCurveData data)
+        {
+            if (data == null) return null;
+            return Curves.Find(c => object.ReferenceEquals(c.Data, data));
+        }
+
+        /// <summary>
+        /// Helper: find the live road wrapper for a given data object.
+        /// </summary>
+        public Road GetRoadForData(RoadData data)
+        {
+            if (data == null) return null;
+            return Roads.Find(r => object.ReferenceEquals(r.Data, data));
+        }
 
         /// <summary>
         /// Initializes the editing session. It populates the dictionaries with live
@@ -58,21 +77,21 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                     foreach (CrossSectionPointData csPointData in circuitPointData.CrossSectionCurve.CurvePoints)
                     {
                         CrossSectionPoint csPoint = new CrossSectionPoint(csPointData, Settings, null);
-                        crossSectionCurve.Points.Add(csPointData, csPoint);
+                        crossSectionCurve.Points.Add(csPoint);
                     }
 
                     // Create the live circuit point and wire it to its cross-section
                     CircuitPoint point = new CircuitPoint(circuitPointData, Settings, crossSectionCurve);
-                    curve.Points.Add(circuitPointData, point);
+                    curve.Points.Add(point);
                 }
 
-                Curves.Add(curveData, curve);
+                Curves.Add(curve);
             }
             //Instantiate Roads
             foreach (var roadData in Data.CircuitRoads)
             {
                 Road road = new Road(roadData, Settings, this);
-                Roads.Add(roadData, road);
+                Roads.Add(road);
             }
 
 
@@ -99,7 +118,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             {
                 curveData = new CircuitCurveData();
             }
-            if (!Curves.ContainsKey(curveData))
+            if (GetCurveForData(curveData) == null)
             {
                 CircuitCurve curve = new CircuitCurve(curveData, Settings);
                 // For each curve, instantiate its points
@@ -112,15 +131,24 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                     foreach (CrossSectionPointData csPointData in circuitPointData.CrossSectionCurve.CurvePoints)
                     {
                         CrossSectionPoint csPoint = new CrossSectionPoint(csPointData, Settings, null);
-                        crossSectionCurve.Points.Add(csPointData, csPoint);
+                        crossSectionCurve.Points.Add(csPoint);
                     }
 
                     // Create the live circuit point and wire it to its cross-section
                     CircuitPoint point = new CircuitPoint(circuitPointData, Settings, crossSectionCurve);
-                    curve.Points.Add(circuitPointData, point);
+                    curve.Points.Add(point);
                 }
 
-                Curves.Add(curveData, curve);
+                // Ensure the data list contains this curve as well
+                if (Data != null)
+                {
+                    if (Data.CircuitCurves == null)
+                        Data.CircuitCurves = new List<CircuitCurveData>();
+                    if (!Data.CircuitCurves.Contains(curveData))
+                        Data.CircuitCurves.Add(curveData);
+                }
+
+                Curves.Add(curve);
                 return curve;
             }
             return null;
@@ -129,11 +157,50 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         // Function for adding new road from RoadData can be added here.
         public void AddRoad(RoadData roadData)
         {
-            if (!Roads.ContainsKey(roadData))
+            if (GetRoadForData(roadData) == null)
             {
                 Road road = new Road(roadData, Settings, this);
-                Roads.Add(roadData, road);
+                // Ensure data list contains this road
+                if (Data != null)
+                {
+                    if (Data.CircuitRoads == null)
+                        Data.CircuitRoads = new List<RoadData>();
+                    if (!Data.CircuitRoads.Contains(roadData))
+                        Data.CircuitRoads.Add(roadData);
+                }
+                Roads.Add(road);
             }
+        }
+
+        /// <summary>
+        /// Add a point to a curve. If the live curve exists, delegate to it so
+        /// both the data and live wrappers stay in sync. Otherwise mutate the data only.
+        /// </summary>
+        public void AddPointToCurve(CircuitCurveData curveData, Vector3 position)
+        {
+            if (curveData == null) return;
+
+            var liveCurve = GetCurveForData(curveData);
+            if (liveCurve != null)
+            {
+                // append at the end
+                liveCurve.AddPointAtIndex(position, liveCurve.Data.CurvePoints.Count);
+                return;
+            }
+
+            // No live curve — modify data directly
+            if (curveData.CurvePoints == null)
+                curveData.CurvePoints = new List<CircuitPointData>();
+
+            var newPoint = new CircuitPointData()
+            {
+                PointPosition = position,
+                ForwardControlPointPosition = position,
+                BackwardControlPointPosition = position,
+                UpDirection = System.Numerics.Vector3.UnitY
+            };
+
+            curveData.CurvePoints.Add(newPoint);
         }
 
         /// <summary>

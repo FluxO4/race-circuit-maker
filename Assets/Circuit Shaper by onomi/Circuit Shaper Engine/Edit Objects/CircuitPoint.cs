@@ -9,7 +9,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
     /// with functionality and properties specific to a point that defines the track's path,
     /// such as having its own cross-section.
     /// </summary>
-    public class CircuitPoint : Point
+    public class CircuitPoint : Point<CircuitPointData>
     {
         /// <summary>
         /// The live, editable cross-section curve associated with this circuit point.

@@ -19,15 +19,16 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public RoadData Data { get; private set; }
 
-        /// <summary>
-        /// A dictionary mapping the raw PointData to the live Point objects associated with this road.
-        /// </summary>
-        public Dictionary<PointData, Point> AssociatedPoints { get; private set; } = new Dictionary<PointData, Point>();
 
         /// <summary>
-        /// A dictionary mapping the raw RailingData to the live Railing objects for this road.
+        /// A list of live Point objects associated with this road. The order should match the underlying data list.
         /// </summary>
-        public Dictionary<RailingData, Railing> Railings { get; private set; } = new Dictionary<RailingData, Railing>();
+        public List<Point<PointData>> AssociatedPoints { get; private set; } = new List<Point<PointData>>();
+
+        /// <summary>
+        /// A list of live Railing objects for this road. The order should match the underlying data list.
+        /// </summary>
+        public List<Railing> Railings { get; private set; } = new List<Railing>();
 
         /// <summary>
         /// The live Bridge object for this road.
@@ -43,7 +44,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// <summary>
         /// Initializes a new road from a list of points.
         /// </summary>
-        public void BuildRoadFromPoints(List<Point> points)
+        public void BuildRoadFromPoints(List<CircuitPoint> points)
         {
             // To be implemented.
         }

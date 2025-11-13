@@ -110,15 +110,6 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// </summary>
         void RemoveRoad(RoadData roadData);
 
-        /// <summary>
-        /// Calculates the average altitude (Y) of all points in the provided curve.
-        /// </summary>
-        float GetAverageCurveAltitude(CircuitCurveData curveData);
-
-        /// <summary>
-        /// Calculates the average altitude (Y) of all points across all curves in the circuit.
-        /// </summary>
-        float GetAverageCircuitAltitude(CircuitData circuitData);
 
         // Selection manipulation APIs
         /// <summary>

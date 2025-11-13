@@ -1,21 +1,28 @@
 using OnomiCircuitShaper.Engine.Data;
 using System.Numerics;
-using UnityEditor;
+using OnomiCircuitShaper.Engine.Processors;
+using System.Collections.Generic;
+
 
 namespace OnomiCircuitShaper.Engine.EditRealm
 {
     /// <summary>
     /// Represents a live, editable curve that defines the main path of the circuit.
     /// </summary>
-    public class CircuitCurve : Curve<CircuitCurveData, CircuitPointData, CircuitPoint>
+    public class CircuitCurve
     {
-
-        public CircuitCurveData Data;
 
         /// <summary>
         /// Gets or sets whether the curve is a closed loop. When set, it will
         /// update the neighbor references of the first and last points.
         /// </summary>
+
+        public CircuitCurveData Data { get; private set; }
+        public CircuitAndEditorSettings Settings { get; private set; }
+        public List<CircuitPoint> Points { get; private set; } = new List<CircuitPoint>();
+
+        public event System.Action CurveStateChanged;
+
         public bool IsClosed
         {
             get => Data.IsClosed;
@@ -39,11 +46,16 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             {
                 PointPosition = pointPosition
             };
-            Data.CurvePoints.Insert(index, newPointData);
-            CircuitPoint newPoint = new CircuitPoint(newPointData, Settings, null);
-            Points[newPointData] = newPoint;
-            newPoint.AutoSetControlpoints();
             
+
+            CircuitPoint newPoint = new CircuitPoint(newPointData, Settings, null);
+            // Insert into the live points list at the same index to keep ordering consistent
+            if (index < 0) index = 0;
+            if (index > Points.Count) index = Points.Count;
+
+            Data.CurvePoints.Insert(index, newPointData);
+            Points.Insert(index, newPoint);
+            newPoint.AutoSetControlpoints();
             OnCurveStateChanged();
         }
 
@@ -100,25 +112,37 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public void AddPointOnCurve(Vector3 rayStart, Vector3 rayDirection)
         {
-            // To be implemented.
+            Vector3 avgAltitude = CircuitMathematics.GetAverageCurveAltitude(Data) * Vector3.UnitY;
+            Vector3 projectedPoint = rayStart + rayDirection * ((avgAltitude.Y - rayStart.Y) / rayDirection.Y);
+            AddPointOnCurve(projectedPoint);
         }
 
         /// <summary>
         /// Removes a point from the curve and updates all neighboring points and curve properties.
         /// </summary>
 
-        public void RemovePoint(Point point)
+
+        public void RemovePoint(CircuitPoint point)
         {
             // To be implemented.
             OnCurveStateChanged();
         }
 
-        /// <summary>
-        /// Constructor using raw data and settings.
-        /// </summary>
-        public CircuitCurve(CircuitCurveData data, CircuitAndEditorSettings settings) : base(settings)
+        // constructor
+        public CircuitCurve(CircuitCurveData data, CircuitAndEditorSettings settings)
         {
             Data = data;
+            Settings = settings;
+        }
+
+        public virtual void AutoSetAllControlPoints()
+        {
+            // Implementation may be provided by processors or overridden by derived classes.
+        }
+
+        protected void OnCurveStateChanged()
+        {
+            CurveStateChanged?.Invoke();
         }
     }
 }

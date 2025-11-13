@@ -75,32 +75,10 @@ namespace OnomiCircuitShaper.Engine.Interface
         {
             // Create a new curve containing a single circuit point at the given position,
             // add it to the current data, and select the newly created point.
-            var curve = new CircuitCurveData();
 
-            var newPoint = new CircuitPointData()
-            {
-                PointPosition = position,
-                ForwardControlPointPosition = position + new Vector3(1, 0, 0),
-                BackwardControlPointPosition = position + new Vector3(-1, 0, 0),
-                UpDirection = System.Numerics.Vector3.UnitY
-            };
-
-            curve.CurvePoints = new List<PointData>() { newPoint };
-
-            if (_currentData.CircuitCurves == null)
-                _currentData.CircuitCurves = new List<CircuitCurveData>();
-
-            _currentData.CircuitCurves.Add(curve);
-
-            // If there is a live edit circuit, keep its data in sync as best-effort so selection
-            // lookup can find the new point immediately.
-            if (_liveCircuit != null && _liveCircuit.Data != null)
-            {
-                if (_liveCircuit.Data.CircuitCurves == null)
-                    _liveCircuit.Data.CircuitCurves = new List<CircuitCurveData>();
-
-                _liveCircuit.Data.CircuitCurves.Add(curve);
-            }
+            //Create new curve and add it to the data.
+            CircuitCurve curve = _liveCircuit.AddCurve();
+            curve.AddPointOnCurve(position);
 
             // Select the newly created point (this will also set the selected curve).
             SelectPoint(newPoint);
@@ -124,8 +102,7 @@ namespace OnomiCircuitShaper.Engine.Interface
                 UpDirection = new System.Numerics.Vector3(0, 1, 0)
             };
 
-            if (curveData.CurvePoints == null)
-                curveData.CurvePoints = new List<PointData>();
+            _currentData.CircuitCurves[curveData].
 
             curveData.CurvePoints.Add(newPoint);
         }
@@ -153,16 +130,6 @@ namespace OnomiCircuitShaper.Engine.Interface
         public void RemoveRoad(RoadData roadData)
         {
             // To be implemented.
-        }
-
-        public float GetAverageCurveAltitude(CurveData curveData)
-        {
-            return CircuitMathematics.GetAverageCurveAltitude(curveData);
-        }
-
-        public float GetAverageCircuitAltitude(CircuitData circuitData)
-        {
-            return CircuitMathematics.GetAverageCircuitAltitude(circuitData);
         }
 
         // Selection manipulation implementations

@@ -11,18 +11,23 @@ namespace OnomiCircuitShaper.Engine.EditRealm
     public abstract class Curve<TData, TPointData, TPoint>
         where TData : CurveData<TPointData>
         where TPointData : PointData
-        where TPoint : Point
+        where TPoint : Point<TPointData>
     {
+
+        //The data
+        public TData Data { get; private set; }
+
         /// <summary>
         /// A reference to the editor-wide settings.
         /// </summary>
         public CircuitAndEditorSettings Settings { get; private set; }
 
         /// <summary>
-        /// A dictionary mapping the raw PointData to the live, editable Point objects.
-        /// Strongly-typed so derived curves cannot accidentally mix point types.
+        /// A list of live, editable point wrappers that mirrors the data list on the
+        /// corresponding CurveData. The index of a point in this list corresponds to
+        /// the index of its backing PointData in the data model.
         /// </summary>
-        public Dictionary<TPointData, TPoint> Points { get; private set; } = new Dictionary<TPointData, TPoint>();
+        public List<TPoint> Points { get; private set; } = new List<TPoint>();
 
         /// <summary>
         /// An event that is fired whenever the curve's structure or properties change.
@@ -47,8 +52,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         }
 
         //Constructor
-        public Curve(CircuitAndEditorSettings settings)
+        public Curve( TData data, CircuitAndEditorSettings settings)
         {
+            Data = data;
             Settings = settings;
         }
     }

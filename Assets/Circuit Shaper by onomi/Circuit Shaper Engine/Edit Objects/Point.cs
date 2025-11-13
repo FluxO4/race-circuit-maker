@@ -123,4 +123,17 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             OnPointStateChanged();
         }
     }
+
+    /// <summary>
+    /// Generic typed version of Point that exposes a strongly-typed Data property.
+    /// Concrete live point types should inherit from Point<TData> for compile-time safety.
+    /// </summary>
+    public abstract class Point<TData> : Point where TData : PointData
+    {
+        public new TData Data => (TData)base.Data;
+
+        public Point(TData data, CircuitAndEditorSettings settings) : base(data, settings)
+        {
+        }
+    }
 }

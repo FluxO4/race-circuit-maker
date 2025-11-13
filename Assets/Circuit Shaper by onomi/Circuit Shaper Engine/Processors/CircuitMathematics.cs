@@ -51,7 +51,7 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// <summary>
         /// Calculates the average altitude (Y position) of all points in a curve.
         /// </summary>
-        public static float GetAverageCurveAltitude(CurveData curveData)
+        public static float GetAverageCurveAltitude<TPoint>(CurveData<TPoint> curveData) where TPoint : PointData
         {
             if (curveData == null || curveData.CurvePoints == null || curveData.CurvePoints.Count == 0)
             {

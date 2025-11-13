@@ -8,7 +8,7 @@ namespace OnomiCircuitShaper.Engine.Data
     /// and their associated editor settings.
     /// </summary>
     [System.Serializable]
-    public abstract class OnomiCircuitShaperData
+    public class OnomiCircuitShaperData
     {
         /// <summary>
         /// The core data defining the geometry and structure of the race circuit.

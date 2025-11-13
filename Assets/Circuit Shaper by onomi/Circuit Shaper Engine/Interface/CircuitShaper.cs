@@ -25,6 +25,8 @@ namespace OnomiCircuitShaper.Engine.Interface
         private readonly List<CircuitPoint> _selectedPoints = new List<CircuitPoint>();
         private CircuitCurve _selectedCurve;
 
+        private SinglePointSelectionMode _singlePointSelectionMode = SinglePointSelectionMode.AnchorPoint;
+
         public CircuitShaper(CircuitData data, CircuitAndEditorSettings settings)
         {
             _currentData = data;
@@ -34,6 +36,10 @@ namespace OnomiCircuitShaper.Engine.Interface
         // Expose selection state as read-only
         public IReadOnlyList<CircuitPoint> SelectedPoints => _selectedPoints.AsReadOnly();
         public CircuitCurve SelectedCurve => _selectedCurve;
+
+        public SinglePointSelectionMode GetSinglePointSelectionMode() => _singlePointSelectionMode;
+
+
 
         public Circuit GetLiveCircuit => _liveCircuit;
 
@@ -73,7 +79,7 @@ namespace OnomiCircuitShaper.Engine.Interface
             return string.Empty;
         }
 
-        public void AddPointAsNewCurve(Vector3 position)
+        public CircuitPoint AddPointAsNewCurve(Vector3 position)
         {
             // Create a new curve containing a single circuit point at the given position,
             // add it to the current data, and select the newly created point.
@@ -82,21 +88,44 @@ namespace OnomiCircuitShaper.Engine.Interface
             CircuitCurve curve = _liveCircuit.AddCurve();
             CircuitPoint newPoint = curve.AddPointOnCurve(position);
 
-            // Select the newly created point (this will also set the selected curve).
-            SelectPoint(newPoint);
+            return newPoint;
         }
 
-        public void AddPointAsNewCurve(Vector3 rayStart, Vector3 rayDirection) => AddPointAsNewCurve(rayStart + rayDirection * ((CircuitMathematics.GetAverageCircuitAltitude(_liveCircuit.Data) - rayStart.Y) / rayDirection.Y));
+        public CircuitPoint AddPointAsNewCurve(Vector3 rayStart, Vector3 rayDirection)
+        {
+            // Create a new curve containing a single circuit point at the given ray position,
+            // add it to the current data, and select the newly created point.
 
-        public void AddPointToCurve(CircuitCurve curve, Vector3 position) => curve?.AddPointOnCurve(position);
+            //Create new curve and add it to the data.
+            CircuitCurve curve = _liveCircuit.AddCurve();
+            CircuitPoint newPoint = curve.AddPointOnCurve(rayStart, rayDirection);
+            
+            return newPoint;
+        }
 
-        public void AddPointToCurve(CircuitCurve curve, Vector3 rayStart, Vector3 rayDirection) => AddPointToCurve(curve, rayStart + rayDirection * ((CircuitMathematics.GetAverageCurveAltitude(curve.Data) - rayStart.Y) / rayDirection.Y));
+        public CircuitPoint AddPointToCurve(CircuitCurve curve, Vector3 position) => curve?.AddPointOnCurve(position);
 
-        public void AddPointToSelectedCurve(Vector3 position) => AddPointToCurve(_selectedCurve, position);
+        public CircuitPoint AddPointToCurve(CircuitCurve curve, Vector3 rayStart, Vector3 rayDirection) => curve?.AddPointOnCurve(rayStart, rayDirection);
+
+        public CircuitPoint AddPointToSelectedCurve(Vector3 position) => AddPointToCurve(_selectedCurve, position);
     
-        public void AddPointToSelectedCurve(Vector3 rayStart, Vector3 rayDirection) => AddPointToCurve(_selectedCurve, rayStart, rayDirection);
-        
+        public CircuitPoint AddPointToSelectedCurve(Vector3 rayStart, Vector3 rayDirection) => AddPointToCurve(_selectedCurve, rayStart, rayDirection);
+
         public void RemoveCircuitPoint(CircuitPoint circuitPoint) => circuitPoint.CircuitCurve.RemovePoint(circuitPoint);
+        
+        public void DeleteSelectedPoints()
+        {
+            // Create a copy of the selected points list to avoid modification during iteration.
+            var pointsToDelete = new List<CircuitPoint>(_selectedPoints);
+
+            foreach (var point in pointsToDelete)
+            {
+                RemoveCircuitPoint(point);
+            }
+
+            // Clear selection after deletion.
+            ClearSelection();
+        }
 
         public void MoveCircuitPoint(CircuitPoint circuitPointToMove, Vector3 newPosition) => circuitPointToMove.MoveCircuitPoint(newPosition);
 
@@ -104,6 +133,8 @@ namespace OnomiCircuitShaper.Engine.Interface
         
         public void MoveCircuitPointBackwardControl(CircuitPoint circuitPointToMove, Vector3 newPosition) => circuitPointToMove.MoveBackwardControlPoint(newPosition);
 
+        public void RotateCircuitPoint(CircuitPoint circuitPoint, Vector3 eulerAngles) => circuitPoint.RotateCircuitPoint(eulerAngles);
+        
 
         public void MoveCrossSectionPoint(CrossSectionPoint crossSectionPointToMove, Vector3 newPosition) => crossSectionPointToMove.MoveCrossSectionPoint(newPosition);
 
@@ -125,6 +156,7 @@ namespace OnomiCircuitShaper.Engine.Interface
                 return;
 
             _selectedPoints.Clear();
+            _singlePointSelectionMode = SinglePointSelectionMode.AnchorPoint;
             _selectedPoints.Add(point);
 
             //Also set the selected curve if this point belongs to one.
@@ -171,23 +203,30 @@ namespace OnomiCircuitShaper.Engine.Interface
                 _selectedPoints[0].PreviousPoint == point)
             {
                 bool connectedAtBeginning = _selectedPoints[0].PreviousPoint == point;
-                if(connectedAtBeginning)
+                if (connectedAtBeginning)
                 {
                     _selectedPoints.Insert(0, point);
-                    return;
-                }
 
-            _selectedPoints.Add(point);
+                }
+                else
+                {
+
+                    _selectedPoints.Add(point);
+                }
+                _singlePointSelectionMode = SinglePointSelectionMode.AnchorPoint;
             }
-            else
-                return;
-        
         }
 
         public void ClearSelection()
         {
             _selectedPoints.Clear();
             _selectedCurve = null;
+            _singlePointSelectionMode = SinglePointSelectionMode.AnchorPoint;
+        }
+
+        public void SetSinglePointSelectionMode(SinglePointSelectionMode mode)
+        {
+            _singlePointSelectionMode = mode;
         }
     }
 }

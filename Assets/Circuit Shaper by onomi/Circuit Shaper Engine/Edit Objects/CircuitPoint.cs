@@ -27,14 +27,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         private bool IndependentControlPointsEnabled()
         {
-            if (Settings == null) return true;
-            var prop = Settings.GetType().GetProperty("IndependentControlPoints");
-            if (prop != null && prop.PropertyType == typeof(bool))
-            {
-                var value = prop.GetValue(Settings);
-                if (value is bool b) return b;
-            }
-            return true;
+            return Settings.IndependentControlPoints || (Data.IndependentControlPointsOverride != null && Data.IndependentControlPointsOverride.Value);
         }
 
         //Constructor
@@ -105,6 +98,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public void MoveForwardControlPoint(Vector3 newPosition)
         {
+
+
             Data.ForwardControlPointPosition = newPosition;
             if (!IndependentControlPointsEnabled())
             {
@@ -112,6 +107,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 float dist = Vector3.Distance(Data.PointPosition, Data.BackwardControlPointPosition);
                 Data.BackwardControlPointPosition = Data.PointPosition + dir * dist;
             }
+            RealignUpVector();
             OnPointStateChanged();
         }
 
@@ -121,6 +117,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public void MoveBackwardControlPoint(Vector3 newPosition)
         {
+
+
+
             Data.BackwardControlPointPosition = newPosition;
             if (!IndependentControlPointsEnabled())
             {
@@ -128,6 +127,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 float dist = Vector3.Distance(Data.PointPosition, Data.ForwardControlPointPosition);
                 Data.ForwardControlPointPosition = Data.PointPosition + dir * dist;
             }
+            RealignUpVector();
             OnPointStateChanged();
         }
 
@@ -158,7 +158,60 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Data.ForwardControlPointPosition = Data.PointPosition + (SerializableVector3)Vector3.Transform(forwardControlRelative, rotation);
             Data.BackwardControlPointPosition = Data.PointPosition + (SerializableVector3)Vector3.Transform(backwardControlRelative, rotation);
 
+            RealignUpVector();
             OnPointStateChanged();
+        }
+
+
+
+        /*public void MoveUpDirection(Vector3 newUpDirection)
+        {
+            if (newUpDirection.LengthSquared() < 1e-6f)
+                throw new ArgumentException("Up direction cannot be zero-length.", nameof(newUpDirection));
+
+            Data.UpDirection = Vector3.Normalize(newUpDirection) * Settings.RotatorPointDistance;
+            OnPointStateChanged();
+        }*/
+
+        /// <summary>
+        /// Re-aligns the UpDirection to be perpendicular to the forward vector of the point.
+        /// This is useful after operations that change the forward direction, like moving control points.
+        /// </summary>
+        private void RealignUpVector()
+        {
+            var forward = GetForwardVector;
+            var up = GetUpVector;
+
+            // If forward and up are already perpendicular, nothing to do.
+            if (Math.Abs(Vector3.Dot(forward, up)) < 1e-5f)
+            {
+                return;
+            }
+
+            // To make the up vector perpendicular to the forward vector, we can use the cross product.
+            // The new 'right' vector will be perpendicular to both old 'up' and new 'forward'.
+            var right = Vector3.Cross(up, forward);
+
+            // If 'up' and 'forward' are parallel, the cross product is zero.
+            // In this case, we need to find an arbitrary perpendicular vector.
+            // We can do this by crossing 'forward' with a non-parallel axis.
+            if (right.LengthSquared() < 1e-6f)
+            {
+                // If forward is not aligned with world up, use world up. Otherwise use world right.
+                var nonParallelAxis = Math.Abs(Vector3.Dot(forward, Vector3.UnitY)) < 0.99f ? Vector3.UnitY : Vector3.UnitX;
+                right = Vector3.Cross(forward, nonParallelAxis);
+            }
+
+            // The new 'up' is perpendicular to the new 'forward' and the new 'right'.
+            var newUp = Vector3.Cross(forward, right);
+
+            // Set the new up direction, preserving its original length if it was non-zero.
+            float originalLength = Data.UpDirection.Length;
+            if (originalLength < 1e-6f)
+            {
+                originalLength = 1f; // Default to length 1 if it was zero.
+            }
+            Data.UpDirection = Vector3.Normalize(newUp) * originalLength;
         }
     }
 }

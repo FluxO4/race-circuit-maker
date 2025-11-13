@@ -2,6 +2,7 @@ using OnomiCircuitShaper.Engine.Data;
 using System.Numerics;
 using OnomiCircuitShaper.Engine.Processors;
 using System.Collections.Generic;
+using System;
 
 
 namespace OnomiCircuitShaper.Engine.EditRealm
@@ -55,7 +56,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
             Data.CurvePoints.Insert(index, newPointData);
             Points.Insert(index, newPoint);
+            UpdateNeighborReferences();
             newPoint.AutoSetControlpoints();
+            
             OnCurveStateChanged();
             return newPoint;
         }
@@ -94,6 +97,46 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             return null;
         }
 
+        // Add point based on camera position and ray direction
+        public CircuitPoint AddPointOnCurve(Vector3 cameraPosition, Vector3 cameraDirection)
+        {
+            // Go through every segment and track the minimum distance from the ray to the segment
+            int closestSegmentIndex = -1;
+            Vector3 pointToadd = Vector3.Zero;
+
+            float closestDistanceSqr = float.MaxValue;
+            for (int i = 0; i < Data.CurvePoints.Count - 1 + (Data.IsClosed ? 1 : 0); i++)
+            {
+                CircuitPointData p1 = Data.CurvePoints[i];
+                CircuitPointData p2 = Data.CurvePoints[(i + 1) % Data.CurvePoints.Count];
+
+                Vector3 segmentStart = p1.PointPosition;
+                Vector3 segmentEnd = p2.PointPosition;
+
+                // Find the closest points on the ray and the segment
+                ClosestPointsOnRayAndSegment(
+                    cameraPosition, cameraDirection,
+                    segmentStart, segmentEnd,
+                    out Vector3 closestPointOnRay,
+                    out Vector3 closestPointOnSegment
+                );
+
+
+                float distanceSqr = Vector3.DistanceSquared(closestPointOnRay, closestPointOnSegment);
+                if (distanceSqr < closestDistanceSqr)
+                {
+                    closestDistanceSqr = distanceSqr;
+                    closestSegmentIndex = i;
+                    pointToadd = closestPointOnSegment;
+                }
+            }
+            
+            return AddPointAtIndex(pointToadd, closestSegmentIndex + 1);
+        }
+
+
+        
+
         /// <summary>
         /// Projects point p onto the segment ab and returns the closest point on the segment.
         /// </summary>
@@ -111,6 +154,53 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
 
         /// <summary>
+        /// Calculates the closest points between a ray and a line segment.
+        /// </summary>
+        /// <param name="rayOrigin">The origin of the ray.</param>
+        /// <param name="rayDirection">The direction of the ray (must be normalized).</param>
+        /// <param name="segmentStart">The start point of the segment.</param>
+        /// <param name="segmentEnd">The end point of the segment.</param>
+        /// <param name="closestPointOnRay">The resulting closest point on the ray.</param>
+        /// <param name="closestPointOnSegment">The resulting closest point on the segment.</param>
+        private static void ClosestPointsOnRayAndSegment(Vector3 rayOrigin, Vector3 rayDirection, Vector3 segmentStart, Vector3 segmentEnd, out Vector3 closestPointOnRay, out Vector3 closestPointOnSegment)
+        {
+            Vector3 segmentDirection = segmentEnd - segmentStart;
+            Vector3 w0 = rayOrigin - segmentStart;
+
+            float a = Vector3.Dot(rayDirection, rayDirection);
+            float b = Vector3.Dot(rayDirection, segmentDirection);
+            float c = Vector3.Dot(segmentDirection, segmentDirection);
+            float d = Vector3.Dot(rayDirection, w0);
+            float e = Vector3.Dot(segmentDirection, w0);
+
+            float denom = a * c - b * b;
+
+            float rayT, segmentT;
+
+            // If the lines are parallel, find the closest point on the segment to the ray's origin
+            if (Math.Abs(denom) < 1e-5f)
+            {
+                rayT = 0; // We can pick any point on the ray, so we choose the origin.
+                segmentT = Math.Clamp(-e / c, 0, 1);
+            }
+            else
+            {
+                // General case for non-parallel lines
+                rayT = (b * e - c * d) / denom;
+                segmentT = (a * e - b * d) / denom;
+
+                // Clamp parameters to the bounds of the ray (t>=0) and segment (0<=t<=1)
+                rayT = Math.Max(rayT, 0);
+                segmentT = Math.Clamp(segmentT, 0, 1);
+            }
+
+            closestPointOnRay = rayOrigin + rayDirection * rayT;
+            closestPointOnSegment = segmentStart + segmentDirection * segmentT;
+        }
+
+
+
+        /// <summary>
         /// Removes a point from the curve and updates all neighboring points and curve properties.
         /// </summary>
 
@@ -122,6 +212,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 int index = Points.IndexOf(point);
                 Points.RemoveAt(index);
                 Data.CurvePoints.RemoveAt(index);
+                UpdateNeighborReferences();
             }
             
             OnCurveStateChanged();
@@ -134,11 +225,38 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Settings = settings;
 
             // Create live CircuitPoint objects for each data point
-            for(int i = 0; i < Data.CurvePoints.Count; i++)
+            for (int i = 0; i < Data.CurvePoints.Count; i++)
             {
                 CircuitPointData pointData = Data.CurvePoints[i];
                 CircuitPoint circuitPoint = new CircuitPoint(this, pointData, Settings, null);
                 Points.Add(circuitPoint);
+            }
+
+            UpdateNeighborReferences();
+
+            
+        }
+        
+        private void UpdateNeighborReferences()
+        {
+            // Look through all points and correctly set their neighbor references
+            for (int i = 0; i < Points.Count; i++)
+            {
+                CircuitPoint currentPoint = Points[i];
+                CircuitPoint nextPoint = Points[(i + 1) % Points.Count];
+                CircuitPoint previousPoint = Points[(i - 1 + Points.Count) % Points.Count];
+
+                if (i == Points.Count - 1 && !Data.IsClosed)
+                {
+                    nextPoint = null;
+                }
+                if (i == 0 && !Data.IsClosed)
+                {
+                    previousPoint = null;
+                }
+
+                currentPoint.NextPoint = nextPoint;
+                currentPoint.PreviousPoint = previousPoint;
             }
         }
 

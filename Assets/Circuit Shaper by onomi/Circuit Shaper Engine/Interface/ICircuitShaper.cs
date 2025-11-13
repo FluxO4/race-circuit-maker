@@ -58,28 +58,34 @@ namespace OnomiCircuitShaper.Engine.Interface
 
         // Selection state (read-only from callers)
         IReadOnlyList<CircuitPoint> SelectedPoints { get; }
+
+        SinglePointSelectionMode GetSinglePointSelectionMode();
+
         CircuitCurve SelectedCurve { get; }
 
         /// <summary>
         /// Adds a new point, creating a new curve in the process.
         /// </summary>
-        void AddPointAsNewCurve(Vector3 position);
+        CircuitPoint AddPointAsNewCurve(Vector3 position);
 
         // A version of this taking camera position and direction
-        void AddPointAsNewCurve(Vector3 cameraPosition, Vector3 cameraDirection);
+        CircuitPoint AddPointAsNewCurve(Vector3 cameraPosition, Vector3 cameraDirection);
 
         /// <summary>
         /// Adds a new point to an existing curve.
         /// </summary>
-        void AddPointToCurve(CircuitCurve curve, Vector3 position);
+        CircuitPoint AddPointToCurve(CircuitCurve curve, Vector3 position);
 
         // A version of this taking camera position and direction
-        void AddPointToCurve(CircuitCurve curve, Vector3 cameraPosition, Vector3 cameraDirection);
+        CircuitPoint AddPointToCurve(CircuitCurve curve, Vector3 cameraPosition, Vector3 cameraDirection);
 
         /// <summary>
         /// Removes a point from the circuit.
         /// </summary>
         void RemoveCircuitPoint(CircuitPoint circuitPoint);
+
+        //Remove the selected points
+        void DeleteSelectedPoints();
 
         /// <summary>
         /// Moves a circuit anchor point to a new position.
@@ -90,6 +96,12 @@ namespace OnomiCircuitShaper.Engine.Interface
         void MoveCircuitPointForwardControl(CircuitPoint circuitPointToMove, Vector3 newPosition);
         //Move the circuit point's backward control point
         void MoveCircuitPointBackwardControl(CircuitPoint circuitPointToMove, Vector3 newPosition);
+        
+
+        /// <summary>
+        /// Rotates a circuit point by the given euler angles.
+        /// </summary>
+        void RotateCircuitPoint(CircuitPoint circuitPoint, Vector3 eulerAngles);
 
         /// <summary>
         /// Moves a cross-section point to a new position.
@@ -127,14 +139,25 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// </summary>
         void ClearSelection();
 
+
+        //Set the single point selection mode
+        void SetSinglePointSelectionMode(SinglePointSelectionMode mode);
+
         /// <summary>
         /// Adds a point to the currently selected curve (if any).
         /// </summary>
-        void AddPointToSelectedCurve(Vector3 position);
+        CircuitPoint AddPointToSelectedCurve(Vector3 position);
 
         // A version of this taking camera position and direction
-        void AddPointToSelectedCurve(Vector3 cameraPosition, Vector3 cameraDirection);
+        CircuitPoint AddPointToSelectedCurve(Vector3 cameraPosition, Vector3 cameraDirection);
 
 
+    }
+
+    public enum SinglePointSelectionMode
+    {
+        AnchorPoint,
+        ForwardControlPoint,
+        BackwardControlPoint
     }
 }

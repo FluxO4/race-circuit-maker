@@ -31,5 +31,17 @@ namespace OnomiCircuitShaper.Engine.Data
         /// handle should be drawn in the editor.
         /// </summary>
         public float RotatorPointDistance = 2.0f;
+
+
+        // free move gizmo settings
+        /// <summary>
+        /// The size of the free move gizmo handles in the editor.
+        /// </summary>
+        public float FreeMoveGizmoHandleSizeFactor = 1.0f;
+
+        /// <summary>
+        /// Whether the handles should be free move or selectable.
+        /// </summary>
+        public bool FreeMoveMode = true;
     }
 }

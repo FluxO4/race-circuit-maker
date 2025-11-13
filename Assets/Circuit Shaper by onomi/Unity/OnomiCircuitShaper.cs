@@ -14,7 +14,7 @@ namespace OnomiCircuitShaper.Unity
         /// <summary>
         /// The data
         /// </summary>
-        public OnomiCircuitShaperData Data;
+        public OnomiCircuitShaperData Data = new OnomiCircuitShaperData();
 
 
         /// <summary>

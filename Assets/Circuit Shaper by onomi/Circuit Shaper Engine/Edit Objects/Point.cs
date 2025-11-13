@@ -101,6 +101,14 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         public Vector3 GetUpVector =>
             Data.UpDirection.LengthSquared < 1e-6f ? Vector3.UnitY : Vector3.Normalize(Data.UpDirection);
 
+        public void SetUpVector(Vector3 newUp)
+        {
+            if (newUp.LengthSquared() < 1e-6f)
+                throw new ArgumentException("Up vector cannot be zero-length.", nameof(newUp));
+            Data.UpDirection = Vector3.Normalize(newUp);
+            OnPointStateChanged();
+        }
+
         /// <summary>
         /// Convenience accessors into the backing PointData.
         /// </summary>
@@ -116,13 +124,42 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         public Vector3 RotatorPointPosition => PointPosition + GetUpVector * DefaultRotatorDistance;
 
         /// <summary>
-        /// Called to auto-set control points for this point. Default implementation
-        /// simply raises the changed event; concrete processors may call into
-        /// CircuitPointProcessor or CurveProcessor instead.
+        /// Called to auto-set control points for this point based on neighbouring points if they exist
         /// </summary>
-        public virtual void AutoSetControlpoints()
+        public void AutoSetControlpoints()
         {
-            // Default: notify listeners. More advanced algorithms live in processor classes.
+        
+
+            // If both neighbours exist, set control points to halfway to their control points
+            if (PreviousPoint != null && NextPoint != null)
+            {
+                Vector3 toPrev = PreviousPoint.PointPosition - PointPosition;
+                Vector3 toNext = NextPoint.PointPosition - PointPosition;
+
+                Vector3 newBackwardControl = PointPosition + toPrev * 0.5f;
+                Vector3 newForwardControl = PointPosition + toNext * 0.5f;
+
+                Data.BackwardControlPointPosition = newBackwardControl;
+                Data.ForwardControlPointPosition = newForwardControl;
+    
+            }else if (PreviousPoint != null) // Only previous point exists
+            {
+                Vector3 toPrev = PreviousPoint.PointPosition - PointPosition;
+                Data.BackwardControlPointPosition = PointPosition + toPrev * 0.5f;
+                Data.ForwardControlPointPosition = PointPosition + toPrev * -0.5f;
+            }
+            else if (NextPoint != null) // Only next point exists
+            {
+                Vector3 toNext = NextPoint.PointPosition - PointPosition;
+                Data.ForwardControlPointPosition = PointPosition + toNext * 0.5f;
+                Data.BackwardControlPointPosition = PointPosition + toNext * -0.5f;
+            }
+            else // No neighbours, set control points to default offsets
+            {
+                Data.ForwardControlPointPosition = PointPosition + Vector3.UnitZ * 1f;
+                Data.BackwardControlPointPosition = PointPosition + Vector3.UnitZ * -1f;
+            }
+
             OnPointStateChanged();
         }
     }

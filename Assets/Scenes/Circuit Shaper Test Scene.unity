@@ -1208,62 +1208,168 @@ MonoBehaviour:
   Data:
     circuitData:
       CircuitCurves:
-      - CurvePoints:
+      - IsClosed: 1
+        CurvePoints:
         - PointPosition:
-            x: 0.04
-            y: 0
-            z: 0
+            x: 0.52591896
+            y: -0.9958493
+            z: -3.514186
           ForwardControlPointPosition:
-            x: 0.5
-            y: 0
-            z: 0
+            x: 2.2630363
+            y: -0.9976406
+            z: -4.3851757
           BackwardControlPointPosition:
-            x: -0.5
-            y: 0
-            z: 0
+            x: -0.6951556
+            y: -0.99459016
+            z: -2.9019394
+          UpDirection:
+            x: 0.0039231656
+            y: 0.99997574
+            z: 0.0057678623
+          CrossSectionCurve:
+            IsClosed: 0
+            CurvePoints: []
+        - PointPosition:
+            x: 0.77909803
+            y: -0.038226597
+            z: 0.20312059
+          ForwardControlPointPosition:
+            x: 1.0500557
+            y: -0.0057762265
+            z: 0.557307
+          BackwardControlPointPosition:
+            x: 0.508168
+            y: -0.070673645
+            z: -0.15102953
+          UpDirection:
+            x: -0.16247697
+            y: 0.9861278
+            z: 0.033948734
+          CrossSectionCurve:
+            IsClosed: 0
+            CurvePoints: []
+        - PointPosition:
+            x: 4.4343157
+            y: 0.0052331425
+            z: 2.9845815
+          ForwardControlPointPosition:
+            x: 4.4343157
+            y: 0.0052331425
+            z: 3.984581
+          BackwardControlPointPosition:
+            x: 4.4343157
+            y: 0.0052331425
+            z: 1.9845815
           UpDirection:
             x: 0
             y: 1
             z: 0
+          CrossSectionCurve:
+            IsClosed: 1
+            CurvePoints: []
         - PointPosition:
-            x: 1
-            y: 0
-            z: 0
+            x: 1.7281188
+            y: 0.032735825
+            z: 6.256062
           ForwardControlPointPosition:
-            x: 1.5
-            y: 0
-            z: 0
+            x: 0.8053335
+            y: 0.032735825
+            z: 6.641374
           BackwardControlPointPosition:
-            x: 0.5
-            y: 0
-            z: 0
+            x: 2.402635
+            y: 0.032735825
+            z: 5.974415
           UpDirection:
             x: 0
             y: 1
             z: 0
+          CrossSectionCurve:
+            IsClosed: 1
+            CurvePoints: []
         - PointPosition:
-            x: 5
-            y: 0
-            z: 3
+            x: -2.5633695
+            y: 0.05779302
+            z: 5.289281
           ForwardControlPointPosition:
-            x: 5.5
-            y: 0
-            z: 3
+            x: -3.2250159
+            y: 0.17537689
+            z: 4.8472023
           BackwardControlPointPosition:
-            x: 4.5
-            y: 0
-            z: 3
+            x: -1.6699181
+            y: -0.100985885
+            z: 5.8862405
+          UpDirection:
+            x: 0.14215451
+            y: 0.98857164
+            z: 0.0501813
+          CrossSectionCurve:
+            IsClosed: 1
+            CurvePoints: []
+        - PointPosition:
+            x: -4.159466
+            y: -0.22893637
+            z: 3.1717503
+          ForwardControlPointPosition:
+            x: -4.897371
+            y: -0.39718664
+            z: 1.835201
+          BackwardControlPointPosition:
+            x: -3.5307035
+            y: -0.08557168
+            z: 4.3106117
           UpDirection:
             x: 0
             y: 1
             z: 0
-        IsClosed: 1
+          CrossSectionCurve:
+            IsClosed: 1
+            CurvePoints: []
+        - PointPosition:
+            x: -5.3343153
+            y: -0.5654369
+            z: -0.024342855
+          ForwardControlPointPosition:
+            x: -5.414452
+            y: -0.6924292
+            z: -1.1487854
+          BackwardControlPointPosition:
+            x: -5.137676
+            y: -0.25382194
+            z: 2.7348258
+          UpDirection:
+            x: 0
+            y: 1
+            z: 0
+          CrossSectionCurve:
+            IsClosed: 1
+            CurvePoints: []
+        - PointPosition:
+            x: -3.116922
+            y: -0.8194214
+            z: -2.4779387
+          ForwardControlPointPosition:
+            x: -2.4402847
+            y: -0.42230687
+            z: -3.5540476
+          BackwardControlPointPosition:
+            x: -3.7780652
+            y: -1.2074426
+            z: -1.4264711
+          UpDirection:
+            x: 0.07374865
+            y: 0.91965145
+            z: 0.38574874
+          CrossSectionCurve:
+            IsClosed: 1
+            CurvePoints: []
       CircuitRoads: []
     settingsData:
-      ScaleMultiplier: 1
+      ScaleMultiplier: 1.5
       AutoSetControlPoints: 1
       IndependentControlPoints: 0
-      RotatorPointDistance: 2
+      RotatorPointDistance: 1.43
+      FreeMoveGizmoHandleSizeFactor: 1
+      FreeMoveMode: 0
 --- !u!4 &399263769
 Transform:
   m_ObjectHideFlags: 0
@@ -1273,7 +1379,7 @@ Transform:
   m_GameObject: {fileID: 399263767}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 1.14, y: 0, z: -25.36}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

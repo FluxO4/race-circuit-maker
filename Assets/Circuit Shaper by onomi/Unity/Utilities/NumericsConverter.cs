@@ -75,5 +75,30 @@ namespace OnomiCircuitShaper.Unity.Utilities
         {
             return new Vector2(serializableVector.x, serializableVector.y);
         }
+
+        /// <summary>
+        /// Transforms a System.Numerics.Vector3 to global space by applying scale and offset.
+        /// </summary>
+        public static Vector3 ToGlobalSpace(this System.Numerics.Vector3 localPosition, Vector3 basePosition, float scale)
+        {
+            return new Vector3(
+                localPosition.X * scale + basePosition.x,
+                localPosition.Y * scale + basePosition.y,
+                localPosition.Z * scale + basePosition.z
+            );
+        }
+
+        /// <summary>
+        /// Transforms a Unity Vector3 from global space back to local space by removing offset and scale.
+        /// </summary>
+        public static System.Numerics.Vector3 ToLocalSpace(this Vector3 globalPosition, Vector3 basePosition, float scale)
+        {
+            if (scale == 0) scale = 1; // Prevent division by zero
+            return new System.Numerics.Vector3(
+                (globalPosition.x - basePosition.x) / scale,
+                (globalPosition.y - basePosition.y) / scale,
+                (globalPosition.z - basePosition.z) / scale
+            );
+        }
     }
 }

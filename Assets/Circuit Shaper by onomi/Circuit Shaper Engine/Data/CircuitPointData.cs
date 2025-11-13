@@ -10,8 +10,9 @@ namespace OnomiCircuitShaper.Engine.Data
     {
         /// <summary>
         /// The curve that defines the 2D profile or cross-section of the road surface
-        /// at this specific point along the main track spline.
+        /// at this specific point along the main track spline. Uses the specialized
+        /// CrossSectionCurve type for clearer semantics.
         /// </summary>
-        public CurveData CrossSectionCurve = new CurveData();
+        public CrossSectionCurveData CrossSectionCurve = new CrossSectionCurveData();
     }
 }

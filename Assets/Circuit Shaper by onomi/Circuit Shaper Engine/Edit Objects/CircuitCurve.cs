@@ -1,13 +1,17 @@
 using OnomiCircuitShaper.Engine.Data;
 using System.Numerics;
+using UnityEditor;
 
 namespace OnomiCircuitShaper.Engine.EditRealm
 {
     /// <summary>
     /// Represents a live, editable curve that defines the main path of the circuit.
     /// </summary>
-    public class CircuitCurve : Curve
+    public class CircuitCurve : Curve<CircuitCurveData, CircuitPointData, CircuitPoint>
     {
+
+        public CircuitCurveData Data;
+
         /// <summary>
         /// Gets or sets whether the curve is a closed loop. When set, it will
         /// update the neighbor references of the first and last points.
@@ -30,8 +34,65 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public void AddPointAtIndex(Vector3 pointPosition, int index)
         {
-            // To be implemented.
+
+            CircuitPointData newPointData = new CircuitPointData()
+            {
+                PointPosition = pointPosition
+            };
+            Data.CurvePoints.Insert(index, newPointData);
+            CircuitPoint newPoint = new CircuitPoint(newPointData, Settings, null);
+            Points[newPointData] = newPoint;
+            newPoint.AutoSetControlpoints();
+            
             OnCurveStateChanged();
+        }
+
+        /// <summary>
+        /// Finds the two closest consecutive points on the curve to the given position
+        /// and inserts a new point there.
+        /// </summary>
+        public void AddPointOnCurve(Vector3 position)
+        {
+            // Find the closest segment, find the index to be inserted to and insert the point there.
+            int closestSegmentIndex = -1;
+            float closestDistanceSqr = float.MaxValue;
+            for (int i = 0; i < Data.CurvePoints.Count - 1 + (Data.IsClosed ? 1 : 0); i++)
+            {
+                CircuitPointData p1 = Data.CurvePoints[i];
+                CircuitPointData p2 = Data.CurvePoints[(i + 1) % Data.CurvePoints.Count];
+
+                Vector3 segmentStart = p1.PointPosition;
+                Vector3 segmentEnd = p2.PointPosition;
+
+                Vector3 projectedPoint = ProjectPointOnSegment(position, segmentStart, segmentEnd);
+                float distanceSqr = Vector3.DistanceSquared(position, projectedPoint);
+
+                if (distanceSqr < closestDistanceSqr)
+                {
+                    closestDistanceSqr = distanceSqr;
+                    closestSegmentIndex = i;
+                }
+            }
+
+            if (closestSegmentIndex != -1)
+            {
+                AddPointAtIndex(position, closestSegmentIndex + 1);
+            }
+        }
+
+        /// <summary>
+        /// Projects point p onto the segment ab and returns the closest point on the segment.
+        /// </summary>
+        private static Vector3 ProjectPointOnSegment(Vector3 p, Vector3 a, Vector3 b)
+        {
+            var ab = b - a;
+            var abLenSq = ab.LengthSquared();
+            if (abLenSq < 1e-9f) return a;
+            var ap = p - a;
+            var t = Vector3.Dot(ap, ab) / abLenSq;
+            if (t <= 0f) return a;
+            if (t >= 1f) return b;
+            return a + ab * t;
         }
 
         /// <summary>
@@ -51,30 +112,13 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             // To be implemented.
             OnCurveStateChanged();
         }
-    }
-
-    /// <summary>
-    /// Represents a live, editable cross-section curve. These are always open.
-    /// </summary>
-    public class CrossSectionCurve : Curve
-    {
-        /// <summary>
-        /// Changes the number of points in the cross-section while attempting to preserve its shape
-        /// by interpolating new point positions.
-        /// </summary>
-        public void ChangeCrossSectionPointCount(int newCount)
-        {
-            // To be implemented.
-            OnCurveStateChanged();
-        }
 
         /// <summary>
-        /// A handler that listens for changes in its child points and automatically
-        /// recalculates all control points to maintain a smooth shape.
+        /// Constructor using raw data and settings.
         /// </summary>
-        public void HandleCrossSectionPointChanged()
+        public CircuitCurve(CircuitCurveData data, CircuitAndEditorSettings settings) : base(settings)
         {
-            AutoSetAllControlPoints();
+            Data = data;
         }
     }
 }

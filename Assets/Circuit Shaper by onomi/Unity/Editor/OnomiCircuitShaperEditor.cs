@@ -1,6 +1,9 @@
 using OnomiCircuitShaper.Unity;
+using OnomiCircuitShaper.Engine.Data;
+using OnomiCircuitShaper.Engine.Interface;
 using UnityEditor;
 using UnityEngine;
+using OnomiCircuitShaper.Unity.Utilities;
 
 namespace OnomiCircuitShaper.Unity.Editor
 {
@@ -10,40 +13,122 @@ namespace OnomiCircuitShaper.Unity.Editor
     /// handles in the Scene View. It is the primary entry point for user interaction.
     /// </summary>
     [CustomEditor(typeof(OnomiCircuitShaper))]
-    public class OnomiCircuitShaperEditor : UnityEditor.Editor
+    public class OnomiCircuitShaperEditor : OnomiCircuitShaperEditorSceneGUI // Inherits scene GUI logic
     {
         private OnomiCircuitShaper _target;
+        private bool _creatingNewPointMode = false;
+        private bool _addingToSelectedCurveMode = false;
 
         private void OnEnable()
         {
             _target = (OnomiCircuitShaper)target;
+
+            // The OnAfterDeserialize on the target will have already run,
+            // so _target.Data should be fully loaded here.
+
+            // Now, we can safely initialize the interface with the loaded data.
+            _circuitShaper = new CircuitShaper(_target.Data.circuitData, _target.Data.settingsData);
+            _circuitShaper.BeginEdit();
+
+            _creatingNewPointMode = false;
+            _addingToSelectedCurveMode = false;
+        }
+        
+        private void OnDisable()
+        {
+            _circuitShaper.QuitEdit();
         }
 
         public override void OnInspectorGUI()
         {
-            // Draw the default inspector for now.
+            //Draw default inspector
             DrawDefaultInspector();
 
-            // Buttons for starting and stopping edit mode will go here.
-            if (GUILayout.Button("Begin Edit"))
+            EditorGUILayout.Space();
+
+            //editing controls will go here.
+            //section: Point creating modes
+            EditorGUILayout.LabelField("Point Creation Modes:", EditorStyles.boldLabel);
+            
+            GUILayout.BeginHorizontal();
+            // Toggle-style buttons: use Toggle with button style so they look like selectable buttons
+            bool createToggle = GUILayout.Toggle(_creatingNewPointMode, "Create Point As New Curve", GUI.skin.button);
+            bool addToSelectedToggle = GUILayout.Toggle(_addingToSelectedCurveMode, "Add Point To Selected Curve", GUI.skin.button);
+            GUILayout.EndHorizontal();
+
+            // Ensure mutual exclusivity (only one mode active at a time)
+            if (createToggle != _creatingNewPointMode)
             {
-                // Logic to initialize the ICircuitShaper interface and enter edit mode.
+                _creatingNewPointMode = createToggle;
+                if (_creatingNewPointMode)
+                    _addingToSelectedCurveMode = false;
             }
 
-            if (GUILayout.Button("End Edit"))
+            if (addToSelectedToggle != _addingToSelectedCurveMode)
             {
-                // Logic to tear down the editing session.
+                _addingToSelectedCurveMode = addToSelectedToggle;
+                if (_addingToSelectedCurveMode)
+                    _creatingNewPointMode = false;
+            }
+
+            // If modes are toggled on but no curve is selected, disable add-to-selected mode
+            if (_addingToSelectedCurveMode && (_circuitShaper.SelectedCurve == null || _circuitShaper.SelectedPoints == null || _circuitShaper.SelectedPoints.Count == 0))
+            {
+                // keep the button visible but turn it off automatically
+                _addingToSelectedCurveMode = false;
+            }
+            
+
+            // If any GUI element has changed, mark the object as "dirty"
+            // to ensure OnBeforeSerialize() is called and the JSON is updated.
+            if (GUI.changed)
+            {
+                EditorUtility.SetDirty(_target);
             }
         }
 
         private void OnSceneGUI()
         {
-            // All Scene View drawing logic will go here.
-            // This will involve:
-            // 1. Getting the live "Edit Realm" data from the ICircuitShaper interface.
-            // 2. Drawing handles for points, control points, etc.
-            // 3. Detecting user input on those handles.
-            // 4. Calling the appropriate methods on the ICircuitShaper interface in response to input.
+            // This is crucial! It tells Unity to record changes for Undo/Redo
+            // and marks the object as needing to be saved.
+            Undo.RecordObject(_target, "Modify Circuit Point");
+
+            // Call the handle drawing logic from the base class
+            DrawAllHandles(_target);
+
+            // Handle scene clicks for adding points when in one of the edit-modes.
+            Event e = Event.current;
+            if ((_creatingNewPointMode || _addingToSelectedCurveMode) && e.type == EventType.MouseDown && e.button == 0 && !e.alt)
+            {
+
+                if (_creatingNewPointMode)
+                {
+                    
+                    //Pass camera position and forward direction
+                    Ray ray = HandleUtility.GUIPointToWorldRay(e.mousePosition);
+                    _circuitShaper.AddPointAsNewCurve(ray.origin.ToNumericsVector3(), ray.direction.ToNumericsVector3());
+                    // switch to adding-to-selected after creation so subsequent clicks add to the freshly created curve
+                    _creatingNewPointMode = false;
+                    _addingToSelectedCurveMode = true;
+                }
+                else if (_addingToSelectedCurveMode)
+                {
+                    Ray ray = HandleUtility.GUIPointToWorldRay(e.mousePosition);
+                    _circuitShaper.AddPointToSelectedCurve(ray.origin.ToNumericsVector3(), ray.direction.ToNumericsVector3());
+                }
+
+                // consume the event so Unity's scene view doesn't also use it
+                e.Use();
+                
+            }
+            
+            
+            // If any handle was moved, mark the object as "dirty"
+            // to ensure OnBeforeSerialize() is called and the JSON is updated.
+            if (GUI.changed)
+            {
+                EditorUtility.SetDirty(_target);
+            }
         }
     }
 }

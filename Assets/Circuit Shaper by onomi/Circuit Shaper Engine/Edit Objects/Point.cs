@@ -10,7 +10,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
     /// lightweight helpers and an event for consumers to react to edits.
     /// </summary>
     [Serializable]
-    public class Point
+    public abstract class Point
     {
         /// <summary>
         /// Editor and circuit settings (shared reference)
@@ -19,8 +19,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
         /// <summary>
         /// Backing data object that holds persistent values for this point.
+        /// Concrete Point implementations must provide a concrete PointData instance.
         /// </summary>
-        public PointData Data = new PointData();
+        public PointData Data;
 
         /// <summary>
         /// Index within the parent curve (if applicable).
@@ -44,6 +45,14 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         protected void OnPointStateChanged()
         {
             PointStateChanged?.Invoke(this);
+        }
+
+
+        // Constructor
+        public Point(PointData data, CircuitAndEditorSettings settings)
+        {
+            Data = data ?? throw new ArgumentNullException(nameof(data));
+            Settings = settings;
         }
 
         /// <summary>
@@ -71,11 +80,11 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             {
                 var a = Data.ForwardControlPointPosition - Data.PointPosition;
                 var b = Data.PointPosition - Data.BackwardControlPointPosition;
-                if (a.LengthSquared() < 1e-6f && b.LengthSquared() < 1e-6f)
+                if (a.LengthSquared < 1e-6f && b.LengthSquared < 1e-6f)
                     return Vector3.UnitZ;
 
-                var na = a.LengthSquared() < 1e-6f ? Vector3.Zero : Vector3.Normalize(a);
-                var nb = b.LengthSquared() < 1e-6f ? Vector3.Zero : Vector3.Normalize(b);
+                var na = a.LengthSquared < 1e-6f ? Vector3.Zero : Vector3.Normalize(a);
+                var nb = b.LengthSquared < 1e-6f ? Vector3.Zero : Vector3.Normalize(b);
                 var avg = na + nb;
                 if (avg.LengthSquared() < 1e-6f)
                     return Vector3.UnitZ;
@@ -87,7 +96,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// The up direction for this point from the stored data (normalised).
         /// </summary>
         public Vector3 GetUpVector =>
-            Data.UpDirection.LengthSquared() < 1e-6f ? Vector3.UnitY : Vector3.Normalize(Data.UpDirection);
+            Data.UpDirection.LengthSquared < 1e-6f ? Vector3.UnitY : Vector3.Normalize(Data.UpDirection);
 
         /// <summary>
         /// Convenience accessors into the backing PointData.

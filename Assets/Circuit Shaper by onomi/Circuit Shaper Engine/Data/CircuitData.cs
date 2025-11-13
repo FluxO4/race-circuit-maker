@@ -15,7 +15,9 @@ namespace OnomiCircuitShaper.Engine.Data
         /// A list of all the CurveData objects that define the splines of the circuit.
         /// These curves form the backbone of the track.
         /// </summary>
-        public List<CurveData> CircuitCurves = new List<CurveData>();
+        // Main circuit curves — use the specialized CircuitCurve type so higher
+        // layers can clearly distinguish main-path splines from cross-sections.
+        public List<CircuitCurveData> CircuitCurves = new List<CircuitCurveData>();
 
         /// <summary>
         /// A list of all the RoadData objects. Each road defines a visible mesh

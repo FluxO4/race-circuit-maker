@@ -22,12 +22,12 @@ namespace OnomiCircuitShaper.Engine.Data
         /// This is used when 'UseTemplate' is false to create a custom bridge shape.
         /// The shape will be mirrored to create the full bridge.
         /// </summary>
-        public List<Vector2> BridgeShapePoints = new List<Vector2>();
+        public List<SerializableVector2> BridgeShapePoints = new List<SerializableVector2>();
 
         /// <summary>
         /// Controls the tiling of the UV coordinates on the bridge mesh.
         /// </summary>
-        public Vector2 UVTile = Vector2.One;
+        public SerializableVector2 UVTile = (SerializableVector2)Vector2.One;
 
         #region Template Properties
         /// <summary>

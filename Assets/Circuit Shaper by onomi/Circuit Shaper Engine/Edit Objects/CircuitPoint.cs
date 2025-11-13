@@ -33,6 +33,12 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             return true;
         }
 
+        //Constructor
+        public CircuitPoint(CircuitPointData data, CircuitAndEditorSettings settings, CrossSectionCurve crossSection) : base(data, settings)
+        {
+            CrossSection = crossSection;
+        }
+
         #region Properties
 
         /// <summary>
@@ -48,7 +54,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
                 // Cross-section points are stored in local across/up coords relative to this circuit point.
                 var first = CrossSection.Data.CurvePoints[0].PointPosition; // x = across, y = up
-                return Data.PointPosition + first.X * GetRightVector + first.Y * GetUpVector;
+                return (Vector3)Data.PointPosition + first.x * GetRightVector + first.y * GetUpVector;
             }
         }
 
@@ -64,7 +70,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
                 var pts = CrossSection.Data.CurvePoints;
                 var last = pts[pts.Count - 1].PointPosition;
-                return Data.PointPosition + last.X * GetRightVector + last.Y * GetUpVector;
+                return (Vector3)Data.PointPosition + last.x * GetRightVector + last.y * GetUpVector;
             }
         }
 
@@ -76,7 +82,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// <param name="newPosition">The target world-space position.</param>
         public void MoveCircuitPoint(Vector3 newPosition)
         {
-            Vector3 delta = newPosition - Data.PointPosition;
+            SerializableVector3 delta = (SerializableVector3)newPosition - Data.PointPosition;
             Data.PointPosition = newPosition;
             Data.ForwardControlPointPosition += delta;
             Data.BackwardControlPointPosition += delta;
@@ -92,7 +98,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Data.ForwardControlPointPosition = newPosition;
             if (!IndependentControlPointsEnabled())
             {
-                Vector3 dir = Vector3.Normalize(Data.PointPosition - newPosition);
+                SerializableVector3 dir = Vector3.Normalize(Data.PointPosition - (SerializableVector3)newPosition);
                 float dist = Vector3.Distance(Data.PointPosition, Data.BackwardControlPointPosition);
                 Data.BackwardControlPointPosition = Data.PointPosition + dir * dist;
             }
@@ -108,7 +114,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Data.BackwardControlPointPosition = newPosition;
             if (!IndependentControlPointsEnabled())
             {
-                Vector3 dir = Vector3.Normalize(Data.PointPosition - newPosition);
+                SerializableVector3 dir = Vector3.Normalize(Data.PointPosition - (SerializableVector3)newPosition);
                 float dist = Vector3.Distance(Data.PointPosition, Data.ForwardControlPointPosition);
                 Data.ForwardControlPointPosition = Data.PointPosition + dir * dist;
             }
@@ -139,8 +145,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             var forwardControlRelative = Data.ForwardControlPointPosition - Data.PointPosition;
             var backwardControlRelative = Data.BackwardControlPointPosition - Data.PointPosition;
 
-            Data.ForwardControlPointPosition = Data.PointPosition + Vector3.Transform(forwardControlRelative, rotation);
-            Data.BackwardControlPointPosition = Data.PointPosition + Vector3.Transform(backwardControlRelative, rotation);
+            Data.ForwardControlPointPosition = Data.PointPosition + (SerializableVector3)Vector3.Transform(forwardControlRelative, rotation);
+            Data.BackwardControlPointPosition = Data.PointPosition + (SerializableVector3)Vector3.Transform(backwardControlRelative, rotation);
 
             OnPointStateChanged();
         }

@@ -33,13 +33,13 @@ namespace OnomiCircuitShaper.Engine.Data
         /// Controls the tiling (repetition) of the UV coordinates across the mesh.
         /// X controls tiling along the road's width, Y controls tiling along its length.
         /// </summary>
-        public Vector2 UVTile = Vector2.One;
+        public SerializableVector2 UVTile = (SerializableVector2)Vector2.One;
 
         /// <summary>
         /// Offsets the starting point of the UV coordinates on the mesh.
         /// Allows for adjusting the texture's position without changing the model.
         /// </summary>
-        public Vector2 UVOffset = Vector2.Zero;
+        public SerializableVector2 UVOffset = (SerializableVector2)Vector2.Zero;
 
         /// <summary>
         /// A list of RailingData objects associated with this road.

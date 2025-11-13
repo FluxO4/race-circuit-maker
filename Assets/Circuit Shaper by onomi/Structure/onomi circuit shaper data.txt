@@ -11,7 +11,7 @@ The engine layer, namespace OnomiCircuitShaperEngine
 
 Class: OnomiCircuitShaperData
 Data: CircuitData circuitData
-Data: CircuitAndEditorSettings settingsDat
+Data: CircuitAndEditorSettings settingsData
 
 Class: CircuitAndEditorSettings //Meant to provide settings to edit realm classes
 Data: Circuit CircuitReference
@@ -43,7 +43,7 @@ Data: Bool IsClosed = true
 Class: RoadData
 Data: List<PointData> AssociatedPoints
 Data: int WidthWiseVertexCount
-Data: int LengthWiseVertexCountPerUnitWidthWiseVertexCount
+Data: float LengthWiseVertexCountPerUnitWidthWiseVertexCount
 Data: Vector2 UVTile
 Data: Vector2 UVOffset
 Data: float Min
@@ -161,6 +161,8 @@ Static Function: Vector3 BezierEvaluateCubic(Vector3 a, Vector3 b, Vector3 c, Ve
 Static Function: float EstimateCurveLength(Vector3 a, Vector3 b, Vector3 c, Vector3 d, int subdivisions = 10)
 Static Function: Vector3 LerpPointsOnCurve(Point a, Point b, float position) //Equivalent to get point from i in old point implementation
 Static Function: Vector3 LerpCircuitPointsOnSurface(CircuitPoint a, CircuitPoint b, Vector2 position) //Equivalent to get point from ij in old point implementation
+Function: float GetAverageCurveAltitude(CurveData curveData) 
+Function: float GetAverageCircuitAltitude(CircuitData circuitData) 
 
 Static Class: CircuitPointProcessor
 Static Function: TransformToAlignEndPoints(CircuitPoint circuitPoint)
@@ -183,18 +185,26 @@ Interface classes
 
 Interface: iCircuitShaper // Provides interfacing functions to higher objects (like inputs from user edits, or outputs toward scene objects)
 Data: CircuitData currentData
+Data: List<CircuitPointData> selectedPoints
+Data: CurveData selectedCurve
 Function: CircuitData GetData()
 Function: SetData(CircuitData circuitData)
 Function: CircuitData LoadFromJson()
 Function: SaveToJson(CircuitData circuitData)
 Function: BeginEdit()
 Function: QuitEdit()
+Function: SelectPoint(CircuitPointData pointData)
+Function: DeselectPoint(CircuitPointData pointData)
+Function: AddPointToSelection(CircuitPointData pointData)
+Function: ClearSelection()
 Function: AddPointAsNewCurve(Vector3 position)
 Function: AddPointToCurve(CurveData curveData, Vector3 position)
+Function: AddPointToSelectedCurve(Vector3 position)
 Function: RemoveCircuitPoint(CircuitPointData circuitPointData)
 Function: MoveCircuitPoint(CircuitPointData circuitPointToMove, Vector3 newPosition)
 Function: MoveCrossSectionPoint(CrossSectionPointData crossSectionPointToMove, Vector3 newPosition)
 Function: CreateNewRoadFromPoints(PointData pointData)
+Function: CreateNewRoadFromSelectedPoints()
 Function: RemoveRoad(RoadData roadData)
 Event: RoadBuilt sends (RoadData roadData, Vector3[] Vertices, Vector3[] UVs, int[] Triangles) 
 Event: BridgeBuilt sends (RoadData roadData, BridgeData bridgeData, Vector3[] Vertices, Vector3[] UVs, int[] Triangles) 
@@ -222,6 +232,9 @@ Monobehaviour class: SceneRoad
 
 Editor: OnomiCircuitShaperEditor
 Buttons: Buttons to begin and stop editing, freeze or unfreeze (make roads selectable and unselectable)
+Function: AddPointAsNewCurve()
+Function: AddPointToSelectedCurve()
+
 Function: SelectPointAndDeselectOthers(PointData Point) //When clicking on points without dragging
 Function: SelectPoint(PointData Point) //When shift clicking on points without dragging
 Function: DeselectPoint(PointData Point) //When shift clicking on selected points without dragging

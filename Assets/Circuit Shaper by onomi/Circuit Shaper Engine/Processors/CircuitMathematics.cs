@@ -1,3 +1,4 @@
+using OnomiCircuitShaper.Engine.Data;
 using System.Numerics;
 
 namespace OnomiCircuitShaper.Engine.Processors
@@ -45,6 +46,53 @@ namespace OnomiCircuitShaper.Engine.Processors
             }
 
             return length;
+        }
+
+        /// <summary>
+        /// Calculates the average altitude (Y position) of all points in a curve.
+        /// </summary>
+        public static float GetAverageCurveAltitude(CurveData curveData)
+        {
+            if (curveData == null || curveData.CurvePoints == null || curveData.CurvePoints.Count == 0)
+            {
+                return 0f;
+            }
+
+            float totalAltitude = 0f;
+            foreach (var point in curveData.CurvePoints)
+            {
+                totalAltitude += point.PointPosition.y;
+            }
+
+            return totalAltitude / curveData.CurvePoints.Count;
+        }
+
+        /// <summary>
+        /// Calculates the average altitude (Y position) of all points in all curves of a circuit.
+        /// </summary>
+        public static float GetAverageCircuitAltitude(CircuitData circuitData)
+        {
+            if (circuitData == null || circuitData.CircuitCurves == null)
+            {
+                return 0f;
+            }
+
+            float totalAltitude = 0f;
+            int totalPoints = 0;
+
+            foreach (var curve in circuitData.CircuitCurves)
+            {
+                if (curve.CurvePoints != null)
+                {
+                    foreach (var point in curve.CurvePoints)
+                    {
+                        totalAltitude += point.PointPosition.y;
+                    }
+                    totalPoints += curve.CurvePoints.Count;
+                }
+            }
+
+            return totalPoints == 0 ? 0f : totalAltitude / totalPoints;
         }
     }
 }

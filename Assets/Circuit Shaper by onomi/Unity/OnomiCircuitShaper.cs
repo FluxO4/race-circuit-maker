@@ -12,14 +12,10 @@ namespace OnomiCircuitShaper.Unity
     public class OnomiCircuitShaper : MonoBehaviour
     {
         /// <summary>
-        /// The editor and circuit settings asset.
+        /// The data
         /// </summary>
-        public CircuitAndEditorSettings CircuitSettings;
+        public OnomiCircuitShaperData Data;
 
-        /// <summary>
-        /// The raw data for the circuit being edited or displayed.
-        /// </summary>
-        public CircuitData CircuitData;
 
         /// <summary>
         /// A dictionary that maps the raw RoadData to the live Unity GameObjects

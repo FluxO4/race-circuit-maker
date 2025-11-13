@@ -1,6 +1,8 @@
 using OnomiCircuitShaper.Engine.Data;
+using OnomiCircuitShaper.Engine.EditRealm;
 using OnomiCircuitShaper.Engine.Processors;
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace OnomiCircuitShaper.Engine.Interface
@@ -58,15 +60,30 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// </summary>
         void QuitEdit();
 
+
+        // Edit realm object accessors
+        Circuit GetLiveCircuit { get; }
+
+
+        // Selection state (read-only from callers)
+        IReadOnlyList<PointData> SelectedPoints { get; }
+        CircuitCurveData SelectedCurve { get; }
+
         /// <summary>
         /// Adds a new point, creating a new curve in the process.
         /// </summary>
         void AddPointAsNewCurve(Vector3 position);
 
+        // A version of this taking camera position and direction
+        void AddPointAsNewCurve(Vector3 cameraPosition, Vector3 cameraDirection);
+
         /// <summary>
         /// Adds a new point to an existing curve.
         /// </summary>
-        void AddPointToCurve(CurveData curveData, Vector3 position);
+        void AddPointToCurve(CircuitCurveData curveData, Vector3 position);
+
+        // A version of this taking camera position and direction
+        void AddPointToCurve(CircuitCurveData curveData, Vector3 cameraPosition, Vector3 cameraDirection);
 
         /// <summary>
         /// Removes a point from the circuit.
@@ -86,11 +103,52 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// <summary>
         /// Creates a new road from a sequence of points.
         /// </summary>
-        void CreateNewRoadFromPoints(PointData[] pointData);
+        void CreateNewRoadFromPoints(CircuitPointData[] pointData);
 
         /// <summary>
         /// Removes a road from the circuit.
         /// </summary>
         void RemoveRoad(RoadData roadData);
+
+        /// <summary>
+        /// Calculates the average altitude (Y) of all points in the provided curve.
+        /// </summary>
+        float GetAverageCurveAltitude(CircuitCurveData curveData);
+
+        /// <summary>
+        /// Calculates the average altitude (Y) of all points across all curves in the circuit.
+        /// </summary>
+        float GetAverageCircuitAltitude(CircuitData circuitData);
+
+        // Selection manipulation APIs
+        /// <summary>
+        /// Selects the supplied point and deselects others.
+        /// </summary>
+        void SelectPoint(CircuitPointData pointData);
+
+        /// <summary>
+        /// Deselects the supplied point if it is selected.
+        /// </summary>
+        void DeselectPoint(CircuitPointData pointData);
+
+        /// <summary>
+        /// Adds the supplied point to the current selection (does not clear existing selection).
+        /// </summary>
+        void AddPointToSelection(CircuitPointData pointData);
+
+        /// <summary>
+        /// Clears the current point selection and the selected curve.
+        /// </summary>
+        void ClearSelection();
+
+        /// <summary>
+        /// Adds a point to the currently selected curve (if any).
+        /// </summary>
+        void AddPointToSelectedCurve(Vector3 position);
+
+        // A version of this taking camera position and direction
+        void AddPointToSelectedCurve(Vector3 cameraPosition, Vector3 cameraDirection);
+
+
     }
 }

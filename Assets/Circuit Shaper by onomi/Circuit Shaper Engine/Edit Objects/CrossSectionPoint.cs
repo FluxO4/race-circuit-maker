@@ -15,6 +15,12 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public CircuitPoint ParentCircuitPoint { get; set; }
 
+        //Constructor
+        public CrossSectionPoint(CrossSectionPointData data, CircuitAndEditorSettings settings, CircuitPoint parentCircuitPoint) : base(data, settings)
+        {
+            ParentCircuitPoint = parentCircuitPoint;
+        }
+
         /// <summary>
         /// Moves the cross-section point. The input position is converted from world-space
         /// to the local 2D coordinate system of the parent circuit point (across/up),

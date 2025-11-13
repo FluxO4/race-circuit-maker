@@ -47,5 +47,13 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         {
             // To be implemented.
         }
+
+
+        //Constructor
+        public Road(RoadData data, CircuitAndEditorSettings settings, Circuit parentCircuit)
+        {
+            Data = data;
+            Settings = settings;
+        }
     }
 }

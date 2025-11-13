@@ -35,23 +35,17 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// </summary>
         CircuitData GetData();
 
+
+        Circuit GetLiveCircuit { get; }
+
         /// <summary>
         /// Sets the active circuit data, replacing any existing data.
         /// </summary>
         void SetData(CircuitData circuitData);
 
         /// <summary>
-        /// Loads circuit data from a JSON string.
-        /// </summary>
-        CircuitData LoadFromJson(string json);
 
-        /// <summary>
-        /// Saves the current circuit data to a JSON string.
-        /// </summary>
-        string SaveToJson();
-
-        /// <summary>
-        /// Starts an editing session, creating the live "Edit Realm" objects.
+        /// Starts an editing session, creating the live edit realm objects.
         /// </summary>
         void BeginEdit();
 
@@ -61,13 +55,10 @@ namespace OnomiCircuitShaper.Engine.Interface
         void QuitEdit();
 
 
-        // Edit realm object accessors
-        Circuit GetLiveCircuit { get; }
-
 
         // Selection state (read-only from callers)
-        IReadOnlyList<PointData> SelectedPoints { get; }
-        CircuitCurveData SelectedCurve { get; }
+        IReadOnlyList<CircuitPoint> SelectedPoints { get; }
+        CircuitCurve SelectedCurve { get; }
 
         /// <summary>
         /// Adds a new point, creating a new curve in the process.
@@ -80,52 +71,56 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// <summary>
         /// Adds a new point to an existing curve.
         /// </summary>
-        void AddPointToCurve(CircuitCurveData curveData, Vector3 position);
+        void AddPointToCurve(CircuitCurve curve, Vector3 position);
 
         // A version of this taking camera position and direction
-        void AddPointToCurve(CircuitCurveData curveData, Vector3 cameraPosition, Vector3 cameraDirection);
+        void AddPointToCurve(CircuitCurve curve, Vector3 cameraPosition, Vector3 cameraDirection);
 
         /// <summary>
         /// Removes a point from the circuit.
         /// </summary>
-        void RemoveCircuitPoint(CircuitPointData circuitPointData);
+        void RemoveCircuitPoint(CircuitPoint circuitPoint);
 
         /// <summary>
         /// Moves a circuit anchor point to a new position.
         /// </summary>
-        void MoveCircuitPoint(CircuitPointData circuitPointToMove, Vector3 newPosition);
+        void MoveCircuitPoint(CircuitPoint circuitPointToMove, Vector3 newPosition);
+
+        //Move the circuit point's forward control point
+        void MoveCircuitPointForwardControl(CircuitPoint circuitPointToMove, Vector3 newPosition);
+        //Move the circuit point's backward control point
+        void MoveCircuitPointBackwardControl(CircuitPoint circuitPointToMove, Vector3 newPosition);
 
         /// <summary>
         /// Moves a cross-section point to a new position.
         /// </summary>
-        void MoveCrossSectionPoint(CrossSectionPointData crossSectionPointToMove, Vector3 newPosition);
+        void MoveCrossSectionPoint(CrossSectionPoint crossSectionPointToMove, Vector3 newPosition);
 
         /// <summary>
         /// Creates a new road from a sequence of points.
         /// </summary>
-        void CreateNewRoadFromPoints(CircuitPointData[] pointData);
-
+        void CreateNewRoadFromPoints(CircuitPoint[] pointData);
         /// <summary>
         /// Removes a road from the circuit.
         /// </summary>
-        void RemoveRoad(RoadData roadData);
+        void RemoveRoad(Road road);
 
 
         // Selection manipulation APIs
         /// <summary>
         /// Selects the supplied point and deselects others.
         /// </summary>
-        void SelectPoint(CircuitPointData pointData);
+        void SelectPoint(CircuitPoint point);
 
         /// <summary>
         /// Deselects the supplied point if it is selected.
         /// </summary>
-        void DeselectPoint(CircuitPointData pointData);
+        void DeselectPoint(CircuitPoint point);
 
         /// <summary>
         /// Adds the supplied point to the current selection (does not clear existing selection).
         /// </summary>
-        void AddPointToSelection(CircuitPointData pointData);
+        void AddPointToSelection(CircuitPoint point);
 
         /// <summary>
         /// Clears the current point selection and the selected curve.

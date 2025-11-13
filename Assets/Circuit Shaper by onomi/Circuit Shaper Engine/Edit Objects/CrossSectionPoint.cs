@@ -15,10 +15,15 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public CircuitPoint ParentCircuitPoint { get; set; }
 
+
+        //parent cross-section curve can be added if needed
+        public CrossSectionCurve ParentCrossSectionCurve { get; set; }
+
         //Constructor
-        public CrossSectionPoint(CrossSectionPointData data, CircuitAndEditorSettings settings, CircuitPoint parentCircuitPoint) : base(data, settings)
+        public CrossSectionPoint(CrossSectionPointData data, CircuitAndEditorSettings settings, CircuitPoint parentCircuitPoint, CrossSectionCurve parentCrossSectionCurve) : base(data, settings)
         {
             ParentCircuitPoint = parentCircuitPoint;
+            ParentCrossSectionCurve = parentCrossSectionCurve;
         }
 
         /// <summary>

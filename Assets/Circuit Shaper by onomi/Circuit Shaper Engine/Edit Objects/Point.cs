@@ -10,8 +10,11 @@ namespace OnomiCircuitShaper.Engine.EditRealm
     /// lightweight helpers and an event for consumers to react to edits.
     /// </summary>
     [Serializable]
-    public abstract class Point
+    public abstract class Point<TData> where TData : PointData
     {
+        public TData Data;
+
+  
         /// <summary>
         /// Editor and circuit settings (shared reference)
         /// </summary>
@@ -21,7 +24,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// Backing data object that holds persistent values for this point.
         /// Concrete Point implementations must provide a concrete PointData instance.
         /// </summary>
-        public PointData Data;
+        
 
         /// <summary>
         /// Index within the parent curve (if applicable).
@@ -31,13 +34,13 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// <summary>
         /// Links to neighbour points (set by the owning Curve/Circuit)
         /// </summary>
-        public Point NextPoint;
-        public Point PreviousPoint;
+        public Point<TData> NextPoint;
+        public Point<TData> PreviousPoint;
 
         /// <summary>
         /// Fired whenever this point's state changes. Subscribers receive the point instance.
         /// </summary>
-        public event Action<Point> PointStateChanged;
+        public event Action<Point<TData>> PointStateChanged;
 
         /// <summary>
         /// Raises the PointStateChanged event.
@@ -49,7 +52,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
 
         // Constructor
-        public Point(PointData data, CircuitAndEditorSettings settings)
+        public Point(TData data, CircuitAndEditorSettings settings)
         {
             Data = data ?? throw new ArgumentNullException(nameof(data));
             Settings = settings;
@@ -124,16 +127,4 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         }
     }
 
-    /// <summary>
-    /// Generic typed version of Point that exposes a strongly-typed Data property.
-    /// Concrete live point types should inherit from Point<TData> for compile-time safety.
-    /// </summary>
-    public abstract class Point<TData> : Point where TData : PointData
-    {
-        public new TData Data => (TData)base.Data;
-
-        public Point(TData data, CircuitAndEditorSettings settings) : base(data, settings)
-        {
-        }
-    }
 }

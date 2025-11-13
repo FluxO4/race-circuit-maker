@@ -31,23 +31,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public List<Road> Roads { get; private set; } = new List<Road>();
 
-        /// <summary>
-        /// Helper: find the live curve wrapper for a given data object (reference equality).
-        /// </summary>
-        public CircuitCurve GetCurveForData(CircuitCurveData data)
-        {
-            if (data == null) return null;
-            return Curves.Find(c => object.ReferenceEquals(c.Data, data));
-        }
-
-        /// <summary>
-        /// Helper: find the live road wrapper for a given data object.
-        /// </summary>
-        public Road GetRoadForData(RoadData data)
-        {
-            if (data == null) return null;
-            return Roads.Find(r => object.ReferenceEquals(r.Data, data));
-        }
 
         /// <summary>
         /// Initializes the editing session. It populates the dictionaries with live
@@ -67,24 +50,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             foreach (CircuitCurveData curveData in Data.CircuitCurves)
             {
                 CircuitCurve curve = new CircuitCurve(curveData, Settings);
-                // For each curve, instantiate its points
-                foreach (CircuitPointData circuitPointData in curveData.CurvePoints)
-                {
-                    // For each point, set up its cross section curve
-                    CrossSectionCurve crossSectionCurve = new CrossSectionCurve(circuitPointData.CrossSectionCurve, Settings);
-
-                    // Instantiate cross-section points
-                    foreach (CrossSectionPointData csPointData in circuitPointData.CrossSectionCurve.CurvePoints)
-                    {
-                        CrossSectionPoint csPoint = new CrossSectionPoint(csPointData, Settings, null);
-                        crossSectionCurve.Points.Add(csPoint);
-                    }
-
-                    // Create the live circuit point and wire it to its cross-section
-                    CircuitPoint point = new CircuitPoint(circuitPointData, Settings, crossSectionCurve);
-                    curve.Points.Add(point);
-                }
-
                 Curves.Add(curve);
             }
             //Instantiate Roads
@@ -93,9 +58,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 Road road = new Road(roadData, Settings, this);
                 Roads.Add(road);
             }
-
-
-
         }
 
         /// <summary>
@@ -118,36 +80,10 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             {
                 curveData = new CircuitCurveData();
             }
-            if (GetCurveForData(curveData) == null)
+            if (!Curves.Exists(c => object.ReferenceEquals(c.Data, curveData)))
             {
                 CircuitCurve curve = new CircuitCurve(curveData, Settings);
-                // For each curve, instantiate its points
-                foreach (CircuitPointData circuitPointData in curveData.CurvePoints)
-                {
-                    // For each point, set up its cross section curve
-                    CrossSectionCurve crossSectionCurve = new CrossSectionCurve(circuitPointData.CrossSectionCurve, Settings);
-
-                    // Instantiate cross-section points
-                    foreach (CrossSectionPointData csPointData in circuitPointData.CrossSectionCurve.CurvePoints)
-                    {
-                        CrossSectionPoint csPoint = new CrossSectionPoint(csPointData, Settings, null);
-                        crossSectionCurve.Points.Add(csPoint);
-                    }
-
-                    // Create the live circuit point and wire it to its cross-section
-                    CircuitPoint point = new CircuitPoint(circuitPointData, Settings, crossSectionCurve);
-                    curve.Points.Add(point);
-                }
-
-                // Ensure the data list contains this curve as well
-                if (Data != null)
-                {
-                    if (Data.CircuitCurves == null)
-                        Data.CircuitCurves = new List<CircuitCurveData>();
-                    if (!Data.CircuitCurves.Contains(curveData))
-                        Data.CircuitCurves.Add(curveData);
-                }
-
+                
                 Curves.Add(curve);
                 return curve;
             }
@@ -157,7 +93,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         // Function for adding new road from RoadData can be added here.
         public void AddRoad(RoadData roadData)
         {
-            if (GetRoadForData(roadData) == null)
+            if (!Roads.Exists(r => object.ReferenceEquals(r.Data, roadData)))
             {
                 Road road = new Road(roadData, Settings, this);
                 // Ensure data list contains this road
@@ -172,36 +108,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             }
         }
 
-        /// <summary>
-        /// Add a point to a curve. If the live curve exists, delegate to it so
-        /// both the data and live wrappers stay in sync. Otherwise mutate the data only.
-        /// </summary>
-        public void AddPointToCurve(CircuitCurveData curveData, Vector3 position)
-        {
-            if (curveData == null) return;
-
-            var liveCurve = GetCurveForData(curveData);
-            if (liveCurve != null)
-            {
-                // append at the end
-                liveCurve.AddPointAtIndex(position, liveCurve.Data.CurvePoints.Count);
-                return;
-            }
-
-            // No live curve — modify data directly
-            if (curveData.CurvePoints == null)
-                curveData.CurvePoints = new List<CircuitPointData>();
-
-            var newPoint = new CircuitPointData()
-            {
-                PointPosition = position,
-                ForwardControlPointPosition = position,
-                BackwardControlPointPosition = position,
-                UpDirection = System.Numerics.Vector3.UnitY
-            };
-
-            curveData.CurvePoints.Add(newPoint);
-        }
 
         /// <summary>
         /// Triggers a rebuild of all roads and their associated meshes.

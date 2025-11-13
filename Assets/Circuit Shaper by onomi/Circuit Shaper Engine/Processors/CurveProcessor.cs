@@ -11,7 +11,7 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// <summary>
         /// Iterates through all points in a curve and applies the auto-set logic for their control points.
         /// </summary>
-        public static void AutoSetAllControlPoints(Curve curve)
+        public static void AutoSetAllControlPoints(CircuitCurve curve)
         {
             // To be implemented.
         }
@@ -20,7 +20,7 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// Calculates the total length of the curve and assigns a normalized position (0 to 1)
         /// to each point along the curve's length.
         /// </summary>
-        public static void NormaliseCurvePoints(Curve curve)
+        public static void NormaliseCurvePoints(CircuitCurve curve)
         {
             // To be implemented.
         }
@@ -28,7 +28,7 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// <summary>
         /// Gets a point at a normalized distance along the entire curve.
         /// </summary>
-        public static Vector3 LerpAlongCurve(Curve curve, float value01)
+        public static Vector3 LerpAlongCurve(CircuitCurve curve, float value01)
         {
             // To be implemented.
             return Vector3.Zero;

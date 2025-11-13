@@ -40,13 +40,21 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// <summary>
         /// Constructor using raw data and settings.
         /// </summary>
-        public CrossSectionCurve(CrossSectionCurveData data, CircuitAndEditorSettings settings)
+        public CrossSectionCurve(CrossSectionCurveData data, CircuitAndEditorSettings settings, CircuitPoint parentCircuitPoint)
         {
             Data = data;
             Settings = settings;
+
+            // Create live CrossSectionPoint objects for each data point
+            for (int i = 0; i < Data.CurvePoints.Count; i++)
+            {
+                CrossSectionPointData pointData = Data.CurvePoints[i];
+                CrossSectionPoint crossSectionPoint = new CrossSectionPoint(pointData, Settings, parentCircuitPoint, this);
+                Points.Add(crossSectionPoint);
+            }
         }
 
-        public virtual void AutoSetAllControlPoints()
+        public void AutoSetAllControlPoints()
         {
             // Implementation may be provided by processors or overridden by derived classes.
         }

@@ -22,8 +22,8 @@ namespace OnomiCircuitShaper.Engine.Interface
         private CircuitAndEditorSettings _settings;
         private Circuit _liveCircuit;
         // Selection state
-        private readonly List<PointData> _selectedPoints = new List<PointData>();
-        private CircuitCurveData _selectedCurve;
+        private readonly List<CircuitPoint> _selectedPoints = new List<CircuitPoint>();
+        private CircuitCurve _selectedCurve;
 
         public CircuitShaper(CircuitData data, CircuitAndEditorSettings settings)
         {
@@ -32,8 +32,10 @@ namespace OnomiCircuitShaper.Engine.Interface
         }
 
         // Expose selection state as read-only
-        public IReadOnlyList<PointData> SelectedPoints => _selectedPoints.AsReadOnly();
-        public CircuitCurveData SelectedCurve => _selectedCurve;
+        public IReadOnlyList<CircuitPoint> SelectedPoints => _selectedPoints.AsReadOnly();
+        public CircuitCurve SelectedCurve => _selectedCurve;
+
+        public Circuit GetLiveCircuit => _liveCircuit;
 
         public void BeginEdit()
         {
@@ -78,144 +80,114 @@ namespace OnomiCircuitShaper.Engine.Interface
 
             //Create new curve and add it to the data.
             CircuitCurve curve = _liveCircuit.AddCurve();
-            curve.AddPointOnCurve(position);
+            CircuitPoint newPoint = curve.AddPointOnCurve(position);
 
             // Select the newly created point (this will also set the selected curve).
             SelectPoint(newPoint);
         }
+
+        public void AddPointAsNewCurve(Vector3 rayStart, Vector3 rayDirection) => AddPointAsNewCurve(rayStart + rayDirection * ((CircuitMathematics.GetAverageCircuitAltitude(_liveCircuit.Data) - rayStart.Y) / rayDirection.Y));
+
+        public void AddPointToCurve(CircuitCurve curve, Vector3 position) => curve?.AddPointOnCurve(position);
+
+        public void AddPointToCurve(CircuitCurve curve, Vector3 rayStart, Vector3 rayDirection) => AddPointToCurve(curve, rayStart + rayDirection * ((CircuitMathematics.GetAverageCurveAltitude(curve.Data) - rayStart.Y) / rayDirection.Y));
+
+        public void AddPointToSelectedCurve(Vector3 position) => AddPointToCurve(_selectedCurve, position);
+    
+        public void AddPointToSelectedCurve(Vector3 rayStart, Vector3 rayDirection) => AddPointToCurve(_selectedCurve, rayStart, rayDirection);
         
-        public void AddPointToCurve(CircuitCurveData curveData, Vector3 position)
-        {
-            if (curveData == null)
-                return;
+        public void RemoveCircuitPoint(CircuitPoint circuitPoint) => circuitPoint.CircuitCurve.RemovePoint(circuitPoint);
 
-            // Create a simple new circuit point and append it to the curve's points list.
-            // We only perform a minimal, safe modification of the data structure here so
-            // higher layers (edit realm or UI) can pick up the change. Full consistency
-            // (indexes, neighbour wiring, autoset control points) is the responsibility
-            // of the EditRealm/Circuit layer when BeginEdit/Build is invoked.
-            var newPoint = new CircuitPointData()
-            {
-                PointPosition = position,
-                ForwardControlPointPosition = position,
-                BackwardControlPointPosition = position,
-                UpDirection = new System.Numerics.Vector3(0, 1, 0)
-            };
+        public void MoveCircuitPoint(CircuitPoint circuitPointToMove, Vector3 newPosition) => circuitPointToMove.MoveCircuitPoint(newPosition);
 
-            _currentData.CircuitCurves[curveData].
+        public void MoveCircuitPointForwardControl(CircuitPoint circuitPointToMove, Vector3 newPosition) => circuitPointToMove.MoveForwardControlPoint(newPosition);
+        
+        public void MoveCircuitPointBackwardControl(CircuitPoint circuitPointToMove, Vector3 newPosition) => circuitPointToMove.MoveBackwardControlPoint(newPosition);
 
-            curveData.CurvePoints.Add(newPoint);
-        }
 
-        public void RemoveCircuitPoint(CircuitPointData circuitPointData)
+        public void MoveCrossSectionPoint(CrossSectionPoint crossSectionPointToMove, Vector3 newPosition) => crossSectionPointToMove.MoveCrossSectionPoint(newPosition);
+
+
+        public void CreateNewRoadFromPoints(CircuitPoint[] pointData)
         {
             // To be implemented.
         }
 
-        public void MoveCircuitPoint(CircuitPointData circuitPointToMove, Vector3 newPosition)
-        {
-            // To be implemented.
-        }
-
-        public void MoveCrossSectionPoint(CrossSectionPointData crossSectionPointToMove, Vector3 newPosition)
-        {
-            // To be implemented.
-        }
-
-        public void CreateNewRoadFromPoints(CircuitPointData[] pointData)
-        {
-            // To be implemented.
-        }
-
-        public void RemoveRoad(RoadData roadData)
+        public void RemoveRoad(Road road)
         {
             // To be implemented.
         }
 
         // Selection manipulation implementations
-        public void SelectPoint(CircuitPointData pointData)
+        public void SelectPoint(CircuitPoint point)
         {
-            if (pointData == null)
+            if (point == null)
                 return;
 
             _selectedPoints.Clear();
-            _selectedPoints.Add(pointData);
+            _selectedPoints.Add(point);
 
             //Also set the selected curve if this point belongs to one.
-            if (_liveCircuit != null && _liveCircuit.Data != null && _liveCircuit.Data.CircuitCurves != null)
-            {
-                _selectedCurve = _liveCircuit.Data.CircuitCurves.Find(curve =>
-                    curve.CurvePoints != null && curve.CurvePoints.Contains(pointData));
-            }
-            else
-            {
-                _selectedCurve = null;
-            }
+            _selectedCurve = point.CircuitCurve;
         }
 
-        public void DeselectPoint(CircuitPointData pointData)
+        public void DeselectPoint(CircuitPoint point)
         {
-            if (pointData == null)
+            if (point == null)
                 return;
 
-            _selectedPoints.Remove(pointData);
+            // We can only deselect from the beginning or end of the selection.
+            if (_selectedPoints.Count == 0)
+                return;
+            if (_selectedPoints[0] != point && _selectedPoints[^1] != point)
+                return;
+
+            _selectedPoints.Remove(point);
         }
 
-        public void AddPointToSelection(CircuitPointData pointData)
+        public void AddPointToSelection(CircuitPoint point)
         {
-            if (pointData == null)
+            if (point == null)
                 return;
 
-            if (_selectedPoints.Contains(pointData))
+            if (_selectedPoints.Contains(point))
                 return;
 
             //We should use SelectPoint to select the first point.
             if (_selectedPoints.Count == 0)
             {
-                SelectPoint(pointData);
+                SelectPoint(point);
                 return;
             }
-            
+
             //Return if trying to add a point from a different curve than the selected one.
-            if(_selectedCurve != null && !_selectedCurve.CurvePoints.Contains(pointData))
+            if (_selectedCurve != null && _selectedCurve != point.CircuitCurve)
             {
                 return;
             }
-            
-            
-            //We can only select points connected to any already selected point
-            if(_liveCircuit != null && _selectedPoints.Count > 0)
+
+            //We can only select points connected to any already selected border point.
+            if (_selectedPoints[^1].NextPoint == point ||
+                _selectedPoints[0].PreviousPoint == point)
             {
-                bool isConnected = false;
-                foreach(var selectedPoint in _selectedPoints)
+                bool connectedAtBeginning = _selectedPoints[0].PreviousPoint == point;
+                if(connectedAtBeginning)
                 {
-                    if(_liveCircuit.Curves[SelectedCurve].Points[selectedPoint].NextPoint.Data == pointData ||
-                       _liveCircuit.Curves[SelectedCurve].Points[selectedPoint].PreviousPoint.Data == pointData)
-                    {
-                        isConnected = true;
-                        break;
-                    }
+                    _selectedPoints.Insert(0, point);
+                    return;
                 }
 
-                if(!isConnected)
-                    return;
+            _selectedPoints.Add(point);
             }
-                
-            _selectedPoints.Add(pointData);
+            else
+                return;
+        
         }
 
         public void ClearSelection()
         {
             _selectedPoints.Clear();
             _selectedCurve = null;
-        }
-
-        public void AddPointToSelectedCurve(Vector3 position)
-        {
-            if (_selectedCurve == null)
-                return;
-
-            AddPointToCurve(_selectedCurve, position);
         }
     }
 }

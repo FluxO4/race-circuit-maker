@@ -21,16 +21,16 @@ namespace OnomiCircuitShaper.Unity.Editor
             // Use a local copy of the handle matrix to avoid affecting other editor GUI
             var matrix = Handles.matrix;
 
-            foreach (CircuitCurveData curve in target.Data.circuitData.CircuitCurves)
+            foreach (CircuitCurve curve in _circuitShaper.GetLiveCircuit.Curves)
             {
                 // First, draw the Bézier curve segments
-                for (int i = 0; i < curve.CurvePoints.Count; i++)
+                for (int i = 0; i < curve.Points.Count; i++)
                 {
-                    Point p1 = _circuitShaper.GetLiveCircuit.Curves[curve].Points[curve.CurvePoints[i]];
+                    CircuitPoint p1 = curve.Points[i];
                     
-                    if (curve.IsClosed || i < curve.CurvePoints.Count - 1)
+                    if (curve.IsClosed || i < curve.Points.Count - 1)
                     {
-                        Point p2 = _circuitShaper.GetLiveCircuit.Curves[curve].Points[curve.CurvePoints[(i + 1) % curve.CurvePoints.Count]];
+                        CircuitPoint p2 = curve.Points[(i + 1) % curve.Points.Count];
                         
                         Handles.DrawBezier(
                             p1.PointPosition.ToUnityVector3(),
@@ -45,7 +45,7 @@ namespace OnomiCircuitShaper.Unity.Editor
                 }
 
                 // Then, draw the interactive point handles on top
-                foreach (CircuitPointData point in curve.CurvePoints)
+                foreach (CircuitPoint point in curve.Points)
                 {
                     DrawPointHandles(point);
                 }
@@ -54,7 +54,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             Handles.matrix = matrix;
         }
 
-        private void DrawPointHandles(PointData point)
+        private void DrawPointHandles(CircuitPoint point)
         {
             if (point == null || _circuitShaper == null) return;
 
@@ -78,7 +78,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             Vector3 newForwardPos = Handles.FreeMoveHandle(forwardPos, cpSize, Vector3.zero, Handles.SphereHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
-                point.ForwardControlPointPosition = newForwardPos.ToNumericsVector3();
+                _circuitShaper.MoveCircuitPointForwardControl(point, newForwardPos.ToNumericsVector3());
             }
 
             // Backward CP
@@ -87,7 +87,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             Vector3 newBackwardPos = Handles.FreeMoveHandle(backwardPos, cpSize, Vector3.zero, Handles.SphereHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
-                point.BackwardControlPointPosition = newBackwardPos.ToNumericsVector3();
+                _circuitShaper.MoveCircuitPointBackwardControl(point, newBackwardPos.ToNumericsVector3());
             }
 
             // --- Draw Anchor Point Handle ---
@@ -99,11 +99,11 @@ namespace OnomiCircuitShaper.Unity.Editor
             {
                 if (Event.current.shift)
                 {
-                    _circuitShaper.AddPointToSelection(point as CircuitPointData);
+                    _circuitShaper.AddPointToSelection(point);
                 }
                 else
                 {
-                    _circuitShaper.SelectPoint(point as CircuitPointData);
+                    _circuitShaper.SelectPoint(point);
                 }
                 Repaint(); // Redraw inspector to reflect selection change
             }
@@ -115,7 +115,7 @@ namespace OnomiCircuitShaper.Unity.Editor
                 Vector3 newAnchorPos = Handles.PositionHandle(anchorPos, Quaternion.identity);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    point.PointPosition = newAnchorPos.ToNumericsVector3();
+                    _circuitShaper.MoveCircuitPoint(point, newAnchorPos.ToNumericsVector3());
                 }
             }
         }

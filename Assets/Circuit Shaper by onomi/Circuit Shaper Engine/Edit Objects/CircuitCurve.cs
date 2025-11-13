@@ -39,7 +39,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// Creates a new point, inserts it into the curve at a specific index,
         /// and updates all neighboring points and curve properties.
         /// </summary>
-        public void AddPointAtIndex(Vector3 pointPosition, int index)
+        public CircuitPoint AddPointAtIndex(Vector3 pointPosition, int index)
         {
 
             CircuitPointData newPointData = new CircuitPointData()
@@ -48,7 +48,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             };
             
 
-            CircuitPoint newPoint = new CircuitPoint(newPointData, Settings, null);
+            CircuitPoint newPoint = new CircuitPoint(this, newPointData, Settings, null);
             // Insert into the live points list at the same index to keep ordering consistent
             if (index < 0) index = 0;
             if (index > Points.Count) index = Points.Count;
@@ -57,13 +57,14 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Points.Insert(index, newPoint);
             newPoint.AutoSetControlpoints();
             OnCurveStateChanged();
+            return newPoint;
         }
 
         /// <summary>
         /// Finds the two closest consecutive points on the curve to the given position
         /// and inserts a new point there.
         /// </summary>
-        public void AddPointOnCurve(Vector3 position)
+        public CircuitPoint AddPointOnCurve(Vector3 position)
         {
             // Find the closest segment, find the index to be inserted to and insert the point there.
             int closestSegmentIndex = -1;
@@ -88,8 +89,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
             if (closestSegmentIndex != -1)
             {
-                AddPointAtIndex(position, closestSegmentIndex + 1);
+                return AddPointAtIndex(position, closestSegmentIndex + 1);
             }
+            return null;
         }
 
         /// <summary>
@@ -107,24 +109,21 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             return a + ab * t;
         }
 
-        /// <summary>
-        /// Finds the closest position on the curve to a given ray and inserts a new point there.
-        /// </summary>
-        public void AddPointOnCurve(Vector3 rayStart, Vector3 rayDirection)
-        {
-            Vector3 avgAltitude = CircuitMathematics.GetAverageCurveAltitude(Data) * Vector3.UnitY;
-            Vector3 projectedPoint = rayStart + rayDirection * ((avgAltitude.Y - rayStart.Y) / rayDirection.Y);
-            AddPointOnCurve(projectedPoint);
-        }
 
         /// <summary>
         /// Removes a point from the curve and updates all neighboring points and curve properties.
         /// </summary>
 
-
         public void RemovePoint(CircuitPoint point)
         {
-            // To be implemented.
+            if (Points.Contains(point))
+            {
+
+                int index = Points.IndexOf(point);
+                Points.RemoveAt(index);
+                Data.CurvePoints.RemoveAt(index);
+            }
+            
             OnCurveStateChanged();
         }
 
@@ -133,9 +132,17 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         {
             Data = data;
             Settings = settings;
+
+            // Create live CircuitPoint objects for each data point
+            for(int i = 0; i < Data.CurvePoints.Count; i++)
+            {
+                CircuitPointData pointData = Data.CurvePoints[i];
+                CircuitPoint circuitPoint = new CircuitPoint(this, pointData, Settings, null);
+                Points.Add(circuitPoint);
+            }
         }
 
-        public virtual void AutoSetAllControlPoints()
+        public void AutoSetAllControlPoints()
         {
             // Implementation may be provided by processors or overridden by derived classes.
         }

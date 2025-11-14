@@ -59,6 +59,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public void SetPointsFromLocalPositions(List<Vector3> localPositions)
         {
+            // Cross-section curves are ALWAYS open
+            Data.IsClosed = false;
+            
             // Unsubscribe from old points to prevent memory leaks
             foreach (var point in Points)
             {
@@ -123,6 +126,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Data = data;
             Settings = settings;
             this.parentCircuitPoint = parentCircuitPoint;
+            
+            // Cross-section curves are ALWAYS open (never closed loops)
+            Data.IsClosed = false;
 
             // Create live CrossSectionPoint objects for each data point
             for (int i = 0; i < Data.CurvePoints.Count; i++)

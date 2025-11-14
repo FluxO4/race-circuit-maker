@@ -15,7 +15,7 @@ namespace OnomiCircuitShaper.Engine.Data
         /// The ordered list of points that this road will be built along.
         /// These points are typically a subset of the points from one or more CircuitCurves.
         /// </summary>
-        public List<PointData> AssociatedPoints = new List<PointData>();
+        public List<CircuitPointData> AssociatedPoints = new List<CircuitPointData>();
 
         /// <summary>
         /// Determines the number of vertices used across the width of the road mesh.
@@ -27,7 +27,12 @@ namespace OnomiCircuitShaper.Engine.Data
         /// Controls the density of vertices along the length of the road, relative to its width.
         /// A value of 1 means the vertices will form roughly square quads.
         /// </summary>
-        public int LengthWiseVertexCountPerUnitWidthWiseVertexCount = 1;
+        public float LengthWiseVertexCountPerUnitWidthWiseVertexCount = 1;
+
+        /// <summary>
+        /// A boolean flag indicating whether smart meshing is enabled for this road, allowing for optimized mesh generation, less vertices for straighter sections.
+        /// </summary>
+        public bool UseSmartMeshing = true;
 
         /// <summary>
         /// Controls the tiling (repetition) of the UV coordinates across the mesh.

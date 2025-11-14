@@ -4,7 +4,11 @@ using UnityEngine;
 using OnomiCircuitShaper.Unity.Utilities;
 using OnomiCircuitShaper.Engine.EditRealm;
 using OnomiCircuitShaper.Engine.Presets;
+using OnomiCircuitShaper.Engine.Data;
+using OnomiCircuitShaper.Engine.Processors;
 using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace OnomiCircuitShaper.Unity.Editor
 {
@@ -22,6 +26,11 @@ namespace OnomiCircuitShaper.Unity.Editor
         private bool _addingToSelectedCurveMode = false;
         private bool _isEditingCrossSection = false;
 
+        // Road management
+        //private Dictionary<RoadData, SceneRoad> _sceneRoads = new Dictionary<RoadData, SceneRoad>();
+        private float _lastRoadUpdateTime = 0f;
+        private const float MinRoadUpdateInterval = 0.2f; // 5 updates per second max
+
         private void OnEnable()
         {
             _target = (OnomiCircuitShaper)target;
@@ -33,19 +42,151 @@ namespace OnomiCircuitShaper.Unity.Editor
             _circuitShaper = new CircuitShaper(_target.Data.circuitData, _target.Data.settingsData);
             _circuitShaper.BeginEdit();
 
+            // Subscribe to road events
+            _circuitShaper.RoadBuilt += OnRoadBuilt;
+
             _creatingNewPointMode = false;
             _addingToSelectedCurveMode = false;
         }
         
         private void OnDisable()
         {
-            _circuitShaper.QuitEdit();
+            // Unsubscribe from events
+            if (_circuitShaper != null)
+            {
+                _circuitShaper.RoadBuilt -= OnRoadBuilt;
+            }
+
+            _circuitShaper?.QuitEdit();
+        }
+
+        /// <summary>
+        /// Handles the RoadBuilt event from the engine. Creates or updates the SceneRoad GameObject.
+        /// Throttles updates to prevent excessive mesh rebuilds.
+        /// </summary>
+        private void OnRoadBuilt(RoadData roadData, GenericMeshData meshData)
+        {
+            UnityEngine.Debug.Log($"[Editor] OnRoadBuilt event received. Vertices: {meshData.Vertices?.Length ?? 0}");
+            
+            // Check if we should throttle this update
+            float currentTime = (float)EditorApplication.timeSinceStartup;
+            if (currentTime - _lastRoadUpdateTime < MinRoadUpdateInterval)
+            {
+                UnityEngine.Debug.Log("[Editor] Throttling update, scheduling delayed call");
+                // Too soon, schedule a delayed update
+                EditorApplication.delayCall += () => UpdateRoadMesh(roadData, meshData);
+                return;
+            }
+
+            UpdateRoadMesh(roadData, meshData);
+            _lastRoadUpdateTime = currentTime;
+        }
+
+        /// <summary>
+        /// Checks all roads for dirty state and rebuilds them if necessary.
+        /// Throttled to prevent excessive updates.
+        /// </summary>
+        private void CheckAndRebuildDirtyRoads()
+        {
+            if (_circuitShaper == null || _circuitShaper.GetLiveCircuit == null) return;
+
+            float currentTime = (float)EditorApplication.timeSinceStartup;
+            if (currentTime - _lastRoadUpdateTime < MinRoadUpdateInterval) return;
+
+            var circuit = _circuitShaper.GetLiveCircuit;
+            if (circuit.Roads == null) return;
+
+            foreach (var road in circuit.Roads)
+            {
+                if (road.IsDirty)
+                {
+                    // Rebuild this road by generating mesh data and calling the event handler directly
+                    var meshData = RoadProcessor.BuildRoadMesh(road);
+                    OnRoadBuilt(road.Data, meshData);
+                    road.ClearDirty();
+                    _lastRoadUpdateTime = currentTime;
+                    break; // Only rebuild one road per frame to avoid lag
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates or creates the SceneRoad GameObject with the provided mesh data.
+        /// </summary>
+        private void UpdateRoadMesh(RoadData roadData, GenericMeshData meshData)
+        {
+            UnityEngine.Debug.Log($"[Editor] UpdateRoadMesh called. Vertices: {meshData.Vertices?.Length ?? 0}");
+            
+            // If meshData has no vertices, this is a delete operation
+            if (meshData.Vertices == null || meshData.Vertices.Length == 0)
+            {
+                UnityEngine.Debug.Log("[Editor] Empty mesh data, deleting road");
+                if (_target.SceneRoads.TryGetValue(roadData, out SceneRoad sceneRoad))
+                {
+                    if (sceneRoad != null)
+                    {
+                        DestroyImmediate(sceneRoad.gameObject);
+                    }
+                    _target.SceneRoads.Remove(roadData);
+                }
+                return;
+            }
+
+            GenericMeshData mesh = meshData;
+
+            // Get or create the SceneRoad
+            if (!_target.SceneRoads.TryGetValue(roadData, out SceneRoad existingRoad))
+            {
+                UnityEngine.Debug.Log("[Editor] Creating new SceneRoad GameObject");
+                // Create new GameObject
+                GameObject roadObject = new GameObject("Road");
+                roadObject.transform.SetParent(_target.transform);
+                roadObject.transform.localPosition = UnityEngine.Vector3.zero;
+                roadObject.transform.localRotation = UnityEngine.Quaternion.identity;
+                roadObject.transform.localScale = UnityEngine.Vector3.one;
+
+                existingRoad = roadObject.AddComponent<SceneRoad>();
+                existingRoad.onomiCircuitShaper = _target;
+                existingRoad.roadData = roadData;
+
+                _target.SceneRoads[roadData] = existingRoad;
+            }
+            else
+            {
+                UnityEngine.Debug.Log("[Editor] Updating existing SceneRoad");
+            }
+
+            // Convert System.Numerics.Vector3 to UnityEngine.Vector3
+            UnityEngine.Vector3[] vertices = new UnityEngine.Vector3[mesh.Vertices.Length];
+            for (int i = 0; i < mesh.Vertices.Length; i++)
+            {
+                var v = mesh.Vertices[i];
+                vertices[i] = new UnityEngine.Vector3(v.X, v.Y, v.Z);
+            }
+
+            // Convert System.Numerics.Vector2 to UnityEngine.Vector2
+            UnityEngine.Vector2[] uvs = new UnityEngine.Vector2[mesh.UVs.Length];
+            for (int i = 0; i < mesh.UVs.Length; i++)
+            {
+                var uv = mesh.UVs[i];
+                uvs[i] = new UnityEngine.Vector2(uv.X, uv.Y);
+            }
+
+            UnityEngine.Debug.Log($"[Editor] Calling SceneRoad.UpdateMesh with {vertices.Length} vertices, {uvs.Length} UVs, {mesh.Triangles.Length} triangle indices");
+
+            // Update the mesh
+            existingRoad.UpdateMesh(vertices, uvs, mesh.Triangles);
+            
+            UnityEngine.Debug.Log("[Editor] Mesh updated successfully");
         }
 
         public override void OnInspectorGUI()
         {
             //Draw default inspector
             DrawDefaultInspector();
+
+            // Check for dirty roads and rebuild them
+            CheckAndRebuildDirtyRoads();
 
             EditorGUILayout.Space();
 

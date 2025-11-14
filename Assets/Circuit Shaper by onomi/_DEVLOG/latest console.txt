@@ -1,0 +1,493 @@
+[CircuitShaper] CreateNewRoadFromPoints called with 2 points
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[CircuitShaper] All points validated successfully
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:205)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[CircuitShaper] RoadData created
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:219)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[CircuitShaper] Road added to circuit
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:225)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[CircuitShaper] Road.BuildRoadFromPoints called
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:230)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] BuildRoadMesh called
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:57)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Road has 2 associated points
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:77)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] All points validated successfully
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:111)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Extracted 2 circuit point data objects
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:116)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Mesh dimensions: 10x10 = 100 vertices
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:127)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width segments: 9, Length segments: 9
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:128)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Starting vertex generation...
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:135)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] P1 CrossSection: 4 points, IsClosed: False
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:157)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] P2 CrossSection: 4 points, IsClosed: True
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:158)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] P1 CS Point 0: pos=(-2.5, 0, 0), norm=0
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:161)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] P1 CS Point 1: pos=(-1.5, -1, 0), norm=0.2436406
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:161)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] P1 CS Point 2: pos=(1.5, -1, 0), norm=0.7563595
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:161)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] P1 CS Point 3: pos=(2.5, 0, 0), norm=1
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:161)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 0/9: widthT = 0
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 0 at widthT=0: <-32.17192, 3.271009, -10.18885>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 1/9: widthT = 0.1111111
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 1 at widthT=0.1111111: <-31.7348, 2.865943, -10.38757>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 2/9: widthT = 0.2222222
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 2 at widthT=0.2222222: <-31.17161, 2.529369, -10.62576>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 3/9: widthT = 0.3333333
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 3 at widthT=0.3333333: <-30.63497, 2.533226, -10.82147>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 4/9: widthT = 0.4444444
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 4 at widthT=0.4444444: <-29.99833, 2.627154, -11.04505>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 5/9: widthT = 0.5555556
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 5 at widthT=0.5555556: <-29.33243, 2.782959, -11.27336>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 6/9: widthT = 0.6666667
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 6 at widthT=0.6666667: <-28.71466, 2.982531, -11.47987>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 7/9: widthT = 0.7777778
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 7 at widthT=0.7777778: <-28.21975, 3.220032, -11.63784>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 8/9: widthT = 0.8888889
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 8 at widthT=0.8888889: <-27.81713, 3.782583, -11.73079>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Width 9/9: widthT = 1
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:172)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Vertex 9 at widthT=1: <-27.55396, 4.351501, -11.77217>
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:181)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Generated 100 vertices
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:193)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Starting triangle generation...
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:194)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Generated 162 triangles
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:220)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[RoadProcessor] Mesh generation complete!
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Processors.RoadProcessor:BuildRoadMesh (OnomiCircuitShaper.Engine.EditRealm.Road) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Processors/RoadProcessor.cs:221)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:233)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[CircuitShaper] RoadProcessor returned mesh with 100 vertices
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:235)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[Editor] OnRoadBuilt event received. Vertices: 100
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:69)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[Editor] UpdateRoadMesh called. Vertices: 100
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:UpdateRoadMesh (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:118)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:81)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[Editor] Creating new SceneRoad GameObject
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:UpdateRoadMesh (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:140)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:81)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[Editor] Calling SceneRoad.UpdateMesh with 100 vertices, 100 UVs, 486 triangle indices
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:UpdateRoadMesh (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:175)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:81)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[SceneRoad] UpdateMesh called with 100 vertices, 100 UVs, 486 triangle indices
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.SceneRoad:UpdateMesh (UnityEngine.Vector3[],UnityEngine.Vector2[],int[]) (at Assets/Circuit Shaper by onomi/Unity/SceneRoad.cs:40)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:UpdateRoadMesh (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:178)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:81)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[SceneRoad] MeshFilter was null, getting component
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.SceneRoad:UpdateMesh (UnityEngine.Vector3[],UnityEngine.Vector2[],int[]) (at Assets/Circuit Shaper by onomi/Unity/SceneRoad.cs:45)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:UpdateRoadMesh (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:178)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:81)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[SceneRoad] MeshCollider was null, getting component
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.SceneRoad:UpdateMesh (UnityEngine.Vector3[],UnityEngine.Vector2[],int[]) (at Assets/Circuit Shaper by onomi/Unity/SceneRoad.cs:50)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:UpdateRoadMesh (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:178)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:81)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[SceneRoad] Mesh was null, creating new mesh
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.SceneRoad:UpdateMesh (UnityEngine.Vector3[],UnityEngine.Vector2[],int[]) (at Assets/Circuit Shaper by onomi/Unity/SceneRoad.cs:56)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:UpdateRoadMesh (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:178)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:81)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[SceneRoad] Mesh updated successfully. Vertex count: 100, Triangle count: 162
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.SceneRoad:UpdateMesh (UnityEngine.Vector3[],UnityEngine.Vector2[],int[]) (at Assets/Circuit Shaper by onomi/Unity/SceneRoad.cs:72)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:UpdateRoadMesh (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:178)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:81)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[Editor] Mesh updated successfully
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:UpdateRoadMesh (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:180)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnRoadBuilt (OnomiCircuitShaper.Engine.Data.RoadData,OnomiCircuitShaper.Engine.Processors.GenericMeshData) (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:81)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:237)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[CircuitShaper] RoadBuilt event fired
+UnityEngine.Debug:Log (object)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateNewRoadFromPoints (OnomiCircuitShaper.Engine.EditRealm.CircuitPoint[]) (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:239)
+OnomiCircuitShaper.Engine.Interface.CircuitShaper:CreateRoadFromSelectedPoints () (at Assets/Circuit Shaper by onomi/Circuit Shaper Engine/Interface/CircuitShaper.cs:247)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:DrawMultiPointInspector () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:387)
+OnomiCircuitShaper.Unity.Editor.OnomiCircuitShaperEditor:OnInspectorGUI () (at Assets/Circuit Shaper by onomi/Unity/Editor/OnomiCircuitShaperEditor.cs:206)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+

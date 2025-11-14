@@ -899,6 +899,429 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bef1a9839acbbd944802c89cd224c17d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &99702313
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 99702316}
+  - component: {fileID: 99702315}
+  - component: {fileID: 99702314}
+  m_Layer: 0
+  m_Name: Terrain
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 0
+--- !u!154 &99702314
+TerrainCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99702313}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_TerrainData: {fileID: 15600000, guid: c107456fe03e03745b6245bcaf8c8141, type: 2}
+  m_EnableTreeColliders: 1
+--- !u!218 &99702315
+Terrain:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99702313}
+  m_Enabled: 1
+  serializedVersion: 6
+  m_TerrainData: {fileID: 15600000, guid: c107456fe03e03745b6245bcaf8c8141, type: 2}
+  m_TreeDistance: 5000
+  m_TreeBillboardDistance: 50
+  m_TreeCrossFadeLength: 5
+  m_TreeMaximumFullLODCount: 50
+  m_DetailObjectDistance: 80
+  m_DetailObjectDensity: 1
+  m_HeightmapPixelError: 5
+  m_SplatMapDistance: 1000
+  m_HeightmapMinimumLODSimplification: 0
+  m_HeightmapMaximumLOD: 0
+  m_ShadowCastingMode: 2
+  m_DrawHeightmap: 1
+  m_DrawInstanced: 0
+  m_DrawTreesAndFoliage: 1
+  m_StaticShadowCaster: 0
+  m_IgnoreQualitySettings: 0
+  m_ReflectionProbeUsage: 1
+  m_MaterialTemplate: {fileID: 10652, guid: 0000000000000000f000000000000000, type: 0}
+  m_BakeLightProbesForTrees: 1
+  m_PreserveTreePrototypeLayers: 0
+  m_DeringLightProbesForTrees: 1
+  m_ReceiveGI: 1
+  m_ScaleInLightmap: 0.0256
+  m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000, type: 0}
+  m_GroupingID: 0
+  m_RenderingLayerMask: 1
+  m_AllowAutoConnect: 1
+  m_EnableHeightmapRayTracing: 1
+  m_EnableTreesAndDetailsRayTracing: 0
+  m_TreeMotionVectorModeOverride: 3
+--- !u!4 &99702316
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99702313}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -420, y: 0, z: -452}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &143156852
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 143156853}
+  - component: {fileID: 143156857}
+  - component: {fileID: 143156856}
+  - component: {fileID: 143156855}
+  - component: {fileID: 143156854}
+  m_Layer: 0
+  m_Name: Road
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &143156853
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143156852}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 399263769}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &143156854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143156852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcafc4aab7eb0134e8e90b63f7b03a3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onomiCircuitShaper: {fileID: 399263768}
+  roadData:
+    AssociatedPoints:
+    - PointPosition:
+        x: -29.86294
+        y: 3.8112555
+        z: -10.980511
+      ForwardControlPointPosition:
+        x: -19.374916
+        y: 5.151483
+        z: -8.188997
+      BackwardControlPointPosition:
+        x: -47.893208
+        y: 1.5072312
+        z: -15.779482
+      UpDirection:
+        x: -0.14782533
+        y: 0.9855911
+        z: 0.08220608
+      NormalizedPosition01: 1
+      AutoSetTension: 0.5
+      CrossSectionCurve:
+        IsClosed: 0
+        CurvePoints:
+        - PointPosition:
+            x: -2.5
+            y: 0
+            z: 0
+          ForwardControlPointPosition:
+            x: -2.331348
+            y: -0.24091302
+            z: 0
+          BackwardControlPointPosition:
+            x: -2.668652
+            y: 0.24091302
+            z: 0
+          UpDirection:
+            x: 0
+            y: 1
+            z: 0
+          NormalizedPosition01: 0
+          AutoSetTension: 0.265
+        - PointPosition:
+            x: -1.5
+            y: -1
+            z: 0
+          ForwardControlPointPosition:
+            x: -0.72873676
+            y: -1.1928158
+            z: 0
+          BackwardControlPointPosition:
+            x: -1.863577
+            y: -0.9091058
+            z: 0
+          UpDirection:
+            x: 0
+            y: 1
+            z: 0
+          NormalizedPosition01: 0.24364056
+          AutoSetTension: 0.265
+        - PointPosition:
+            x: 1.5
+            y: -1
+            z: 0
+          ForwardControlPointPosition:
+            x: 1.863577
+            y: -0.9091058
+            z: 0
+          BackwardControlPointPosition:
+            x: 0.72873676
+            y: -1.1928158
+            z: 0
+          UpDirection:
+            x: 0
+            y: 1
+            z: 0
+          NormalizedPosition01: 0.75635946
+          AutoSetTension: 0.265
+        - PointPosition:
+            x: 2.5
+            y: 0
+            z: 0
+          ForwardControlPointPosition:
+            x: 2.668652
+            y: 0.24091302
+            z: 0
+          BackwardControlPointPosition:
+            x: 2.331348
+            y: -0.24091302
+            z: 0
+          UpDirection:
+            x: 0
+            y: 1
+            z: 0
+          NormalizedPosition01: 1
+          AutoSetTension: 0.265
+    - PointPosition:
+        x: 13.747131
+        y: 1.2308449
+        z: 13.900932
+      ForwardControlPointPosition:
+        x: 22.046288
+        y: 0.10408056
+        z: 29.530376
+      BackwardControlPointPosition:
+        x: 7.194784
+        y: 2.1204486
+        z: 1.5611801
+      UpDirection:
+        x: 0.01593105
+        y: 0.997856
+        z: 0.063478634
+      NormalizedPosition01: 0.2785166
+      AutoSetTension: 0.5
+      CrossSectionCurve:
+        IsClosed: 0
+        CurvePoints:
+        - PointPosition:
+            x: -3.245891
+            y: 0.09512988
+            z: 0
+          ForwardControlPointPosition:
+            x: -2.8872855
+            y: -0.4221086
+            z: 0
+          BackwardControlPointPosition:
+            x: -3.6044967
+            y: 0.61236835
+            z: 0
+          UpDirection:
+            x: 0
+            y: 1
+            z: 0
+          NormalizedPosition01: 0
+          AutoSetTension: 0.5
+        - PointPosition:
+            x: -1.5
+            y: -1
+            z: 0
+          ForwardControlPointPosition:
+            x: -0.4117744
+            y: -1.0641638
+            z: 0
+          BackwardControlPointPosition:
+            x: -2.5286798
+            y: -0.9393471
+            z: 0
+          UpDirection:
+            x: 0
+            y: 1
+            z: 0
+          NormalizedPosition01: 0.33630592
+          AutoSetTension: 0.5
+        - PointPosition:
+            x: 0.49719292
+            y: -0.12556943
+            z: 0
+          ForwardControlPointPosition:
+            x: 1.4706047
+            y: 0.1177835
+            z: 0
+          BackwardControlPointPosition:
+            x: -0.56037456
+            y: -0.3899613
+            z: 0
+          UpDirection:
+            x: 0
+            y: 1
+            z: 0
+          NormalizedPosition01: 0.68506217
+          AutoSetTension: 0.5
+        - PointPosition:
+            x: 2.5
+            y: 0
+            z: 0
+          ForwardControlPointPosition:
+            x: 3.0146976
+            y: -0.05889175
+            z: 0
+          BackwardControlPointPosition:
+            x: 1.9853023
+            y: 0.05889175
+            z: 0
+          UpDirection:
+            x: 0
+            y: 1
+            z: 0
+          NormalizedPosition01: 1
+          AutoSetTension: 0.5
+    WidthWiseVertexCount: 10
+    LengthWiseVertexCountPerUnitWidthWiseVertexCount: 1
+    UseSmartMeshing: 1
+    UVTile:
+      x: 1
+      y: 1
+    UVOffset:
+      x: 0
+      y: 0
+    Railings: []
+    Bridge:
+      UseTemplate: 1
+      BridgeShapePoints: []
+      UVTile:
+        x: 1
+        y: 1
+      TemplateEdgeWidth: 0.5
+      TemplateBridgeHeight: 2
+      TemplateFlangeWidth: 0.5
+      TemplateFlangeHeight: 0.5
+      TemplateFlangeDepth: 0.2
+      TemplateCurbHeight: 0.3
+--- !u!64 &143156855
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143156852}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 899492530}
+--- !u!23 &143156856
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143156852}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &143156857
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143156852}
+  m_Mesh: {fileID: 899492530}
 --- !u!1001 &252046138
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1211,21 +1634,21 @@ MonoBehaviour:
       - IsClosed: 1
         CurvePoints:
         - PointPosition:
-            x: -12.461037
-            y: -0.089140646
-            z: -12.023176
+            x: -29.86294
+            y: 3.8112555
+            z: -10.980511
           ForwardControlPointPosition:
-            x: -16.198845
-            y: 0.89579344
-            z: -22.252848
+            x: -19.374916
+            y: 5.151483
+            z: -8.188997
           BackwardControlPointPosition:
-            x: -3.717304
-            y: -2.3931649
-            z: 11.906761
+            x: -47.893208
+            y: 1.5072312
+            z: -15.779482
           UpDirection:
-            x: -0.17362756
-            y: 0.9722086
-            z: 0.15704785
+            x: -0.14782533
+            y: 0.9855911
+            z: 0.08220608
           NormalizedPosition01: 1
           AutoSetTension: 0.5
           CrossSectionCurve:
@@ -1304,25 +1727,25 @@ MonoBehaviour:
               NormalizedPosition01: 1
               AutoSetTension: 0.265
         - PointPosition:
-            x: 17.210646
-            y: 0.0052331425
-            z: -1.8252146
+            x: 13.747131
+            y: 1.2308449
+            z: 13.900932
           ForwardControlPointPosition:
-            x: 21.14288
-            y: -1.3330877
-            z: 15.413439
+            x: 22.046288
+            y: 0.10408056
+            z: 29.530376
           BackwardControlPointPosition:
-            x: 14.596825
-            y: 0.8948368
-            z: -13.284027
+            x: 7.194784
+            y: 2.1204486
+            z: 1.5611801
           UpDirection:
-            x: 0.020057784
-            y: 0.9971421
-            z: 0.07283772
-          NormalizedPosition01: 0.26367393
+            x: 0.01593105
+            y: 0.997856
+            z: 0.063478634
+          NormalizedPosition01: 0.2785166
           AutoSetTension: 0.5
           CrossSectionCurve:
-            IsClosed: 1
+            IsClosed: 0
             CurvePoints:
             - PointPosition:
                 x: -3.245891
@@ -1340,7 +1763,7 @@ MonoBehaviour:
                 x: 0
                 y: 1
                 z: 0
-              NormalizedPosition01: 1
+              NormalizedPosition01: 0
               AutoSetTension: 0.5
             - PointPosition:
                 x: -1.5
@@ -1358,7 +1781,7 @@ MonoBehaviour:
                 x: 0
                 y: 1
                 z: 0
-              NormalizedPosition01: 0.17629768
+              NormalizedPosition01: 0.33630592
               AutoSetTension: 0.5
             - PointPosition:
                 x: 0.49719292
@@ -1376,7 +1799,7 @@ MonoBehaviour:
                 x: 0
                 y: 1
                 z: 0
-              NormalizedPosition01: 0.35912207
+              NormalizedPosition01: 0.68506217
               AutoSetTension: 0.5
             - PointPosition:
                 x: 2.5
@@ -1394,28 +1817,121 @@ MonoBehaviour:
                 x: 0
                 y: 1
                 z: 0
-              NormalizedPosition01: 0.5242182
+              NormalizedPosition01: 1
               AutoSetTension: 0.5
         - PointPosition:
-            x: -18.588902
+            x: -9.789175
             y: 0.032735825
-            z: 30.288073
+            z: 44.48353
           ForwardControlPointPosition:
-            x: -41.091034
+            x: -32.291313
             y: 0.032735825
-            z: 21.18428
+            z: 35.379738
           BackwardControlPointPosition:
-            x: -0.31635094
+            x: 8.483376
             y: 0.032735825
-            z: 37.68068
+            z: 51.876133
           UpDirection:
             x: 0
             y: 1
             z: 0
-          NormalizedPosition01: 0.6535739
+          NormalizedPosition01: 0.54899114
           AutoSetTension: 0.5
           CrossSectionCurve:
-            IsClosed: 1
+            IsClosed: 0
+            CurvePoints:
+            - PointPosition:
+                x: -2.2766705
+                y: 0.120147526
+                z: 0
+              ForwardControlPointPosition:
+                x: -1.8607159
+                y: -0.3212385
+                z: 0
+              BackwardControlPointPosition:
+                x: -2.692625
+                y: 0.5615336
+                z: 0
+              UpDirection:
+                x: 0
+                y: 1
+                z: 0
+              NormalizedPosition01: 0
+              AutoSetTension: 0.5
+            - PointPosition:
+                x: -0.3650101
+                y: -0.95680696
+                z: 0
+              ForwardControlPointPosition:
+                x: 0.7676852
+                y: -1.1605109
+                z: 0
+              BackwardControlPointPosition:
+                x: -1.4447612
+                y: -0.7626245
+                z: 0
+              UpDirection:
+                x: 0
+                y: 1
+                z: 0
+              NormalizedPosition01: 0.37183252
+              AutoSetTension: 0.5
+            - PointPosition:
+                x: 1.9139017
+                y: -0.63348514
+                z: 0
+              ForwardControlPointPosition:
+                x: 2.606979
+                y: -0.44518656
+                z: 0
+              BackwardControlPointPosition:
+                x: 0.8032938
+                y: -0.9352205
+                z: 0
+              UpDirection:
+                x: 0
+                y: 1
+                z: 0
+              NormalizedPosition01: 0.7599306
+              AutoSetTension: 0.5
+            - PointPosition:
+                x: 3.1975584
+                y: 0.011088848
+                z: 0
+              ForwardControlPointPosition:
+                x: 3.4928482
+                y: 0.23922655
+                z: 0
+              BackwardControlPointPosition:
+                x: 2.9022686
+                y: -0.21704885
+                z: 0
+              UpDirection:
+                x: 0
+                y: 1
+                z: 0
+              NormalizedPosition01: 1
+              AutoSetTension: 0.5
+        - PointPosition:
+            x: -35.000313
+            y: 0.8671043
+            z: 30.60926
+          ForwardControlPointPosition:
+            x: -41.47204
+            y: 2.725514
+            z: 16.929087
+          BackwardControlPointPosition:
+            x: -32.78151
+            y: 0.22995621
+            z: 35.299454
+          UpDirection:
+            x: 0.04271253
+            y: 0.9924907
+            z: 0.11462063
+          NormalizedPosition01: 0.7088963
+          AutoSetTension: 0.5
+          CrossSectionCurve:
+            IsClosed: 0
             CurvePoints:
             - PointPosition:
                 x: -2.5
@@ -1433,7 +1949,7 @@ MonoBehaviour:
                 x: 0
                 y: 1
                 z: 0
-              NormalizedPosition01: 1
+              NormalizedPosition01: 0
               AutoSetTension: 0.5
             - PointPosition:
                 x: -1.5
@@ -1451,7 +1967,7 @@ MonoBehaviour:
                 x: 0
                 y: 1
                 z: 0
-              NormalizedPosition01: 0.13349213
+              NormalizedPosition01: 0.24683844
               AutoSetTension: 0.5
             - PointPosition:
                 x: 1.5
@@ -1469,7 +1985,7 @@ MonoBehaviour:
                 x: 0
                 y: 1
                 z: 0
-              NormalizedPosition01: 0.40731558
+              NormalizedPosition01: 0.75316155
               AutoSetTension: 0.5
             - PointPosition:
                 x: 2.5
@@ -1487,7 +2003,100 @@ MonoBehaviour:
                 x: 0
                 y: 1
                 z: 0
-              NormalizedPosition01: 0.5408077
+              NormalizedPosition01: 1
+              AutoSetTension: 0.5
+        - PointPosition:
+            x: -32.518982
+            y: 2.2473576
+            z: 12.169793
+          ForwardControlPointPosition:
+            x: -36.32984
+            y: 3.9674807
+            z: 3.661766
+          BackwardControlPointPosition:
+            x: -30.957878
+            y: 1.5427122
+            z: 15.655079
+          UpDirection:
+            x: 0.016049605
+            y: 0.9814139
+            z: 0.19122997
+          NormalizedPosition01: 0.81872416
+          AutoSetTension: 0.5
+          CrossSectionCurve:
+            IsClosed: 0
+            CurvePoints:
+            - PointPosition:
+                x: -2.5
+                y: 0
+                z: 0
+              ForwardControlPointPosition:
+                x: -2.342997
+                y: -0.4142507
+                z: 0
+              BackwardControlPointPosition:
+                x: -2.657003
+                y: 0.4142507
+                z: 0
+              UpDirection:
+                x: 0
+                y: 1
+                z: 0
+              NormalizedPosition01: 0
+              AutoSetTension: 0.5
+            - PointPosition:
+                x: -1.5
+                y: -1
+                z: 0
+              ForwardControlPointPosition:
+                x: -0.044786215
+                y: -1.3638034
+                z: 0
+              BackwardControlPointPosition:
+                x: -2.1859944
+                y: -0.8285014
+                z: 0
+              UpDirection:
+                x: 0
+                y: 1
+                z: 0
+              NormalizedPosition01: 0.24683844
+              AutoSetTension: 0.5
+            - PointPosition:
+                x: 1.5
+                y: -1
+                z: 0
+              ForwardControlPointPosition:
+                x: 2.1859944
+                y: -0.8285014
+                z: 0
+              BackwardControlPointPosition:
+                x: 0.044786215
+                y: -1.3638034
+                z: 0
+              UpDirection:
+                x: 0
+                y: 1
+                z: 0
+              NormalizedPosition01: 0.75316155
+              AutoSetTension: 0.5
+            - PointPosition:
+                x: 2.5
+                y: 0
+                z: 0
+              ForwardControlPointPosition:
+                x: 2.657003
+                y: 0.4142507
+                z: 0
+              BackwardControlPointPosition:
+                x: 2.342997
+                y: -0.4142507
+                z: 0
+              UpDirection:
+                x: 0
+                y: 1
+                z: 0
+              NormalizedPosition01: 1
               AutoSetTension: 0.5
       CircuitRoads: []
     settingsData:
@@ -1495,7 +2104,7 @@ MonoBehaviour:
       AutoSetControlPoints: 1
       IndependentControlPoints: 0
       RotatorPointDistance: 1.5
-      FreeMoveGizmoHandleSizeFactor: 0
+      FreeMoveGizmoHandleSizeFactor: 1
       FreeMoveMode: 0
 --- !u!4 &399263769
 Transform:
@@ -1509,7 +2118,8 @@ Transform:
   m_LocalPosition: {x: -0.91, y: 0, z: 2.16}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 143156853}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &459110975
@@ -4568,6 +5178,171 @@ PrefabInstance:
       addedObject: {fileID: 347654597}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e8c55965db26f96458e1f730ebd3e216, type: 3}
+--- !u!43 &899492530
+Mesh:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: SceneRoad_Mesh
+  serializedVersion: 11
+  m_SubMeshes:
+  - serializedVersion: 2
+    firstByte: 0
+    indexCount: 486
+    topology: 0
+    baseVertex: 0
+    firstVertex: 0
+    vertexCount: 100
+    localAABB:
+      m_Center: {x: -7.4171033, y: 2.3301513, z: 0.20002556}
+      m_Extent: {x: 23.049625, y: 2.0715244, z: 13.58896}
+  m_Shapes:
+    vertices: []
+    shapes: []
+    channels: []
+    fullWeights: []
+  m_BindPose: []
+  m_BoneNameHashes: 
+  m_RootBoneNameHash: 0
+  m_BonesAABB: []
+  m_VariableBoneCountWeights:
+    m_Data: 
+  m_MeshCompression: 0
+  m_IsReadable: 1
+  m_KeepVertices: 1
+  m_KeepIndices: 1
+  m_IndexFormat: 0
+  m_IndexBuffer: 00000a00010001000a000b0001000b00020002000b000c0002000c00030003000c000d0003000d00040004000d000e0004000e00050005000e000f0005000f00060006000f0010000600100007000700100011000700110008000800110012000800120009000900120013000a0014000b000b00140015000b0015000c000c00150016000c0016000d000d00160017000d0017000e000e00170018000e0018000f000f00180019000f0019001000100019001a0010001a00110011001a001b0011001b00120012001b001c0012001c00130013001c001d0014001e00150015001e001f0015001f00160016001f002000160020001700170020002100170021001800180021002200180022001900190022002300190023001a001a00230024001a0024001b001b00240025001b0025001c001c00250026001c0026001d001d00260027001e0028001f001f00280029001f0029002000200029002a0020002a00210021002a002b0021002b00220022002b002c0022002c00230023002c002d0023002d00240024002d002e0024002e00250025002e002f0025002f00260026002f003000260030002700270030003100280032002900290032003300290033002a002a00330034002a0034002b002b00340035002b0035002c002c00350036002c0036002d002d00360037002d0037002e002e00370038002e0038002f002f00380039002f0039003000300039003a0030003a00310031003a003b0032003c00330033003c003d0033003d00340034003d003e0034003e00350035003e003f0035003f00360036003f004000360040003700370040004100370041003800380041004200380042003900390042004300390043003a003a00430044003a0044003b003b00440045003c0046003d003d00460047003d0047003e003e00470048003e0048003f003f00480049003f0049004000400049004a0040004a00410041004a004b0041004b00420042004b004c0042004c00430043004c004d0043004d00440044004d004e0044004e00450045004e004f00460050004700470050005100470051004800480051005200480052004900490052005300490053004a004a00530054004a0054004b004b00540055004b0055004c004c00550056004c0056004d004d00560057004d0057004e004e00570058004e0058004f004f005800590050005a00510051005a005b0051005b00520052005b005c0052005c00530053005c005d0053005d00540054005d005e0054005e00550055005e005f0055005f00560056005f006000560060005700570060006100570061005800580061006200580062005900590062006300
+  m_VertexData:
+    serializedVersion: 3
+    m_VertexCount: 100
+    m_Channels:
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 12
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 24
+      format: 0
+      dimension: 2
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 3200
+    _typelessdata: be12eac14b498340133956c1926e8a3e97d500bf901c52bf00000000000000009d36eac1c3256440c40951c1730a873e0f0710bfef9448bf398ee33d000000003cadeac11a1443404b9649c180f5673e920a44bfc5141abf398e633e00000000139debc11b553740282341c1ee770f3e385d75bfa26e7ebeabaaaa3e0000000085dcecc1b8d62e40ccbd36c19eece63d94ce7bbfb70010be398ee33e000000002441eec1a0752940cba02bc122b1c13d78577ebf870681bde4380e3f000000007ba1efc1ead12740d81621c1f530953d0a387fbf17b6e53cabaa2a3f0000000014daf0c1aa3b2b40c95218c160c52abbd0a374bfa2d2963e721c473f00000000b168f2c105804440eaa70fc1f866d7bde12749bf58091c3f398e633f00000000dcbbf3c1a1446140452709c181570fbed8ad32bf12cb333f0000803f000000008062c9c100878c40f48443c16d86893efe8d00bf766e52bf00000000398ee33d409dc9c1ddb57640a36e3ec1f3ba823e0f2d16bf01c044bf398ee33d398ee33dce30cac118e35540a01d37c1257b493ee93350bf162e0cbf398e633e398ee33d2f4bcbc104144a40e6c02ec19d04da3d906877bf67696fbeabaaaa3e398ee33d6faeccc1551b4240188424c1d0919b3dda467dbf5015febd398ee33e398ee33d4123cec1aba93d40fea619c10fb3643d44647fbfed5725bde4380e3f398ee33d3e9fcfc197d83c40d74b0fc1f8b2043dca7a7fbfb8c9603dabaa2a3f398ee33d5c05d1c16c8640403d9706c1c92063bd06bd6ebf71a1b63e721c473f398ee33dd4b0d2c10ef858403416fcc0fe3b11be3b7047bfe2561c3f398e633f398ee33d7b1bd4c1a19f7440b03defc08f3b33bee06638bf77d32b3f0000803f398ee33ddef3a0c187da8c40188029c18b5e8a3e72fefebea0ef52bf00000000398e633ef16ba1c155947740bcac24c17282813e47c015bf674645bf398ee33d398e633e074da2c11b6a57401bb81dc122eb323ec24b51bf16770cbf398e633e398e633e71d9a3c1f46f4b40709715c146f9853d0a3a78bf3a4c71beabaaaa3e398e633e9f9ca5c197dd44404fc70bc1c114bb3c34a27ebf7b13cebd398ee33e398e633ee23ca7c196ed4240789501c1a06d29bbb4ff7fbf2eaacdbae4380e3f398e633ef102a9c10a514440776fefc0d005b7bc17187fbfa4f2a53dabaa2a3f398e633e13e3aac14ab548401e59dec088bccdbda71970bf9704aa3e721c473f398e633edcdbacc134f25e4096e5cdc04ad839be9ed14ebfe1890f3f398e633f398e633e6f85aec1e29d7740567ac1c001bb56be238a44bf21011b3f0000803f398e633e11a566c19e0e8640b1a308c176ab923eb476fbbedd9752bf00000000abaaaa3ec94668c1c04c6a40473104c1141d883ee8e714bf7fcd44bf398ee33dabaaaa3e75e96ac18e164b40c684fbc0ceac2e3ed00552bf53b60bbf398e633eabaaaa3e744c6fc104de3e4058f1ebc08f1a2c3ddfe978bfed5d6bbeabaaaa3eabaaaa3e97e873c16c523a40c68bd9c067b4b0bca98c7fbf634362bd398ee33eabaaaa3edea677c165033c40f717c7c097576bbda3057fbfa1ad863de4380e3fabaaaa3e7e097cc123984040a7c7b4c01f4c8cbd0c8e7dbfff0ff53dabaa2a3fabaaaa3e849580c1800446404329a4c0a43c03bea16a72bf16ea963e721c473fabaaaa3e40fe82c1d60f59403da494c06e614fbe0e135abf9251f73e398e633fabaaaa3eea0285c192696d402cd788c040d765beafa455bf38ce003f0000803fabaaaa3e6c1406c114dc7340f8d1c2c057dca03e537df8bee0e050bf00000000398ee33ea58808c1bd6a524003d3bac02bac943e219f14bf2cbc42bf398ee33d398ee33e7b350cc1d45534405832afc0d02a363ea31a53bf697709bf398e633e398ee33eed1f12c157d32740146da0c0060be73c21b479bf13db5fbeabaaaa3e398ee33e620518c1caae2540987c8fc09a3188bdfb6d7fbf5c20b03b398ee33e398ee33ec3581cc11cad2b405ea97ec07534f1bd18427bbffab91a3ee4380e3f398ee33eafb921c1d00a3440d6655dc04c9ee5bd6b167bbf8153233eabaa2a3f398ee33e0e7e28c14eb03a407c453dc0678b13be5d6e75bf970b7b3e721c473f398ee33ef3582ec156f24940f57020c04e8d51bee09d67bfd742bf3e398e633f398ee33e4c3a33c1e82c5940e84d0ac0245c5bbe85b068bf4d21b73e0000803f398ee33e793415c0108754409d2451c08bcbb43e8a4af8be80d24cbf00000000e4380e3f517b22c0d1793340700a43c047bfa63e9af815bfa2fb3dbf398ee33de4380e3fe28e35c04c9516406a642ec05464463eae3055bf51c304bf398e633ee4380e3f19a853c001c50940bc8b12c03450a63c27a97abf18014fbeabaaaa3ee4380e3ff1a770c092270a40ba77e7bf8977edbdd59b7dbf75f9923d398ee33ee4380e3f7e3482c0b7ac14406382b0bfe7fc3ebe7d0974bf7761733ee4380e3fe4380e3f7c0d8fc0ee052140ae1e6abf80bb1ebe592e78bfda9f423eabaa2a3fe4380e3f9407a0c0e1f42840ac94dcbe63531abea28178bf6b803f3e721c473fe4380e3ff2ebadc00c3b3440808c88bcadd23cbecd1e74bfd6bb733e398e633fe4380e3f3675b9c007123e406c3a9c3e6a2231bebec977bfb3973a3e0000803fe4380e3fb8655a40b6b33140a0b7debd8542cf3eb327fdbee0e944bf00000000abaa2a3fd5d4494099051140a016ab3df2bfbe3ebbfe19bfa5e634bf398ee33dabaa2a3f9e983240c284ea3ff823bc3e55195e3e6ebf58bfcac8f8be398e633eabaa2a3fa7610e404250d03f5a03473f85cb873cc4c57bbfee8b38beabaaaa3eabaa2a3ffc78d83f76e3d53f164d9b3fe83b2ebe5b127abf88d5043e398ee33eabaa2a3f1a4eac3f7988f33fd212c93fda3486be4d956abf28f89a3ee4380e3fabaa2a3f6cef613f67e60940b2cbfd3f76cb49be729375bfa5344f3eabaa2a3fabaa2a3f90c57f3e7a0e134083be1c4051ab19bec9027bbf06d7013e721c473fabaa2a3f50227fbe5a8b1a40760a3540caf511bef9197cbf56dbcb3d398e633fabaa2a3fc49229bf2a431f40cc2b4840fa5bd9bd85827ebfa6f0973c0000803fabaa2a3fda87084186f70e40e303574002fff13eea6f04bfc9a236bf00000000721c473f11b203415033dd3f88ce614040eedd3eab4b21bf99f124bf398ee33d721c473f0705fa40e694a73f65e3714010b47d3ee5cf5dbf86ecddbe398e633e721c473f3455e540a6e38c3ff661854021f4873c13f87cbf862f1cbeabaaaa3e721c473f1017d2406384963f201a924011ad67be77d875bf02eb263e398ee33e721c473fd210c640586bbb3fae9b9b40f85caebe0fec61bf2f11a63ee4380e3f721c473f3a8eb5404212e23fbf5ea740910573bebedd73bfb8e5423eabaa2a3f721c473fed8b9e40a472f63f1fd3b540148514bec29e7cbf859b933d721c473f721c473fe6d48c403a09ff3f9a0ac140f63fb6bd64f97ebf1ecf11bc398e633f721c473f765e7c40f4d4ff3f13fdc9404ccc04bd7adc7ebf352cb5bd0000803f721c473fc5664b4103d0df3fb671e340c9d10f3f3e9c0dbfad791dbf00000000398e633f581646411f839f3f1c51e8407044033faa122bbf51fb09bf398ee33d398e633fb9cb3e419b6b563fc6a2ef40382a943e4ba163bff076b5be398e633e398e633fbf8f3341c75c203ff09afb404a7baf3c2d237ebfc6aaf2bdabaaaa3e398e633fd13029418a37393fdfbc03419c398fbeb05d72bf2d49233e398ee33e398e633fd3d622410d86863f64d207417a80d5be419a5cbfaffb933ee4380e3f398e633f5e011a410396b13f81360d4110b28cbe630e73bfd97a1b3eabaa2a3f398e633f368c0d414063c73f4347144121230fbe5a617dbfa6f4ea3c721c473f398e633f0b1604416690cb3fa1901941941322bd80417fbf4f5885bd398e633f398e633fba8af8405364c63f3cd31d416ce7e13cc3007ebf09fcf8bd0000803f398e633fcf1e7a415435b03f00b131415ddc213ff32a14bf9ad803bf000000000000803f9ea074419823603fb70734411dcb073f088237bfb0b2e7be398ee33d0000803f221c6d410809f13e158e37412fee863e6d976cbf178c8dbe398e633e0000803f118b6141c46a843ebf733d41934f03bd07447fbf91698cbdabaaaa3e0000803f8ae45641ea4dba3e993a4341f734bebe08dd68bfa1683e3e398ee33e0000803f236a504139b9343f37104741ab50e1bed8575dbfe43d783ee4380e3f0000803f665d4741db11873f88454c41972082be213876bf2e6ed03dabaa2a3f0000803f2f8d3a413d679d3fd54653419bc0e9bd8c537ebf49e115bb721c473f0000803f53dd3041f2ee9f3f7671584168f3cc3a85fc7ebf2b09b6bd398e633f0000803faedd2841cd88983faf9f5c41ce0d493dd5ab7dbf0e5000be0000803f0000803f
+  m_CompressedMesh:
+    m_Vertices:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UV:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Normals:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Tangents:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Weights:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_NormalSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_TangentSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_FloatColors:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_BoneIndices:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Triangles:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UVInfo: 0
+  m_LocalAABB:
+    m_Center: {x: -7.4171033, y: 2.3301513, z: 0.20002556}
+    m_Extent: {x: 23.049625, y: 2.0715244, z: 13.58896}
+  m_MeshUsageFlags: 0
+  m_CookingOptions: 30
+  m_BakedConvexCollisionMesh: 
+  m_BakedTriangleCollisionMesh: 
+  m_MeshMetrics[0]: 1
+  m_MeshMetrics[1]: 1
+  m_MeshOptimizationFlags: 1
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
 --- !u!43 &948237760
 Mesh:
   m_ObjectHideFlags: 0
@@ -7357,3 +8132,4 @@ SceneRoots:
   - {fileID: 1597126329}
   - {fileID: 878213336}
   - {fileID: 399263769}
+  - {fileID: 99702316}

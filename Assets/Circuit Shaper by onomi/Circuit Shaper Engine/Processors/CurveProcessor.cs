@@ -75,6 +75,7 @@ namespace OnomiCircuitShaper.Engine.Processors
         {
             if (curve == null || curve.CurvePoints.Count == 0)
             {
+                UnityEngine.Debug.LogWarning("[CurveProcessor] LerpAlongCurve: curve is null or has no points");
                 return Vector3.Zero;
             }
             if (curve.CurvePoints.Count == 1)
@@ -108,7 +109,8 @@ namespace OnomiCircuitShaper.Engine.Processors
                     }
 
                     float t = (value01 - p1Norm) / segmentRange;
-                    return CircuitMathematics.BezierEvaluateCubic(p1.PointPosition, p1.ForwardControlPointPosition, p2.BackwardControlPointPosition, p2.PointPosition, t);
+                    var result = CircuitMathematics.BezierEvaluateCubic(p1.PointPosition, p1.ForwardControlPointPosition, p2.BackwardControlPointPosition, p2.PointPosition, t);
+                    return result;
                 }
             }
 
@@ -127,30 +129,63 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// <returns>The interpolated point in world space.</returns>
         public static Vector3 LerpBetweenTwoCrossSections(CircuitPointData p1, CircuitPointData p2, float x, float y)
         {
-            // 1. Find the point along each cross-section curve at normalized distance 'x'.
+            // 1. Evaluate the main circuit curve at position 'y' to get the base position
+            Vector3 curvePosition = CircuitMathematics.BezierEvaluateCubic(
+                p1.PointPosition, 
+                p1.ForwardControlPointPosition, 
+                p2.BackwardControlPointPosition, 
+                p2.PointPosition, 
+                y
+            );
+            
+            // 2. Get the tangent (forward direction) at this point on the curve
+            Vector3 curveTangent = CircuitMathematics.BezierEvaluateCubicDerivative(
+                p1.PointPosition, 
+                p1.ForwardControlPointPosition, 
+                p2.BackwardControlPointPosition, 
+                p2.PointPosition, 
+                y
+            );
+            
+            if (curveTangent.LengthSquared() < 1e-6f)
+            {
+                curveTangent = Vector3.Normalize(p2.PointPosition - p1.PointPosition);
+            }
+            else
+            {
+                curveTangent = Vector3.Normalize(curveTangent);
+            }
+            
+            // 3. Interpolate the Up direction between the two points and project onto the normal plane
+            Vector3 p1Up = Vector3.Normalize(p1.UpDirection);
+            Vector3 p2Up = Vector3.Normalize(p2.UpDirection);
+            Vector3 interpolatedUp = Vector3.Lerp(p1Up, p2Up, y);
+            
+            // Project onto the plane perpendicular to the curve tangent
+            Vector3 curveUp = interpolatedUp - Vector3.Dot(interpolatedUp, curveTangent) * curveTangent;
+            if (curveUp.LengthSquared() < 1e-6f)
+            {
+                // Fallback if up is parallel to tangent
+                curveUp = Vector3.UnitY;
+                curveUp = curveUp - Vector3.Dot(curveUp, curveTangent) * curveTangent;
+            }
+            curveUp = Vector3.Normalize(curveUp);
+            
+            // 4. Calculate the right direction
+            Vector3 curveRight = Vector3.Cross(curveTangent, curveUp);
+            curveRight = Vector3.Normalize(curveRight);
+            
+            // 5. Get the local cross-section positions at 'x' for both points
             Vector3 localCrossPoint1 = LerpAlongCurve(p1.CrossSectionCurve, x);
             Vector3 localCrossPoint2 = LerpAlongCurve(p2.CrossSectionCurve, x);
-
-            // 2. Calculate the world-space offset vectors for the start and end points.
-            // The cross-section points are in a local 2D space (across/up).
-            Vector3 p1Up = Vector3.Normalize(p1.UpDirection);
-            Vector3 p1Forward = Vector3.Normalize(p1.ForwardControlPointPosition - p1.PointPosition);
-            Vector3 p1Right = Vector3.Cross(p1Forward, p1Up);
-            Vector3 offset1 = p1Right * localCrossPoint1.X + p1Up * localCrossPoint1.Y;
-
-            Vector3 p2Up = Vector3.Normalize(p2.UpDirection);
-            Vector3 p2Forward = Vector3.Normalize(p2.PointPosition - p2.BackwardControlPointPosition);
-            Vector3 p2Right = Vector3.Cross(p2Forward, p2Up);
-            Vector3 offset2 = p2Right * localCrossPoint2.X + p2Up * localCrossPoint2.Y;
-
-            // 3. Create a new, temporary Bézier curve by shifting the original segment by these offsets.
-            Vector3 newP0 = (Vector3)p1.PointPosition + offset1;
-            Vector3 newP1 = (Vector3)p1.ForwardControlPointPosition + offset1;
-            Vector3 newP2 = (Vector3)p2.BackwardControlPointPosition + offset2;
-            Vector3 newP3 = (Vector3)p2.PointPosition + offset2;
-
-            // 4. Evaluate this new curve at 'y' to get the final point on the surface.
-            return CircuitMathematics.BezierEvaluateCubic(newP0, newP1, newP2, newP3, y);
+            
+            // 6. Interpolate the local cross-section position
+            Vector3 interpolatedLocalPos = Vector3.Lerp(localCrossPoint1, localCrossPoint2, y);
+            
+            // 7. Transform from local 2D space to world space using the curve's coordinate frame
+            Vector3 offset = curveRight * interpolatedLocalPos.X + curveUp * interpolatedLocalPos.Y;
+            
+            return curvePosition + offset;
         }
     }
 }

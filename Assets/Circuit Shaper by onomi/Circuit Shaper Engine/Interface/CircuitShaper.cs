@@ -169,7 +169,76 @@ namespace OnomiCircuitShaper.Engine.Interface
 
         public void CreateNewRoadFromPoints(CircuitPoint[] pointData)
         {
-            // To be implemented.
+            UnityEngine.Debug.Log($"[CircuitShaper] CreateNewRoadFromPoints called with {pointData?.Length ?? 0} points");
+            
+            if (pointData == null || pointData.Length < 2)
+            {
+                UnityEngine.Debug.LogError("[CircuitShaper] ERROR: Need at least 2 points to create a road");
+                return;
+            }
+
+            // Validate that all points have cross-sections with at least 2 points
+            for (int i = 0; i < pointData.Length; i++)
+            {
+                var point = pointData[i];
+                if (point == null)
+                {
+                    UnityEngine.Debug.LogError($"[CircuitShaper] ERROR: Point {i} is null");
+                    return;
+                }
+                
+                if (point.CrossSection == null)
+                {
+                    UnityEngine.Debug.LogError($"[CircuitShaper] ERROR: Point {i} has no cross-section");
+                    UnityEngine.Debug.LogError($"Cannot create road: Point {i} has no cross-section curve. Please apply a cross-section preset to all selected points first.");
+                    return;
+                }
+                
+                if (point.CrossSection.Points == null || point.CrossSection.Points.Count < 2)
+                {
+                    UnityEngine.Debug.LogError($"[CircuitShaper] ERROR: Point {i} cross-section has {point.CrossSection.Points?.Count ?? 0} points");
+                    UnityEngine.Debug.LogError($"Cannot create road: Point {i} cross-section needs at least 2 points. Current count: {point.CrossSection.Points?.Count ?? 0}");
+                    return;
+                }
+            }
+            
+            UnityEngine.Debug.Log("[CircuitShaper] All points validated successfully");
+
+            // Create the road data object
+            var roadPointData = new List<CircuitPointData>();
+            foreach (var point in pointData)
+            {
+                roadPointData.Add(point.Data);
+            }
+
+            var roadData = new RoadData
+            {
+                AssociatedPoints = roadPointData
+            };
+            
+            UnityEngine.Debug.Log("[CircuitShaper] RoadData created");
+
+            // Create the live edit realm road
+            var road = new Road(roadData, _settings, _liveCircuit);
+            _liveCircuit.Roads.Add(road);
+            
+            UnityEngine.Debug.Log("[CircuitShaper] Road added to circuit");
+
+            // Populate the associated points and subscribe to their events
+            road.BuildRoadFromPoints(new List<CircuitPoint>(pointData));
+            
+            UnityEngine.Debug.Log("[CircuitShaper] Road.BuildRoadFromPoints called");
+
+            // Generate the mesh and fire the event
+            var meshData = RoadProcessor.BuildRoadMesh(road);
+            
+            UnityEngine.Debug.Log($"[CircuitShaper] RoadProcessor returned mesh with {meshData.Vertices?.Length ?? 0} vertices");
+            
+            RoadBuilt?.Invoke(roadData, meshData);
+            
+            UnityEngine.Debug.Log("[CircuitShaper] RoadBuilt event fired");
+            
+            road.ClearDirty();
         }
 
         public void CreateRoadFromSelectedPoints()
@@ -180,7 +249,12 @@ namespace OnomiCircuitShaper.Engine.Interface
 
         public void RemoveRoad(Road road)
         {
-            // To be implemented.
+            if (road == null) return;
+
+            _liveCircuit.Roads.Remove(road);
+            
+            // Fire event with empty mesh data to signal deletion
+            RoadBuilt?.Invoke(road.Data, new GenericMeshData());
         }
 
         // Selection manipulation implementations

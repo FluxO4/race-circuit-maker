@@ -4,6 +4,7 @@ namespace OnomiCircuitShaper.Engine.Processors
 {
     /// <summary>
     /// A static class containing logic for processing and modifying CircuitPoint objects.
+    /// NOTE: THESE ENDED UP NOT BEING USED, SO NO NEED TO IMPLEMENT THEM YET.
     /// </summary>
     public static class CircuitPointProcessor
     {

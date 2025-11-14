@@ -29,6 +29,20 @@ namespace OnomiCircuitShaper.Engine.Processors
             return Vector3.Lerp(p0, p1, t);
         }
 
+
+        // In CircuitMathematics.cs
+        public static Vector3 BezierEvaluateCubicDerivative(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+        {
+            // Derivative of cubic Bezier: 3(1-t)²(P1-P0) + 6(1-t)t(P2-P1) + 3t²(P3-P2)
+            float oneMinusT = 1f - t;
+            float oneMinusT2 = oneMinusT * oneMinusT;
+            float t2 = t * t;
+            
+            return 3f * oneMinusT2 * (p1 - p0) + 
+                6f * oneMinusT * t * (p2 - p1) + 
+                3f * t2 * (p3 - p2);
+        }
+
         /// <summary>
         /// Estimates the total arc-length of a cubic Bézier curve by subdividing it into straight line segments.
         /// </summary>

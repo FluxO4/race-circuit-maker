@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using OnomiCircuitShaper.Engine.Data;
 using System.Numerics;
 
@@ -13,12 +14,47 @@ namespace OnomiCircuitShaper.Engine.EditRealm
     {
         public CircuitCurve CircuitCurve { get; private set; }
 
-
-
         /// <summary>
         /// The live, editable cross-section curve associated with this circuit point.
         /// </summary>
         public CrossSectionCurve CrossSection { get; private set; }
+
+        /// <summary>
+        /// List of all roads that use this point.
+        /// Populated when roads are created or when edit realm is built.
+        /// Used to mark roads as dirty when this point changes.
+        /// </summary>
+        public List<RoadData> AssociatedRoads { get; private set; } = new List<RoadData>();
+
+        /// <summary>
+        /// Adds a road association to this point. Safe to call multiple times.
+        /// </summary>
+        public void AddRoadAssociation(RoadData roadData)
+        {
+            if (roadData != null && !AssociatedRoads.Contains(roadData))
+            {
+                AssociatedRoads.Add(roadData);
+            }
+        }
+
+        /// <summary>
+        /// Removes a road association from this point.
+        /// </summary>
+        public void RemoveRoadAssociation(RoadData roadData)
+        {
+            AssociatedRoads.Remove(roadData);
+        }
+
+        /// <summary>
+        /// Marks all associated roads as dirty in the rebuild queue.
+        /// </summary>
+        private void MarkAssociatedRoadsDirty()
+        {
+            foreach (var roadData in AssociatedRoads)
+            {
+                RoadRebuildQueue.MarkDirty(roadData);
+            }
+        }
 
         /// <summary>
         /// Helper that attempts to read an IndependentControlPoints boolean from the
@@ -96,6 +132,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Data.PointPosition = newPosition;
             Data.ForwardControlPointPosition += delta;
             Data.BackwardControlPointPosition += delta;
+            MarkAssociatedRoadsDirty();
             OnPointStateChanged();
         }
 
@@ -115,6 +152,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 Data.BackwardControlPointPosition = Data.PointPosition + dir * dist;
             }
             RealignUpVector();
+            MarkAssociatedRoadsDirty();
             OnPointStateChanged();
         }
 
@@ -135,6 +173,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 Data.ForwardControlPointPosition = Data.PointPosition + dir * dist;
             }
             RealignUpVector();
+            MarkAssociatedRoadsDirty();
             OnPointStateChanged();
         }
 
@@ -166,6 +205,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Data.BackwardControlPointPosition = Data.PointPosition + (SerializableVector3)Vector3.Transform(backwardControlRelative, rotation);
 
             RealignUpVector();
+            MarkAssociatedRoadsDirty();
             OnPointStateChanged();
         }
 

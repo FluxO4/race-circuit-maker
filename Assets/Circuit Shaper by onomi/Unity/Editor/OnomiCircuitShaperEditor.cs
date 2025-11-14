@@ -6,6 +6,7 @@ using OnomiCircuitShaper.Engine.EditRealm;
 using OnomiCircuitShaper.Engine.Presets;
 using OnomiCircuitShaper.Engine.Data;
 using OnomiCircuitShaper.Engine.Processors;
+using OnomiCircuitShaper.Engine;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace OnomiCircuitShaper.Unity.Editor
         private bool _isEditingCrossSection = false;
 
         // Road management
-        //private Dictionary<RoadData, SceneRoad> _sceneRoads = new Dictionary<RoadData, SceneRoad>();
+        private Road _selectedRoad = null;
         private float _lastRoadUpdateTime = 0f;
         private const float MinRoadUpdateInterval = 0.2f; // 5 updates per second max
 
@@ -45,12 +46,18 @@ namespace OnomiCircuitShaper.Unity.Editor
             // Subscribe to road events
             _circuitShaper.RoadBuilt += OnRoadBuilt;
 
+            // Rebuild all existing roads from data
+            RebuildAllRoadsFromData();
+
             _creatingNewPointMode = false;
             _addingToSelectedCurveMode = false;
         }
         
         private void OnDisable()
         {
+            // Clear the rebuild queue when editor is disabled
+            RoadRebuildQueue.Clear();
+            
             // Unsubscribe from events
             if (_circuitShaper != null)
             {
@@ -58,6 +65,8 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
 
             _circuitShaper?.QuitEdit();
+            
+            // Note: We DON'T destroy SceneRoads - they persist in the scene!
         }
 
         /// <summary>
@@ -83,29 +92,140 @@ namespace OnomiCircuitShaper.Unity.Editor
         }
 
         /// <summary>
-        /// Checks all roads for dirty state and rebuilds them if necessary.
+        /// Processes the road rebuild queue. Rebuilds roads that have been marked dirty.
         /// Throttled to prevent excessive updates.
         /// </summary>
-        private void CheckAndRebuildDirtyRoads()
+        private void ProcessDirtyRoads()
         {
             if (_circuitShaper == null || _circuitShaper.GetLiveCircuit == null) return;
 
             float currentTime = (float)EditorApplication.timeSinceStartup;
             if (currentTime - _lastRoadUpdateTime < MinRoadUpdateInterval) return;
 
-            var circuit = _circuitShaper.GetLiveCircuit;
-            if (circuit.Roads == null) return;
+            // Get all dirty roads from the queue
+            var dirtyRoads = RoadRebuildQueue.GetAndClearDirtyRoads();
+            if (dirtyRoads.Count == 0) return;
 
+            UnityEngine.Debug.Log($"[Editor] Processing {dirtyRoads.Count} dirty roads from queue");
+
+            foreach (var roadData in dirtyRoads)
+            {
+                // Validate road still exists in persistent data
+                if (!_target.Data.circuitData.CircuitRoads.Contains(roadData))
+                {
+                    // Road was deleted, clean up SceneRoad
+                    UnityEngine.Debug.Log("[Editor] Road deleted from data, cleaning up SceneRoad");
+                    if (_target.SceneRoads.TryGetValue(roadData, out SceneRoad sceneRoad))
+                    {
+                        if (sceneRoad != null)
+                        {
+                            DestroyImmediate(sceneRoad.gameObject);
+                        }
+                        _target.SceneRoads.Remove(roadData);
+                    }
+                    continue;
+                }
+
+                // Validate all points exist and have valid cross-sections
+                bool valid = true;
+                foreach (var pointData in roadData.AssociatedPoints)
+                {
+                    if (pointData.CrossSectionCurve == null ||
+                        pointData.CrossSectionCurve.CurvePoints == null ||
+                        pointData.CrossSectionCurve.CurvePoints.Count < 2)
+                    {
+                        valid = false;
+                        UnityEngine.Debug.LogWarning($"[Editor] Skipping road rebuild - point missing valid cross-section");
+                        break;
+                    }
+                }
+
+                if (!valid) continue;
+
+                // Find the live Road object
+                var liveRoad = _circuitShaper.GetLiveCircuit.Roads
+                    .FirstOrDefault(r => r.Data == roadData);
+
+                if (liveRoad == null)
+                {
+                    UnityEngine.Debug.LogWarning($"[Editor] Could not find live Road object for RoadData");
+                    continue;
+                }
+
+                // Generate mesh
+                var meshData = RoadProcessor.BuildRoadMesh(liveRoad);
+
+                // Update SceneRoad
+                UpdateRoadMesh(roadData, meshData);
+
+                _lastRoadUpdateTime = currentTime;
+            }
+        }
+
+        /// <summary>
+        /// Rebuilds all roads from the persisted CircuitData. Called on editor enable.
+        /// Reconnects existing SceneRoads and recreates any that were accidentally deleted.
+        /// </summary>
+        private void RebuildAllRoadsFromData()
+        {
+            if (_circuitShaper == null || _circuitShaper.GetLiveCircuit == null) return;
+            
+            var circuit = _circuitShaper.GetLiveCircuit;
+            
+            UnityEngine.Debug.Log($"[Editor] Rebuilding {circuit.Roads.Count} roads from data");
+            
+            // First, clean up dictionary entries pointing to destroyed GameObjects
+            var destroyedKeys = new List<RoadData>();
+            foreach (var kvp in _target.SceneRoads)
+            {
+                if (kvp.Value == null)
+                {
+                    destroyedKeys.Add(kvp.Key);
+                }
+            }
+            foreach (var key in destroyedKeys)
+            {
+                _target.SceneRoads.Remove(key);
+            }
+            
+            // Now rebuild/reconnect all roads
             foreach (var road in circuit.Roads)
             {
-                if (road.IsDirty)
+                // Check if SceneRoad exists and is valid
+                bool needsRebuild = false;
+                
+                if (_target.SceneRoads.TryGetValue(road.Data, out SceneRoad existingRoad))
                 {
-                    // Rebuild this road by generating mesh data and calling the event handler directly
+                    if (existingRoad == null)
+                    {
+                        // Was destroyed, need to recreate
+                        _target.SceneRoads.Remove(road.Data);
+                        needsRebuild = true;
+                        UnityEngine.Debug.Log("[Editor] SceneRoad was destroyed, recreating");
+                    }
+                    else
+                    {
+                        // Exists and valid, just update mesh
+                        UnityEngine.Debug.Log("[Editor] Reconnecting existing SceneRoad");
+                        needsRebuild = true;
+                    }
+                }
+                else
+                {
+                    // Doesn't exist in dictionary, create it
+                    needsRebuild = true;
+                    UnityEngine.Debug.Log("[Editor] Creating new SceneRoad");
+                }
+                
+                if (needsRebuild)
+                {
+                    // Generate mesh for this road
                     var meshData = RoadProcessor.BuildRoadMesh(road);
-                    OnRoadBuilt(road.Data, meshData);
+                    
+                    // Create or update the SceneRoad
+                    UpdateRoadMesh(road.Data, meshData);
+                    
                     road.ClearDirty();
-                    _lastRoadUpdateTime = currentTime;
-                    break; // Only rebuild one road per frame to avoid lag
                 }
             }
         }
@@ -135,7 +255,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             GenericMeshData mesh = meshData;
 
             // Get or create the SceneRoad
-            if (!_target.SceneRoads.TryGetValue(roadData, out SceneRoad existingRoad))
+            if (!_target.SceneRoads.TryGetValue(roadData, out SceneRoad existingRoad) || existingRoad == null)
             {
                 UnityEngine.Debug.Log("[Editor] Creating new SceneRoad GameObject");
                 // Create new GameObject
@@ -185,11 +305,17 @@ namespace OnomiCircuitShaper.Unity.Editor
             //Draw default inspector
             DrawDefaultInspector();
 
-            // Check for dirty roads and rebuild them
-            CheckAndRebuildDirtyRoads();
+            // Process the road rebuild queue
+            ProcessDirtyRoads();
 
             EditorGUILayout.Space();
 
+            // Show selected road inspector if a road is selected
+            if (_selectedRoad != null)
+            {
+                DrawSelectedRoadInspector();
+            }
+            
             // Context-sensitive panel based on selection
             if (_circuitShaper != null)
             {
@@ -197,7 +323,10 @@ namespace OnomiCircuitShaper.Unity.Editor
                 {
                     case 0:
                         // No points selected, maybe show general info or instructions
-                        EditorGUILayout.HelpBox("Select a point to edit its properties, or enable a creation mode to add new points.", MessageType.Info);
+                        if (_selectedRoad == null)
+                        {
+                            EditorGUILayout.HelpBox("Select a point to edit its properties, or enable a creation mode to add new points.", MessageType.Info);
+                        }
                         break;
                     case 1:
                         DrawSinglePointInspector();
@@ -220,6 +349,99 @@ namespace OnomiCircuitShaper.Unity.Editor
             {
                 EditorUtility.SetDirty(_target);
             }
+        }
+
+        /// <summary>
+        /// Draws the inspector UI for the selected road, allowing editing of UV settings,
+        /// material assignment, mesh resolution, and deletion.
+        /// </summary>
+        private void DrawSelectedRoadInspector()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Selected Road", EditorStyles.boldLabel);
+            
+            if (_selectedRoad == null || _selectedRoad.Data == null)
+            {
+                _selectedRoad = null;
+                return;
+            }
+
+            // Get the SceneRoad for material editing
+            SceneRoad sceneRoad = null;
+            _target.SceneRoads.TryGetValue(_selectedRoad.Data, out sceneRoad);
+
+            EditorGUI.BeginChangeCheck();
+
+            // UV Settings
+            EditorGUILayout.LabelField("UV Settings", EditorStyles.boldLabel);
+            var uvTile = (System.Numerics.Vector2)_selectedRoad.Data.UVTile;
+            var uvOffset = (System.Numerics.Vector2)_selectedRoad.Data.UVOffset;
+            
+            UnityEngine.Vector2 tileUV = new UnityEngine.Vector2(uvTile.X, uvTile.Y);
+            UnityEngine.Vector2 offsetUV = new UnityEngine.Vector2(uvOffset.X, uvOffset.Y);
+            
+            tileUV = EditorGUILayout.Vector2Field("Tile", tileUV);
+            offsetUV = EditorGUILayout.Vector2Field("Offset", offsetUV);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedRoad.Data.UVTile = (SerializableVector2)(new System.Numerics.Vector2(tileUV.x, tileUV.y));
+                _selectedRoad.Data.UVOffset = (SerializableVector2)(new System.Numerics.Vector2(offsetUV.x, offsetUV.y));
+                _selectedRoad.MarkDirty();
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            // Mesh Resolution
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Mesh Resolution", EditorStyles.boldLabel);
+            int widthWiseVertexCount = EditorGUILayout.IntSlider("Width Vertices", _selectedRoad.Data.WidthWiseVertexCount, 2, 50);
+            float lengthMult = EditorGUILayout.Slider("Length Density", _selectedRoad.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount, 0.1f, 10f);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedRoad.Data.WidthWiseVertexCount = widthWiseVertexCount;
+                _selectedRoad.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount = lengthMult;
+                _selectedRoad.MarkDirty();
+            }
+
+            // Material
+            if (sceneRoad != null)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Material", EditorStyles.boldLabel);
+                
+                var meshRenderer = sceneRoad.GetComponent<MeshRenderer>();
+                if (meshRenderer != null)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    Material newMaterial = (Material)EditorGUILayout.ObjectField("Material", 
+                        meshRenderer.sharedMaterial, typeof(Material), false);
+                    
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        meshRenderer.sharedMaterial = newMaterial;
+                        EditorUtility.SetDirty(meshRenderer);
+                    }
+                }
+            }
+
+            // Deletion
+            EditorGUILayout.Space();
+            GUI.backgroundColor = Color.red;
+            if (GUILayout.Button("Delete Road", GUILayout.Height(30)))
+            {
+                if (EditorUtility.DisplayDialog("Delete Road", 
+                    "Are you sure you want to delete this road?", 
+                    "Delete", "Cancel"))
+                {
+                    _circuitShaper.RemoveRoad(_selectedRoad);
+                    _selectedRoad = null;
+                }
+            }
+            GUI.backgroundColor = Color.white;
+
+            EditorGUILayout.Space();
         }
 
         private void DrawEditingModesPanel()
@@ -388,11 +610,148 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
         }
 
+        /// <summary>
+        /// Draws road edge lines in the scene view for visualization and selection.
+        /// Roads can be clicked to select them, showing thicker/highlighted edges.
+        /// </summary>
+        private void DrawRoadHandles()
+        {
+            if (_circuitShaper == null || _circuitShaper.GetLiveCircuit == null) return;
+            
+            var circuit = _circuitShaper.GetLiveCircuit;
+            if (circuit.Roads == null || circuit.Roads.Count == 0) return;
+
+            Event e = Event.current;
+            Ray mouseRay = HandleUtility.GUIPointToWorldRay(e.mousePosition);
+            Road hoveredRoad = null;
+            float closestDistance = float.MaxValue;
+
+            foreach (var road in circuit.Roads)
+            {
+                if (road.AssociatedPoints == null || road.AssociatedPoints.Count < 2) continue;
+
+                bool isSelected = (_selectedRoad == road);
+                bool isHovered = (hoveredRoad == road);
+
+                // Get edge vertices from the SceneRoad mesh
+                if (_target.SceneRoads.TryGetValue(road.Data, out SceneRoad sceneRoad) && sceneRoad != null)
+                {
+                    var mesh = sceneRoad.GetComponent<MeshFilter>()?.sharedMesh;
+                    if (mesh != null && mesh.vertices.Length > 0)
+                    {
+                        // Extract edge lines (left and right edges of the road)
+                        // The mesh is structured as a grid, so edges are at indices 0 and widthWiseVertexCount-1
+                        int widthWiseVertexCount = road.Data.WidthWiseVertexCount;
+                        int lengthWiseSegments = (mesh.vertexCount / widthWiseVertexCount) - 1;
+
+                        if (lengthWiseSegments > 0 && widthWiseVertexCount > 1)
+                        {
+                            // Left edge
+                            UnityEngine.Vector3[] leftEdge = new UnityEngine.Vector3[lengthWiseSegments + 1];
+                            for (int i = 0; i <= lengthWiseSegments; i++)
+                            {
+                                int vertexIndex = i * widthWiseVertexCount;
+                                leftEdge[i] = sceneRoad.transform.TransformPoint(mesh.vertices[vertexIndex]);
+                            }
+
+                            // Right edge
+                            UnityEngine.Vector3[] rightEdge = new UnityEngine.Vector3[lengthWiseSegments + 1];
+                            for (int i = 0; i <= lengthWiseSegments; i++)
+                            {
+                                int vertexIndex = i * widthWiseVertexCount + (widthWiseVertexCount - 1);
+                                rightEdge[i] = sceneRoad.transform.TransformPoint(mesh.vertices[vertexIndex]);
+                            }
+
+                            // Check for mouse hover (check all edge segments)
+                            if (!isSelected)
+                            {
+                                float minDist = float.MaxValue;
+                                
+                                // Check left edge segments
+                                for (int i = 0; i < leftEdge.Length - 1; i++)
+                                {
+                                    float dist = HandleUtility.DistancePointLine(e.mousePosition,
+                                        HandleUtility.WorldToGUIPoint(leftEdge[i]),
+                                        HandleUtility.WorldToGUIPoint(leftEdge[i + 1]));
+                                    minDist = Mathf.Min(minDist, dist);
+                                }
+                                
+                                // Check right edge segments
+                                for (int i = 0; i < rightEdge.Length - 1; i++)
+                                {
+                                    float dist = HandleUtility.DistancePointLine(e.mousePosition,
+                                        HandleUtility.WorldToGUIPoint(rightEdge[i]),
+                                        HandleUtility.WorldToGUIPoint(rightEdge[i + 1]));
+                                    minDist = Mathf.Min(minDist, dist);
+                                }
+                                
+                                if (minDist < 15f && minDist < closestDistance)
+                                {
+                                    closestDistance = minDist;
+                                    hoveredRoad = road;
+                                }
+                            }
+
+                            // Determine visual style
+                            Color edgeColor = Color.cyan;
+                            float lineWidth = 2f;
+
+                            if (isSelected)
+                            {
+                                edgeColor = Color.yellow;
+                                lineWidth = 6f;
+                            }
+                            else if (isHovered)
+                            {
+                                edgeColor = Color.white;
+                                lineWidth = 4f;
+                            }
+
+                            // Draw the edges
+                            Handles.color = edgeColor;
+                            for (int i = 0; i < leftEdge.Length - 1; i++)
+                            {
+                                Handles.DrawLine(leftEdge[i], leftEdge[i + 1], lineWidth);
+                            }
+                            for (int i = 0; i < rightEdge.Length - 1; i++)
+                            {
+                                Handles.DrawLine(rightEdge[i], rightEdge[i + 1], lineWidth);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Handle click selection
+            if (e.type == EventType.MouseDown && e.button == 0 && !e.alt && hoveredRoad != null)
+            {
+                _selectedRoad = hoveredRoad;
+                _circuitShaper.ClearSelection(); // Deselect any points
+                _creatingNewPointMode = false;
+                _addingToSelectedCurveMode = false;
+                _isEditingCrossSection = false;
+                e.Use();
+                Repaint(); // Update inspector
+            }
+            
+            // Deselect road if clicking elsewhere
+            if (e.type == EventType.MouseDown && e.button == 0 && !e.alt && hoveredRoad == null && _selectedRoad != null)
+            {
+                // Check if we're not clicking on a point handle
+                if (_circuitShaper.SelectedPoints.Count == 0 && !_creatingNewPointMode && !_addingToSelectedCurveMode)
+                {
+                    _selectedRoad = null;
+                    Repaint();
+                }
+            }
+        }
+
         private void OnSceneGUI()
         {
             if (_target == null || _circuitShaper == null) return;
 
-            
+            // Process the road rebuild queue for immediate visual feedback
+            ProcessDirtyRoads();
 
             if (_isEditingCrossSection)
             {
@@ -402,6 +761,9 @@ namespace OnomiCircuitShaper.Unity.Editor
             {
                 // Draw all regular handles when not in cross-section edit mode
                 DrawAllHandles(_target);
+                
+                // Draw road edge lines for selection
+                DrawRoadHandles();
             }
 
             HandleUtility.Repaint();

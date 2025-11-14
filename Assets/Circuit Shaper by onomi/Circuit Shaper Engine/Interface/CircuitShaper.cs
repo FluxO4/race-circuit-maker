@@ -218,6 +218,9 @@ namespace OnomiCircuitShaper.Engine.Interface
             
             UnityEngine.Debug.Log("[CircuitShaper] RoadData created");
 
+            // Add to persistent data
+            _currentData.CircuitRoads.Add(roadData);
+
             // Create the live edit realm road
             var road = new Road(roadData, _settings, _liveCircuit);
             _liveCircuit.Roads.Add(road);
@@ -251,6 +254,9 @@ namespace OnomiCircuitShaper.Engine.Interface
         {
             if (road == null) return;
 
+            // Remove from persistent data
+            _currentData.CircuitRoads.Remove(road.Data);
+            
             _liveCircuit.Roads.Remove(road);
             
             // Fire event with empty mesh data to signal deletion
@@ -269,6 +275,8 @@ namespace OnomiCircuitShaper.Engine.Interface
 
             //Also set the selected curve if this point belongs to one.
             _selectedCurve = point.CircuitCurve;
+            
+            // Note: Road selection is managed in Unity editor layer
         }
 
         public void DeselectPoint(CircuitPoint point)

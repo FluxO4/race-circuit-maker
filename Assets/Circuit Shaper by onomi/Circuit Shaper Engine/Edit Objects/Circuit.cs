@@ -58,6 +58,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 Road road = new Road(roadData, Settings, this);
                 Roads.Add(road);
             }
+            
+            // Reconnect roads to their live CircuitPoint objects and subscribe to events
+            ReconnectRoadsToPoints();
         }
 
         /// <summary>
@@ -129,6 +132,79 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         public void BuildAll()
         {
             // To be implemented.
+        }
+
+        /// <summary>
+        /// Reconnects roads to their live CircuitPoint objects and establishes road associations.
+        /// This must be called after roads are instantiated from data to establish live references.
+        /// Uses the queue-based system instead of event subscriptions.
+        /// </summary>
+        public void ReconnectRoadsToPoints()
+        {
+            if (Roads == null) return;
+            
+            // First, clear all existing road associations from all points
+            foreach (var curve in Curves)
+            {
+                foreach (var point in curve.Points)
+                {
+                    point.AssociatedRoads.Clear();
+                }
+            }
+            
+            // Then, rebuild associations for each road
+            foreach (var road in Roads)
+            {
+                if (road.Data?.AssociatedPoints == null || road.Data.AssociatedPoints.Count < 2)
+                {
+                    continue;
+                }
+                
+                // Find all live points for this road
+                var livePoints = new List<CircuitPoint>();
+                bool allPointsFound = true;
+                
+                foreach (var pointData in road.Data.AssociatedPoints)
+                {
+                    CircuitPoint livePoint = FindPointByData(pointData);
+                    if (livePoint != null)
+                    {
+                        livePoints.Add(livePoint);
+                        // Add this road to the point's association list
+                        livePoint.AddRoadAssociation(road.Data);
+                    }
+                    else
+                    {
+                        allPointsFound = false;
+                        UnityEngine.Debug.LogWarning($"[Circuit] Could not find live point for RoadData association");
+                        break;
+                    }
+                }
+                
+                // Mark for initial rebuild if all points were found
+                if (allPointsFound && livePoints.Count >= 2)
+                {
+                    RoadRebuildQueue.MarkDirty(road.Data);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds a live CircuitPoint object that wraps the given CircuitPointData.
+        /// </summary>
+        private CircuitPoint FindPointByData(CircuitPointData pointData)
+        {
+            foreach (var curve in Curves)
+            {
+                foreach (var point in curve.Points)
+                {
+                    if (object.ReferenceEquals(point.Data, pointData))
+                    {
+                        return point;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

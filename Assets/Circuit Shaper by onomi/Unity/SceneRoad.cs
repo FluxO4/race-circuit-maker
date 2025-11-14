@@ -1,3 +1,4 @@
+using OnomiCircuitShaper.Engine.Data;
 using UnityEngine;
 
 namespace OnomiCircuitShaper.Unity
@@ -10,6 +11,11 @@ namespace OnomiCircuitShaper.Unity
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
     public class SceneRoad : MonoBehaviour
     {
+        public OnomiCircuitShaper onomiCircuitShaper;
+
+        public RoadData roadData;
+
+
         private MeshFilter _meshFilter;
         private MeshRenderer _meshRenderer;
         private MeshCollider _meshCollider;

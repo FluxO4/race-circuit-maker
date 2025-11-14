@@ -108,6 +108,20 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             }
         }
 
+        // Function for deleting curve
+        public void DeleteCurve(CircuitCurve curve)
+        {
+            if (Curves.Contains(curve))
+            {
+                Curves.Remove(curve);
+                // Also remove from data
+                if (Data != null && Data.CircuitCurves.Contains(curve.Data))
+                {
+                    Data.CircuitCurves.Remove(curve.Data);
+                }
+            }
+        }
+
 
         /// <summary>
         /// Triggers a rebuild of all roads and their associated meshes.

@@ -32,6 +32,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 if (Data.IsClosed == value) return;
                 Data.IsClosed = value;
                 // Logic to update first/last point neighbors will be here or in a processor.
+                UpdateNeighborReferences();
                 OnCurveStateChanged();
             }
         }

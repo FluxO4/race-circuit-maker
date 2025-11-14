@@ -49,11 +49,6 @@ namespace OnomiCircuitShaper.Unity.Editor
 
             EditorGUILayout.Space();
 
-            //editing controls will go here.
-            DrawEditingModesPanel();
-
-            EditorGUILayout.Space();
-
             // Context-sensitive panel based on selection
             if (_circuitShaper != null)
             {
@@ -71,6 +66,12 @@ namespace OnomiCircuitShaper.Unity.Editor
                         break;
                 }
             }
+            
+            //editing controls will go here.
+            DrawEditingModesPanel();
+
+            EditorGUILayout.Space();
+
 
             // If any GUI element has changed, mark the object as "dirty"
             // to ensure OnBeforeSerialize() is called and the JSON is updated.
@@ -94,11 +95,36 @@ namespace OnomiCircuitShaper.Unity.Editor
             if (_circuitShaper != null && _circuitShaper.SelectedCurve != null)
             {
                 addToSelectedToggle = GUILayout.Toggle(_addingToSelectedCurveMode, "Add Point To Selected Curve", GUI.skin.button);
+
+                
             }
             else
             {
                 // ensure mode is off when no curve is selected and hide the button
                 if (_addingToSelectedCurveMode) _addingToSelectedCurveMode = false;
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(5);
+
+            //Begin another horizontal for curve delete and close toggles
+            GUILayout.BeginHorizontal();
+            if (_circuitShaper != null && _circuitShaper.SelectedCurve != null)
+            {
+                // Button to delete the selected curveif (GUILayout.Button("Delete Selected Curve"))
+                if (GUILayout.Button("Delete Selected Curve"))
+                {
+                    _circuitShaper.DeleteSelectedCurve();
+                    _addingToSelectedCurveMode = false;
+                }
+
+                // Toggle the selected curve's closed state
+                bool isClosed = _circuitShaper.SelectedCurve.Data.IsClosed;
+                bool newIsClosed = GUILayout.Toggle(isClosed, "Closed", GUI.skin.button);
+                if (newIsClosed != isClosed)
+                {
+                    _circuitShaper.SetSelectedCurveIsClosed(newIsClosed);
+                }
             }
             GUILayout.EndHorizontal();
 

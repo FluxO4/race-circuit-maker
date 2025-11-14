@@ -141,7 +141,7 @@ namespace OnomiCircuitShaper.Engine.Interface
         public void SetCrossSectionPointCount(CrossSectionCurve crossSectionCurve, int newPointCount) => crossSectionCurve.ChangeCrossSectionPointCount(newPointCount);
         
         public void SetCrossSectionPointAutoSetTension(CrossSectionPoint crossSectionPoint, float newTension) => crossSectionPoint.SetAutoSetTension(newTension);
-     
+
         public void SetCrossSectionPreset(CircuitPoint circuitPoint, Vector3[] preset)
         {
             if (circuitPoint == null) return;
@@ -154,6 +154,16 @@ namespace OnomiCircuitShaper.Engine.Interface
             }
 
             circuitPoint.CrossSection.SetPreset(preset);
+        }
+
+
+        public void DeleteSelectedCurve() => _liveCircuit.DeleteCurve(_selectedCurve);
+        
+        public void SetSelectedCurveIsClosed(bool isClosed)
+        {
+            if (_selectedCurve == null) return;
+
+            _selectedCurve.IsClosed = isClosed;
         }
 
 

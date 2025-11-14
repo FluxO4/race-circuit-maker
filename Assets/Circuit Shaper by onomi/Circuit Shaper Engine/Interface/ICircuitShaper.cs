@@ -168,6 +168,13 @@ namespace OnomiCircuitShaper.Engine.Interface
         // A version of this taking camera position and direction
         CircuitPoint AddPointToSelectedCurve(Vector3 cameraPosition, Vector3 cameraDirection);
 
+        //A function to set the IsClosed property of the selected curve
+        void SetSelectedCurveIsClosed(bool isClosed);
+
+        //A function to delete the currently selected curve
+        void DeleteSelectedCurve();
+
+
 
     }
 

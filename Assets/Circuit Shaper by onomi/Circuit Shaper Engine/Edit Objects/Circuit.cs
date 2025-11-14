@@ -138,6 +138,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// Reconnects roads to their live CircuitPoint objects and establishes road associations.
         /// This must be called after roads are instantiated from data to establish live references.
         /// Uses the queue-based system instead of event subscriptions.
+        /// 
+        /// After deserialization, CircuitPointData references change, so we match by position in the
+        /// data structure (curve index + point index) rather than reference equality.
         /// </summary>
         public void ReconnectRoadsToPoints()
         {
@@ -157,10 +160,11 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             {
                 if (road.Data?.AssociatedPoints == null || road.Data.AssociatedPoints.Count < 2)
                 {
+                    UnityEngine.Debug.LogWarning($"[Circuit] Skipping road with invalid AssociatedPoints (null or < 2 points)");
                     continue;
                 }
                 
-                // Find all live points for this road
+                // Find all live points for this road by matching data positions
                 var livePoints = new List<CircuitPoint>();
                 bool allPointsFound = true;
                 
@@ -170,37 +174,54 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                     if (livePoint != null)
                     {
                         livePoints.Add(livePoint);
-                        // Add this road to the point's association list
+                        // Add this road to the point's association list (for marking dirty)
                         livePoint.AddRoadAssociation(road.Data);
                     }
                     else
                     {
                         allPointsFound = false;
-                        UnityEngine.Debug.LogWarning($"[Circuit] Could not find live point for RoadData association");
+                        UnityEngine.Debug.LogError($"[Circuit] Could not find live point for RoadData - point may have been deleted or data corrupted");
                         break;
                     }
                 }
                 
-                // Mark for initial rebuild if all points were found
+                // Rebuild road's live point list and event subscriptions
                 if (allPointsFound && livePoints.Count >= 2)
                 {
+                    // This populates Road.AssociatedPoints and sets up event subscriptions
+                    road.BuildRoadFromPoints(livePoints);
+                    // Mark for initial rebuild
                     RoadRebuildQueue.MarkDirty(road.Data);
+                    UnityEngine.Debug.Log($"[Circuit] Road reconnected with {livePoints.Count} points, marked for rebuild");
+                }
+                else
+                {
+                    UnityEngine.Debug.LogWarning($"[Circuit] Road reconnection failed - only found {livePoints.Count} of {road.Data.AssociatedPoints.Count} points");
                 }
             }
         }
 
         /// <summary>
         /// Finds a live CircuitPoint object that wraps the given CircuitPointData.
+        /// After deserialization, references change, so we match by finding the same
+        /// CircuitPointData instance in both the curve's data and the point's data.
         /// </summary>
         private CircuitPoint FindPointByData(CircuitPointData pointData)
         {
-            foreach (var curve in Curves)
+            // Find which curve contains this point data
+            for (int curveIdx = 0; curveIdx < Data.CircuitCurves.Count; curveIdx++)
             {
-                foreach (var point in curve.Points)
+                var curveData = Data.CircuitCurves[curveIdx];
+                for (int pointIdx = 0; pointIdx < curveData.CurvePoints.Count; pointIdx++)
                 {
-                    if (object.ReferenceEquals(point.Data, pointData))
+                    // Check if this is the same data object by reference
+                    if (object.ReferenceEquals(curveData.CurvePoints[pointIdx], pointData))
                     {
-                        return point;
+                        // Found it! Now get the corresponding live point
+                        if (curveIdx < Curves.Count && pointIdx < Curves[curveIdx].Points.Count)
+                        {
+                            return Curves[curveIdx].Points[pointIdx];
+                        }
                     }
                 }
             }

@@ -15,25 +15,21 @@ namespace OnomiCircuitShaper.Engine.Interface
     public interface ICircuitShaper
     {
         /// <summary>
-        /// Fired when a road mesh has been generated or updated.
-        /// Provides the raw data and the generated mesh data.
-        /// </summary>
-        event Action<RoadData, GenericMeshData> RoadBuilt;
-
-        /// <summary>
-        /// Fired when a bridge mesh has been generated or updated.
-        /// </summary>
-        event Action<BridgeData, GenericMeshData> BridgeBuilt;
-
-        /// <summary>
-        /// Fired when a railing mesh has been generated or updated.
-        /// </summary>
-        event Action<RailingData, GenericMeshData> RailingBuilt;
-
-        /// <summary>
         /// Gets the current, underlying circuit data.
         /// </summary>
         CircuitData GetData();
+
+        /// <summary>
+        /// Gets all roads that need rebuilding and clears the queue.
+        /// This is the primary mechanism for Unity to discover which roads need mesh updates.
+        /// </summary>
+        List<RoadData> GetAndClearDirtyRoads();
+
+        /// <summary>
+        /// Clears the road rebuild queue without processing.
+        /// Called when editor is disabled to prevent stale rebuild requests.
+        /// </summary>
+        void ClearRoadRebuildQueue();
 
 
         Circuit GetLiveCircuit { get; }

@@ -14,10 +14,6 @@ namespace OnomiCircuitShaper.Engine.Interface
     /// </summary>
     public class CircuitShaper : ICircuitShaper
     {
-        public event Action<RoadData, GenericMeshData> RoadBuilt;
-        public event Action<BridgeData, GenericMeshData> BridgeBuilt;
-        public event Action<RailingData, GenericMeshData> RailingBuilt;
-
         private CircuitData _currentData;
         private CircuitAndEditorSettings _settings;
         private Circuit _liveCircuit;
@@ -65,6 +61,16 @@ namespace OnomiCircuitShaper.Engine.Interface
         public void SetData(CircuitData circuitData)
         {
             _currentData = circuitData;
+        }
+
+        public List<RoadData> GetAndClearDirtyRoads()
+        {
+            return RoadRebuildQueue.GetAndClearDirtyRoads();
+        }
+
+        public void ClearRoadRebuildQueue()
+        {
+            RoadRebuildQueue.Clear();
         }
 
         public CircuitData LoadFromJson(string json)
@@ -232,16 +238,16 @@ namespace OnomiCircuitShaper.Engine.Interface
             
             UnityEngine.Debug.Log("[CircuitShaper] Road.BuildRoadFromPoints called");
 
-            // Generate the mesh and fire the event
-            var meshData = RoadProcessor.BuildRoadMesh(road);
+            // Establish bidirectional associations (point -> road)
+            foreach (var point in pointData)
+            {
+                point.AddRoadAssociation(roadData);
+            }
             
-            UnityEngine.Debug.Log($"[CircuitShaper] RoadProcessor returned mesh with {meshData.Vertices?.Length ?? 0} vertices");
+            // Mark the road dirty so it will be rebuilt via the queue
+            RoadRebuildQueue.MarkDirty(roadData);
             
-            RoadBuilt?.Invoke(roadData, meshData);
-            
-            UnityEngine.Debug.Log("[CircuitShaper] RoadBuilt event fired");
-            
-            road.ClearDirty();
+            UnityEngine.Debug.Log("[CircuitShaper] Road marked dirty in queue, associations established");
         }
 
         public void CreateRoadFromSelectedPoints()
@@ -259,8 +265,8 @@ namespace OnomiCircuitShaper.Engine.Interface
             
             _liveCircuit.Roads.Remove(road);
             
-            // Fire event with empty mesh data to signal deletion
-            RoadBuilt?.Invoke(road.Data, new GenericMeshData());
+            // Queue will detect road is not in CircuitRoads and clean up SceneRoad automatically
+            UnityEngine.Debug.Log("[CircuitShaper] Road removed from data, ProcessDirtyRoads will clean up SceneRoad");
         }
 
         // Selection manipulation implementations

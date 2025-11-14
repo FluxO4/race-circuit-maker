@@ -23,6 +23,9 @@ namespace OnomiCircuitShaper.Unity
 
         private void Awake()
         {
+            // Prevent this GameObject from being saved in the scene or destroyed during play mode transitions
+            this.gameObject.hideFlags = HideFlags.DontSaveInEditor;
+            
             _meshFilter = GetComponent<MeshFilter>();
             _meshRenderer = GetComponent<MeshRenderer>();
             _meshCollider = GetComponent<MeshCollider>();

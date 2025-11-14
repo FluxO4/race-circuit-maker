@@ -31,15 +31,22 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         }
 
         //Constructor
-        public CircuitPoint(CircuitCurve circuitCurve, CircuitPointData data, CircuitAndEditorSettings settings, CrossSectionCurve crossSection) : base(data, settings)
+        public CircuitPoint(CircuitCurve circuitCurve, CircuitPointData data, CircuitAndEditorSettings settings) : base(data, settings)
         {
             CircuitCurve = circuitCurve;
-            CrossSection = crossSection;
 
             if (CrossSection == null && data.CrossSectionCurve != null)
             {
                 CrossSection = new CrossSectionCurve(data.CrossSectionCurve, settings, this);
             }
+        }
+
+
+        public void SetCrossSectionCurve(CrossSectionCurve newCrossSection)
+        {
+            CrossSection = newCrossSection;
+            Data.CrossSectionCurve = newCrossSection?.Data;
+            OnPointStateChanged();
         }
 
         #region Properties
@@ -161,6 +168,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             RealignUpVector();
             OnPointStateChanged();
         }
+
+
+        //Set a new cross-section curve
 
 
 

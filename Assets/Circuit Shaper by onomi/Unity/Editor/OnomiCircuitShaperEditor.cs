@@ -3,7 +3,8 @@ using UnityEditor;
 using UnityEngine;
 using OnomiCircuitShaper.Unity.Utilities;
 using OnomiCircuitShaper.Engine.EditRealm;
-
+using OnomiCircuitShaper.Engine.Presets;
+using System.Linq;
 
 namespace OnomiCircuitShaper.Unity.Editor
 {
@@ -13,11 +14,13 @@ namespace OnomiCircuitShaper.Unity.Editor
     /// handles in the Scene View. It is the primary entry point for user interaction.
     /// </summary>
     [CustomEditor(typeof(OnomiCircuitShaper))]
-    public class OnomiCircuitShaperEditor : OnomiCircuitShaperEditorSceneGUI // Inherits scene GUI logic
+    public partial class OnomiCircuitShaperEditor : UnityEditor.Editor // Inherits scene GUI logic
     {
         private OnomiCircuitShaper _target;
+        private ICircuitShaper _circuitShaper;
         private bool _creatingNewPointMode = false;
         private bool _addingToSelectedCurveMode = false;
+        private bool _isEditingCrossSection = false;
 
         private void OnEnable()
         {
@@ -47,49 +50,27 @@ namespace OnomiCircuitShaper.Unity.Editor
             EditorGUILayout.Space();
 
             //editing controls will go here.
-            //section: Point creating modes
-            EditorGUILayout.LabelField("Point Creation Modes:", EditorStyles.boldLabel);
-            
-            GUILayout.BeginHorizontal();
-            // Toggle-style buttons: use Toggle with button style so they look like selectable buttons
-            bool createToggle = GUILayout.Toggle(_creatingNewPointMode, "Create Point As New Curve", GUI.skin.button);
+            DrawEditingModesPanel();
 
-            // Only show the "Add Point To Selected Curve" button if a curve is selected
-            bool addToSelectedToggle = _addingToSelectedCurveMode;
-            if (_circuitShaper != null && _circuitShaper.SelectedCurve != null)
-            {
-            addToSelectedToggle = GUILayout.Toggle(_addingToSelectedCurveMode, "Add Point To Selected Curve", GUI.skin.button);
-            }
-            else
-            {
-            // ensure mode is off when no curve is selected and hide the button
-            addToSelectedToggle = false;
-            _addingToSelectedCurveMode = false;
-            }
-            GUILayout.EndHorizontal();
+            EditorGUILayout.Space();
 
-            // Ensure mutual exclusivity (only one mode active at a time)
-            if (createToggle != _creatingNewPointMode)
+            // Context-sensitive panel based on selection
+            if (_circuitShaper != null)
             {
-            _creatingNewPointMode = createToggle;
-            if (_creatingNewPointMode)
-                _addingToSelectedCurveMode = false;
+                switch (_circuitShaper.SelectedPoints.Count)
+                {
+                    case 0:
+                        // No points selected, maybe show general info or instructions
+                        EditorGUILayout.HelpBox("Select a point to edit its properties, or enable a creation mode to add new points.", MessageType.Info);
+                        break;
+                    case 1:
+                        DrawSinglePointInspector();
+                        break;
+                    default: // More than 1 point selected
+                        DrawMultiPointInspector();
+                        break;
+                }
             }
-
-            if (addToSelectedToggle != _addingToSelectedCurveMode)
-            {
-            _addingToSelectedCurveMode = addToSelectedToggle;
-            if (_addingToSelectedCurveMode)
-                _creatingNewPointMode = false;
-            }
-
-            // If modes are toggled on but no curve is selected, disable add-to-selected mode
-            if (_addingToSelectedCurveMode && (_circuitShaper.SelectedCurve == null || _circuitShaper.SelectedPoints == null || _circuitShaper.SelectedPoints.Count == 0))
-            {
-                // keep the button visible but turn it off automatically
-                _addingToSelectedCurveMode = false;
-            }
-            
 
             // If any GUI element has changed, mark the object as "dirty"
             // to ensure OnBeforeSerialize() is called and the JSON is updated.
@@ -99,20 +80,168 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
         }
 
+        private void DrawEditingModesPanel()
+        {
+            //section: Point creating modes
+            EditorGUILayout.LabelField("Point Creation Modes:", EditorStyles.boldLabel);
+
+            GUILayout.BeginHorizontal();
+            // Toggle-style buttons: use Toggle with button style so they look like selectable buttons
+            bool createToggle = GUILayout.Toggle(_creatingNewPointMode, "Create Point As New Curve", GUI.skin.button);
+
+            // Only show the "Add Point To Selected Curve" button if a curve is selected
+            bool addToSelectedToggle = _addingToSelectedCurveMode;
+            if (_circuitShaper != null && _circuitShaper.SelectedCurve != null)
+            {
+                addToSelectedToggle = GUILayout.Toggle(_addingToSelectedCurveMode, "Add Point To Selected Curve", GUI.skin.button);
+            }
+            else
+            {
+                // ensure mode is off when no curve is selected and hide the button
+                if (_addingToSelectedCurveMode) _addingToSelectedCurveMode = false;
+            }
+            GUILayout.EndHorizontal();
+
+            // Ensure mutual exclusivity (only one mode active at a time)
+            if (createToggle != _creatingNewPointMode)
+            {
+                _creatingNewPointMode = createToggle;
+                if (_creatingNewPointMode)
+                {
+                    _addingToSelectedCurveMode = false;
+                    _isEditingCrossSection = false;
+                }
+            }
+
+            if (addToSelectedToggle != _addingToSelectedCurveMode)
+            {
+                _addingToSelectedCurveMode = addToSelectedToggle;
+                if (_addingToSelectedCurveMode)
+                {
+                    _creatingNewPointMode = false;
+                    _isEditingCrossSection = false;
+                }
+            }
+        }
+
+        private void DrawSinglePointInspector()
+        {
+            EditorGUILayout.LabelField("Selected Point:", EditorStyles.boldLabel);
+            var point = _circuitShaper.SelectedPoints.First();
+
+            // Point info
+            EditorGUILayout.Vector3Field("Position", point.PointPosition.ToUnityVector3());
+            
+            // Navigation and Tools
+            GUILayout.BeginHorizontal();
+            GUI.enabled = point.PreviousPoint != null;
+            if (GUILayout.Button("Select Previous")) _circuitShaper.SelectPoint(point.PreviousPoint as CircuitPoint);
+            GUI.enabled = point.NextPoint != null;
+            if (GUILayout.Button("Select Next")) _circuitShaper.SelectPoint(point.NextPoint as CircuitPoint);
+            GUI.enabled = true;
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Move Tool")) Tools.current = Tool.Move;
+            if (GUILayout.Button("Rotate Tool")) Tools.current = Tool.Rotate;
+            GUILayout.EndHorizontal();
+
+            // Cross-Section Editing
+            EditorGUILayout.Space();
+            bool editCrossSectionToggle = GUILayout.Toggle(_isEditingCrossSection, "Edit Cross-Section", GUI.skin.button);
+            if (editCrossSectionToggle != _isEditingCrossSection)
+            {
+                _isEditingCrossSection = editCrossSectionToggle;
+                if (_isEditingCrossSection)
+                {
+                    _creatingNewPointMode = false;
+                    _addingToSelectedCurveMode = false;
+                }
+            }
+
+            if (_isEditingCrossSection)
+            {
+                DrawCrossSectionEditorInspector(point);
+            }
+        }
+
+        private void DrawCrossSectionEditorInspector(CircuitPoint point)
+        {
+            EditorGUILayout.LabelField("Cross-Section Editor", EditorStyles.boldLabel);
+            var cs = point.CrossSection;
+
+            // Point count editor
+            if (cs != null && cs.Points.Count > 0)
+            {
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Point Count", GUILayout.Width(80));
+                if (GUILayout.Button("-", GUILayout.Width(20))) _circuitShaper.SetCrossSectionPointCount(cs, cs.Points.Count - 1);
+                EditorGUILayout.LabelField(cs.Points.Count.ToString(), EditorStyles.centeredGreyMiniLabel, GUILayout.Width(30));
+                if (GUILayout.Button("+", GUILayout.Width(20))) _circuitShaper.SetCrossSectionPointCount(cs, cs.Points.Count + 1);
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+
+                // Tension slider for selected cross-section point
+                if (_circuitShaper.SelectedPoints.Count == 1)
+                {
+                    var firstCsPoint = cs.Points.FirstOrDefault(); 
+                    
+                    if (firstCsPoint != null)
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        float newTension = EditorGUILayout.Slider("Auto-Set Tension", firstCsPoint.Data.AutoSetTension, 0f, 1f);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            // Apply tension change to all cross-section points
+                            foreach (var csPoint in cs.Points)
+                            _circuitShaper.SetCrossSectionPointAutoSetTension(csPoint, newTension);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("This point has no cross-section. Apply a preset to create one.", MessageType.Info);
+            }
+
+            // Presets
+            EditorGUILayout.LabelField("Presets", EditorStyles.boldLabel);
+            if (GUILayout.Button("Flat")) _circuitShaper.SetCrossSectionPreset(point, CrossSectionPresets.FlatPreset);
+            if (GUILayout.Button("Triangular")) _circuitShaper.SetCrossSectionPreset(point, CrossSectionPresets.TriangularPreset);
+            if (GUILayout.Button("Trapezoidal")) _circuitShaper.SetCrossSectionPreset(point, CrossSectionPresets.TrapezoidalPreset);
+            if (GUILayout.Button("Inverted Trapezoid")) _circuitShaper.SetCrossSectionPreset(point, CrossSectionPresets.InvertedTrapezoidalPreset);
+        }
+
+        private void DrawMultiPointInspector()
+        {
+            EditorGUILayout.LabelField($"{_circuitShaper.SelectedPoints.Count} Points Selected", EditorStyles.boldLabel);
+            if (GUILayout.Button("Build Road From Selection"))
+            {
+                _circuitShaper.CreateRoadFromSelectedPoints();
+            }
+        }
+
         private void OnSceneGUI()
         {
-            // This is crucial! It tells Unity to record changes for Undo/Redo
-            // and marks the object as needing to be saved.
-            Undo.RecordObject(_target, "Modify Circuit Point");
+            if (_target == null || _circuitShaper == null) return;
 
-            // Call the handle drawing logic from the base class
-            DrawAllHandles(_target);
-
-            //If there are any selected points, we should not draw the transform gizmo for the scene object, target. However, we can not clear the current tool since that will be used to tranform the selected points.
-            Tools.hidden = _circuitShaper.SelectedPoints.Count > 0;
             
-            // Handle scene clicks for adding points when in one of the edit-modes.
+
+            if (_isEditingCrossSection)
+            {
+                DrawCrossSectionEditorHandles(_target);
+            }
+            else
+            {
+                // Draw all regular handles when not in cross-section edit mode
+                DrawAllHandles(_target);
+            }
+
+            HandleUtility.Repaint();
+
             Event e = Event.current;
+
+            // Handle point creation
             if ((_creatingNewPointMode || _addingToSelectedCurveMode) && e.type == EventType.MouseDown && e.button == 0 && !e.alt)
             {
 
@@ -152,6 +281,11 @@ namespace OnomiCircuitShaper.Unity.Editor
             {
 
                 _circuitShaper.ClearSelection();
+
+                // exit all modes
+                _creatingNewPointMode = false;
+                _addingToSelectedCurveMode = false;
+                _isEditingCrossSection = false;
 
                 // consume the event so Unity's scene view doesn't also use it
                 e.Use();

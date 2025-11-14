@@ -33,6 +33,14 @@ namespace OnomiCircuitShaper.Engine.Data
         /// </summary>
         public SerializableVector3 UpDirection = (SerializableVector3)Vector3.UnitY;
 
+
+        // normalised position along the curve from 0 to 1
+        public float NormalizedPosition01 = 0f;
+
+
+        // auto-set control points tension value
+        public float AutoSetTension = 0.5f;
+
                 /// <summary>
         /// A per-point override for the global IndependentControlPoints setting.
         /// If this is true or false, it will be used. If null, the global setting is used.

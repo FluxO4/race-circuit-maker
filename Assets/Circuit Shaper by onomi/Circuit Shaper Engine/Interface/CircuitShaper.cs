@@ -99,7 +99,7 @@ namespace OnomiCircuitShaper.Engine.Interface
             //Create new curve and add it to the data.
             CircuitCurve curve = _liveCircuit.AddCurve();
             CircuitPoint newPoint = curve.AddPointOnCurve(rayStart, rayDirection);
-            
+
             return newPoint;
         }
 
@@ -134,14 +134,38 @@ namespace OnomiCircuitShaper.Engine.Interface
         public void MoveCircuitPointBackwardControl(CircuitPoint circuitPointToMove, Vector3 newPosition) => circuitPointToMove.MoveBackwardControlPoint(newPosition);
 
         public void RotateCircuitPoint(CircuitPoint circuitPoint, Vector3 eulerAngles) => circuitPoint.RotateCircuitPoint(eulerAngles);
-        
+
 
         public void MoveCrossSectionPoint(CrossSectionPoint crossSectionPointToMove, Vector3 newPosition) => crossSectionPointToMove.MoveCrossSectionPoint(newPosition);
+
+        public void SetCrossSectionPointCount(CrossSectionCurve crossSectionCurve, int newPointCount) => crossSectionCurve.ChangeCrossSectionPointCount(newPointCount);
+        
+        public void SetCrossSectionPointAutoSetTension(CrossSectionPoint crossSectionPoint, float newTension) => crossSectionPoint.SetAutoSetTension(newTension);
+     
+        public void SetCrossSectionPreset(CircuitPoint circuitPoint, Vector3[] preset)
+        {
+            if (circuitPoint == null) return;
+
+            if (circuitPoint.CrossSection == null)
+            {
+                CrossSectionCurveData newCurveData = new CrossSectionCurveData();
+                newCurveData.CurvePoints = new List<CrossSectionPointData>();
+                circuitPoint.SetCrossSectionCurve(new CrossSectionCurve(newCurveData, _settings, circuitPoint));
+            }
+
+            circuitPoint.CrossSection.SetPreset(preset);
+        }
 
 
         public void CreateNewRoadFromPoints(CircuitPoint[] pointData)
         {
             // To be implemented.
+        }
+
+        public void CreateRoadFromSelectedPoints()
+        {
+            if (_selectedPoints.Count < 2) return;
+            CreateNewRoadFromPoints(_selectedPoints.ToArray());
         }
 
         public void RemoveRoad(Road road)

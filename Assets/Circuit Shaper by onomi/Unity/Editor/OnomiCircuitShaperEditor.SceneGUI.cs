@@ -8,11 +8,74 @@ using System.Linq;
 
 namespace OnomiCircuitShaper.Unity.Editor
 {
-    public class OnomiCircuitShaperEditorSceneGUI : UnityEditor.Editor
+    public partial class OnomiCircuitShaperEditor : UnityEditor.Editor
     {
-        protected ICircuitShaper _circuitShaper;
-
         // --- Handle Drawing Logic ---
+
+
+
+        private void DrawCrossSectionEditorHandles(OnomiCircuitShaper target)
+        {
+            if (_circuitShaper.SelectedPoints.Count != 1) return;
+
+            CircuitPoint selectedPoint = _circuitShaper.SelectedPoints.First() as CircuitPoint;
+            if (selectedPoint == null || selectedPoint.CrossSection == null) return;
+
+            var matrix = Handles.matrix;
+            Vector3 basePosition = target.transform.position;
+            float scale = target.Data.settingsData.ScaleMultiplier;
+
+            // Draw selected point anchor and up vector
+            Vector3 anchorPos = selectedPoint.PointPosition.ToGlobalSpace(basePosition, scale);
+            float anchorSize = HandleUtility.GetHandleSize(anchorPos) * 0.12f;
+            Handles.color = Color.yellow;
+            Handles.SphereHandleCap(0, anchorPos, Quaternion.identity, anchorSize, EventType.Repaint);
+
+            Vector3 upDir = selectedPoint.GetUpVector.ToUnityVector3();
+            Handles.color = Color.magenta;
+            Handles.ArrowHandleCap(0, anchorPos, Quaternion.LookRotation(upDir), HandleUtility.GetHandleSize(anchorPos) * 0.5f * target.Data.settingsData.RotatorPointDistance, EventType.Repaint);
+
+            // Draw the cross-section curve and its points
+            CrossSectionCurve csCurve = selectedPoint.CrossSection;
+            
+            // Draw Bezier segments for the cross-section
+            for (int i = 0; i < csCurve.Points.Count - 1; i++)
+            {
+                CrossSectionPoint p1 = csCurve.Points[i];
+                CrossSectionPoint p2 = csCurve.Points[i + 1];
+
+                Vector3 worldP1 = p1.GetWorldPosition().ToGlobalSpace(basePosition, scale);
+                Vector3 worldP2 = p2.GetWorldPosition().ToGlobalSpace(basePosition, scale);
+                Vector3 worldCP1 = p1.GetWorldForwardControlPointPosition().ToGlobalSpace(basePosition, scale);
+                Vector3 worldCP2 = p2.GetWorldBackwardControlPointPosition().ToGlobalSpace(basePosition, scale);
+
+                Handles.DrawBezier(worldP1, worldP2, worldCP1, worldCP2, Color.white, null, 2f);
+            }
+
+            // Draw handles for each cross-section point
+            foreach (CrossSectionPoint csPoint in csCurve.Points)
+            {
+                Vector3 csPointPos = csPoint.GetWorldPosition().ToGlobalSpace(basePosition, scale);
+                float csPointSize = HandleUtility.GetHandleSize(csPointPos) * 0.08f;
+
+                // Draw tangents
+                Handles.color = Color.cyan;
+                Vector3 forwardCP = csPoint.GetWorldForwardControlPointPosition().ToGlobalSpace(basePosition, scale);
+                Vector3 backwardCP = csPoint.GetWorldBackwardControlPointPosition().ToGlobalSpace(basePosition, scale);
+                Handles.DrawLine(csPointPos, forwardCP);
+                Handles.DrawLine(csPointPos, backwardCP);
+
+                Handles.color = Color.red;
+                EditorGUI.BeginChangeCheck();
+                Vector3 newWorldPos = Handles.FreeMoveHandle(csPointPos, csPointSize, Vector3.zero, Handles.SphereHandleCap);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    csPoint.MoveCrossSectionPoint(newWorldPos.ToLocalSpace(basePosition, scale));
+                }
+            }
+
+            Handles.matrix = matrix;
+        }
 
         protected void DrawAllHandles(OnomiCircuitShaper target)
         {
@@ -30,11 +93,11 @@ namespace OnomiCircuitShaper.Unity.Editor
                 for (int i = 0; i < curve.Points.Count; i++)
                 {
                     CircuitPoint p1 = curve.Points[i];
-                    
+
                     if (curve.IsClosed || i < curve.Points.Count - 1)
                     {
                         CircuitPoint p2 = curve.Points[(i + 1) % curve.Points.Count];
-                        
+
                         Handles.DrawBezier(
                             p1.PointPosition.ToGlobalSpace(basePosition, scale),
                             p2.PointPosition.ToGlobalSpace(basePosition, scale),
@@ -46,11 +109,32 @@ namespace OnomiCircuitShaper.Unity.Editor
                         );
                     }
                 }
+                
 
                 // Then, draw the interactive point handles on top
                 foreach (CircuitPoint point in curve.Points)
                 {
                     DrawPointHandles(target, point, basePosition, scale);
+                    
+
+                    if (!_isEditingCrossSection &&point.CrossSection != null && point.CrossSection.Points.Count > 1)
+                    {
+                        CrossSectionCurve csCurve = point.CrossSection;
+                        //Handles.color = new Color(0.8f, 0.8f, 0.8f, 0.5f); // Light grey, semi-transparent
+
+                        for (int i = 0; i < csCurve.Points.Count - 1; i++)
+                        {
+                            CrossSectionPoint p1 = csCurve.Points[i];
+                            CrossSectionPoint p2 = csCurve.Points[i + 1];
+
+                            Vector3 worldP1 = p1.GetWorldPosition().ToGlobalSpace(basePosition, scale);
+                            Vector3 worldP2 = p2.GetWorldPosition().ToGlobalSpace(basePosition, scale);
+                            Vector3 worldCP1 = p1.GetWorldForwardControlPointPosition().ToGlobalSpace(basePosition, scale);
+                            Vector3 worldCP2 = p2.GetWorldBackwardControlPointPosition().ToGlobalSpace(basePosition, scale);
+
+                            Handles.DrawBezier(worldP1, worldP2, worldCP1, worldCP2, Color.blue, null, 1.5f);
+                        }
+                    }
                 }
             }
 

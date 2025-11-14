@@ -108,10 +108,27 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// </summary>
         void MoveCrossSectionPoint(CrossSectionPoint crossSectionPointToMove, Vector3 newPosition);
 
+
+        //A function that sets the number of cross section points in a cross section curve
+        void SetCrossSectionPointCount(CrossSectionCurve crossSectionCurve, int newPointCount);
+
+
+        //A function that sets the cross section of a circuit point to a preset
+        void SetCrossSectionPreset(CircuitPoint circuitPoint, Vector3[] preset);
+
+
+        void SetCrossSectionPointAutoSetTension(CrossSectionPoint crossSectionPoint, float newTension);
+
         /// <summary>
         /// Creates a new road from a sequence of points.
         /// </summary>
         void CreateNewRoadFromPoints(CircuitPoint[] pointData);
+
+        /// <summary>
+        /// Creates a new road from the currently selected points.
+        /// </summary>
+        void CreateRoadFromSelectedPoints();
+
         /// <summary>
         /// Removes a road from the circuit.
         /// </summary>

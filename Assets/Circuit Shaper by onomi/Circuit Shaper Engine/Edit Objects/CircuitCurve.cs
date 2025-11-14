@@ -49,7 +49,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             };
             
 
-            CircuitPoint newPoint = new CircuitPoint(this, newPointData, Settings, null);
+            CircuitPoint newPoint = new CircuitPoint(this, newPointData, Settings);
             // Insert into the live points list at the same index to keep ordering consistent
             if (index < 0) index = 0;
             if (index > Points.Count) index = Points.Count;
@@ -57,7 +57,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Data.CurvePoints.Insert(index, newPointData);
             Points.Insert(index, newPoint);
             UpdateNeighborReferences();
-            newPoint.AutoSetControlpoints();
+            newPoint.AutoSetControlPoints();
+            NormalisePointPositionAlongCurve();
             
             OnCurveStateChanged();
             return newPoint;
@@ -212,6 +213,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 int index = Points.IndexOf(point);
                 Points.RemoveAt(index);
                 Data.CurvePoints.RemoveAt(index);
+                //unsubscribe from point change event
+                point.PointStateChanged -= HandlePointTransformed;
                 UpdateNeighborReferences();
             }
             
@@ -228,15 +231,16 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             for (int i = 0; i < Data.CurvePoints.Count; i++)
             {
                 CircuitPointData pointData = Data.CurvePoints[i];
-                CircuitPoint circuitPoint = new CircuitPoint(this, pointData, Settings, null);
+                CircuitPoint circuitPoint = new CircuitPoint(this, pointData, Settings);
                 Points.Add(circuitPoint);
+                //Subscribe to point change event
+                circuitPoint.PointStateChanged += HandlePointTransformed;
             }
 
             UpdateNeighborReferences();
-
-            
+            NormalisePointPositionAlongCurve();
         }
-        
+
         private void UpdateNeighborReferences()
         {
             // Look through all points and correctly set their neighbor references
@@ -260,9 +264,27 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             }
         }
 
-        public void AutoSetAllControlPoints()
+        public void NormalisePointPositionAlongCurve()
         {
             // Implementation may be provided by processors or overridden by derived classes.
+            CurveProcessor.NormaliseCurvePoints(Data);
+        }
+        
+        public void HandlePointTransformed(Point<CircuitPointData> point)
+        {
+            NormalisePointPositionAlongCurve();
+            OnCurveStateChanged();
+        }
+
+        public void AutoSetAllControlPoints()
+        {
+            // Call autoset function for each point in the cross-section, but do the end points last
+            for (int i = 1; i < Points.Count - 1; i++)
+            {
+                Points[i].AutoSetControlPoints();
+            }
+            Points[0].AutoSetControlPoints();
+            Points[^1].AutoSetControlPoints();
         }
 
         protected void OnCurveStateChanged()

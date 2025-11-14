@@ -67,5 +67,59 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             // such as the CrossSectionCurve should listen and auto-set control points.
             OnPointStateChanged();
         }
+
+        /// <summary>
+        /// Gets the world-space position of this cross-section point, based on its
+        /// local across/up coordinates relative to its parent circuit point.
+        /// </summary>
+        public Vector3 GetWorldPosition()
+        {
+            if (ParentCircuitPoint == null)
+            {
+                return Data.PointPosition;
+            }
+
+            var across = ParentCircuitPoint.GetRightVector;
+            var up = ParentCircuitPoint.GetUpVector;
+            var basePosition = ParentCircuitPoint.PointPosition;
+
+            return basePosition + across * Data.PointPosition.x + up * Data.PointPosition.y;
+        }
+
+        /// <summary>
+        /// Gets the world-space position of this cross-section point's forward control point,
+        /// based on its local across/up coordinates relative to its parent circuit point.
+        /// </summary>
+        public Vector3 GetWorldForwardControlPointPosition()
+        {
+            if (ParentCircuitPoint == null)
+            {
+                return Data.ForwardControlPointPosition;
+            }
+
+            var across = ParentCircuitPoint.GetRightVector;
+            var up = ParentCircuitPoint.GetUpVector;
+            var basePosition = ParentCircuitPoint.PointPosition;
+
+            return basePosition + across * Data.ForwardControlPointPosition.x + up * Data.ForwardControlPointPosition.y;
+        }
+
+        /// <summary>
+        /// Gets the world-space position of this cross-section point's backward control point,
+        /// based on its local across/up coordinates relative to its parent circuit point.
+        /// </summary>
+        public Vector3 GetWorldBackwardControlPointPosition()
+        {
+            if (ParentCircuitPoint == null)
+            {
+                return Data.BackwardControlPointPosition;
+            }
+
+            var across = ParentCircuitPoint.GetRightVector;
+            var up = ParentCircuitPoint.GetUpVector;
+            var basePosition = ParentCircuitPoint.PointPosition;
+
+            return basePosition + across * Data.BackwardControlPointPosition.x + up * Data.BackwardControlPointPosition.y;
+        }
     }
 }

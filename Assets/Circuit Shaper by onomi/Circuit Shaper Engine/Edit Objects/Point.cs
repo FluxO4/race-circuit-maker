@@ -126,40 +126,53 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// <summary>
         /// Called to auto-set control points for this point based on neighbouring points if they exist
         /// </summary>
-        public void AutoSetControlpoints()
+        public void AutoSetControlPoints()
         {
-        
 
-            // If both neighbours exist, set control points to halfway to their control points
+            float tension = Data.AutoSetTension;
+
+            // If both neighbours exist, use a Catmull-Rom-based approach for a smooth tangent.
             if (PreviousPoint != null && NextPoint != null)
             {
-                Vector3 toPrev = PreviousPoint.PointPosition - PointPosition;
-                Vector3 toNext = NextPoint.PointPosition - PointPosition;
+                // The tangent is determined by the vector between the previous and next points.
+                Vector3 tangent = Vector3.Normalize(NextPoint.PointPosition - PreviousPoint.PointPosition);
 
-                Vector3 newBackwardControl = PointPosition + toPrev * 0.5f;
-                Vector3 newForwardControl = PointPosition + toNext * 0.5f;
+                // The length of the handles is proportional to the distance to the neighboring points.
+                float distToPrev = Vector3.Distance(PointPosition, PreviousPoint.PointPosition);
+                float distToNext = Vector3.Distance(PointPosition, NextPoint.PointPosition);
 
-                Data.BackwardControlPointPosition = newBackwardControl;
-                Data.ForwardControlPointPosition = newForwardControl;
-    
-            }else if (PreviousPoint != null) // Only previous point exists
-            {
-                Vector3 toPrev = PreviousPoint.PointPosition - PointPosition;
-                Data.BackwardControlPointPosition = PointPosition + toPrev * 0.5f;
-                Data.ForwardControlPointPosition = PointPosition + toPrev * -0.5f;
+                Data.BackwardControlPointPosition = PointPosition - tangent * distToPrev * tension;
+                Data.ForwardControlPointPosition = PointPosition + tangent * distToNext * tension;
+
             }
-            else if (NextPoint != null) // Only next point exists
+            else if (PreviousPoint != null) // Only previous point exists (this is an endpoint)
             {
-                Vector3 toNext = NextPoint.PointPosition - PointPosition;
-                Data.ForwardControlPointPosition = PointPosition + toNext * 0.5f;
-                Data.BackwardControlPointPosition = PointPosition + toNext * -0.5f;
+                // Lerp towards the neighbor's control point for a smoother connection.
+                Data.BackwardControlPointPosition = Vector3.Lerp(PointPosition, PreviousPoint.ForwardControlPointPosition, tension);
+                // Mirror the handle to maintain the tangent.
+                Data.ForwardControlPointPosition = PointPosition + (PointPosition - (Vector3)Data.BackwardControlPointPosition);
+            }
+            else if (NextPoint != null) // Only next point exists (this is a start point)
+            {
+                // Lerp towards the neighbor's control point for a smoother connection.
+                Data.ForwardControlPointPosition = Vector3.Lerp(PointPosition, NextPoint.BackwardControlPointPosition, tension);
+                // Mirror the handle to maintain the tangent.
+                Data.BackwardControlPointPosition = PointPosition - ((Vector3)Data.ForwardControlPointPosition - PointPosition);
             }
             else // No neighbours, set control points to default offsets
             {
                 Data.ForwardControlPointPosition = PointPosition + Vector3.UnitZ * 1f;
                 Data.BackwardControlPointPosition = PointPosition + Vector3.UnitZ * -1f;
             }
+        }
 
+        /// <summary>
+        /// Sets the auto-set tension value for this point.
+        /// </summary>
+        /// <param name="tension">The tension value to set (typically between 0 and 1).</param>
+        public void SetAutoSetTension(float tension)
+        {
+            Data.AutoSetTension = tension;
             OnPointStateChanged();
         }
     }

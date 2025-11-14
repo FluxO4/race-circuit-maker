@@ -23,7 +23,7 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// Gets all roads that need rebuilding and clears the queue.
         /// This is the primary mechanism for Unity to discover which roads need mesh updates.
         /// </summary>
-        List<RoadData> GetAndClearDirtyRoads();
+        List<Road> GetAndClearDirtyRoads();
 
         /// <summary>
         /// Clears the road rebuild queue without processing.
@@ -58,6 +58,8 @@ namespace OnomiCircuitShaper.Engine.Interface
         SinglePointSelectionMode GetSinglePointSelectionMode();
 
         CircuitCurve SelectedCurve { get; }
+
+        Road SelectedRoad { get; }
 
         /// <summary>
         /// Adds a new point, creating a new curve in the process.
@@ -151,6 +153,16 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// Clears the current point selection and the selected curve.
         /// </summary>
         void ClearSelection();
+
+        /// <summary>
+        /// Selects the supplied road and deselects others.
+        /// </summary>
+        void SelectRoad(Road road);
+
+        /// <summary>
+        /// Deselects the currently selected road if any.
+        /// </summary>
+        void DeselectRoad();
 
 
         //Set the single point selection mode

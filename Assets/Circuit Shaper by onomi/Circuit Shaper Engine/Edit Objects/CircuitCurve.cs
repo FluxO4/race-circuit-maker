@@ -21,6 +21,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         public CircuitCurveData Data { get; private set; }
         public CircuitAndEditorSettings Settings { get; private set; }
         public List<CircuitPoint> Points { get; private set; } = new List<CircuitPoint>();
+        public List<Road> Roads { get; private set; } = new List<Road>();
 
         public event System.Action CurveStateChanged;
 
@@ -36,6 +37,54 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 OnCurveStateChanged();
             }
         }
+
+
+        // constructor
+        public CircuitCurve(CircuitCurveData data, CircuitAndEditorSettings settings)
+        {
+            Data = data;
+            Settings = settings;
+
+            // Create live CircuitPoint objects for each data point
+            for (int i = 0; i < Data.CurvePoints.Count; i++)
+            {
+                CircuitPointData pointData = Data.CurvePoints[i];
+                CircuitPoint circuitPoint = new CircuitPoint(this, pointData, Settings);
+                Points.Add(circuitPoint);
+                //Subscribe to point change event
+                circuitPoint.PointStateChanged += HandlePointTransformed;
+            }
+
+            for (int i = 0; i < Data.Roads.Count; i++)
+            {
+                RoadData roadData = Data.Roads[i];
+                Road road = new Road(roadData, Settings, this);
+                Roads.Add(road);
+            }
+
+            UpdateNeighborReferences();
+            NormalisePointPositionAlongCurve();
+        }
+        
+        /// <summary>
+        /// Returns a list of CircuitPoints that are within the given range
+        /// of indices, inclusive of both start and end
+        /// </summary>
+        public List<CircuitPoint> GetPointsInRange(int startIndex, int endIndex)
+        {
+            List<CircuitPoint> selectedPoints = new List<CircuitPoint>();
+
+            int pos = startIndex;
+            while(pos != endIndex)
+            {
+                selectedPoints.Add(Points[pos]);
+                pos = (pos + 1) % Points.Count;
+            }
+
+            return selectedPoints;
+        }
+
+
 
         /// <summary>
         /// Creates a new point, inserts it into the curve at a specific index,
@@ -57,6 +106,17 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
             Data.CurvePoints.Insert(index, newPointData);
             Points.Insert(index, newPoint);
+
+            for (int i = 0; i < Roads.Count; i++)
+            {
+                Road road = Roads[i];
+
+                if (road.Data.PointIndexRange.Item1 >= index) road.Data.PointIndexRange.Item1 = road.Data.PointIndexRange.Item1 + 1;
+                if (road.Data.PointIndexRange.Item2 >= index) road.Data.PointIndexRange.Item2 = road.Data.PointIndexRange.Item2 + 1;
+            }
+
+
+
             UpdateNeighborReferences();
             newPoint.AutoSetControlPoints();
             NormalisePointPositionAlongCurve();
@@ -132,12 +192,51 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                     pointToadd = closestPointOnSegment;
                 }
             }
-            
+
             return AddPointAtIndex(pointToadd, closestSegmentIndex + 1);
         }
 
 
+        public Road AddRoadFromRange(int startIndex, int endIndex)
+        {
+
+            //Check if range clashes with existing roads
+            foreach (var road in Roads)
+            {
+                int roadStart = road.Data.PointIndexRange.Item1;
+                int roadEnd = road.Data.PointIndexRange.Item2;
+
+                if (!(endIndex < roadStart || startIndex > roadEnd))
+                {
+                    return null; // Clash detected
+                }
+            }
+
+
+            RoadData newRoadData = new RoadData()
+            {
+                PointIndexRange = (startIndex, endIndex)
+            };
+
+            Data.Roads.Add(newRoadData);
+            Road newRoad = new Road(newRoadData, Settings, this);
+            Roads.Add(newRoad);
+
+            return newRoad;
+        }
         
+        public void RemoveRoad(Road road)
+        {
+            if (Roads.Contains(road))
+            {
+                Roads.Remove(road);
+                // Also remove from data
+                if (Data != null && Data.Roads.Contains(road.Data))
+                {
+                    Data.Roads.Remove(road.Data);
+                }
+            }
+        }
 
         /// <summary>
         /// Projects point p onto the segment ab and returns the closest point on the segment.
@@ -214,33 +313,24 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 int index = Points.IndexOf(point);
                 Points.RemoveAt(index);
                 Data.CurvePoints.RemoveAt(index);
+
+                // Road ranges will need to be updated by the caller after adding/removing points, must shift indices after the removed point.
+                for (int i = 0; i < Roads.Count; i++)
+                {
+                    Road road = Roads[i];
+                    if (road.Data.PointIndexRange.Item1 > index) road.Data.PointIndexRange.Item1 = road.Data.PointIndexRange.Item1 - 1;
+                    if (road.Data.PointIndexRange.Item2 > index) road.Data.PointIndexRange.Item2 = road.Data.PointIndexRange.Item2 - 1;
+                   
+                }
+
                 //unsubscribe from point change event
                 point.PointStateChanged -= HandlePointTransformed;
                 UpdateNeighborReferences();
             }
-            
+
             OnCurveStateChanged();
         }
-
-        // constructor
-        public CircuitCurve(CircuitCurveData data, CircuitAndEditorSettings settings)
-        {
-            Data = data;
-            Settings = settings;
-
-            // Create live CircuitPoint objects for each data point
-            for (int i = 0; i < Data.CurvePoints.Count; i++)
-            {
-                CircuitPointData pointData = Data.CurvePoints[i];
-                CircuitPoint circuitPoint = new CircuitPoint(this, pointData, Settings);
-                Points.Add(circuitPoint);
-                //Subscribe to point change event
-                circuitPoint.PointStateChanged += HandlePointTransformed;
-            }
-
-            UpdateNeighborReferences();
-            NormalisePointPositionAlongCurve();
-        }
+        
 
         private void UpdateNeighborReferences()
         {
@@ -275,6 +365,16 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         {
             NormalisePointPositionAlongCurve();
             OnCurveStateChanged();
+
+            //find which road if any this point belongs to and mark it dirty
+            int pointIndex = Points.IndexOf((CircuitPoint)point);
+            foreach (var road in Roads)
+            {
+                if (pointIndex >= road.Data.PointIndexRange.Item1 && pointIndex <= road.Data.PointIndexRange.Item2)
+                {
+                    RoadRebuildQueue.MarkDirty(road);
+                }
+            }
         }
 
         public void AutoSetAllControlPoints()

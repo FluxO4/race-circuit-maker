@@ -27,11 +27,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         
 
         /// <summary>
-        /// Index within the parent curve (if applicable).
-        /// </summary>
-        public int PointIndex;
-
-        /// <summary>
         /// Links to neighbour points (set by the owning Curve/Circuit)
         /// </summary>
         public Point<TData> NextPoint;

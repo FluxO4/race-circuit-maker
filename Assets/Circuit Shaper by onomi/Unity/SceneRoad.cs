@@ -1,4 +1,4 @@
-using OnomiCircuitShaper.Engine.Data;
+using OnomiCircuitShaper.Engine.EditRealm;
 using UnityEngine;
 
 namespace OnomiCircuitShaper.Unity
@@ -13,7 +13,7 @@ namespace OnomiCircuitShaper.Unity
     {
         public OnomiCircuitShaper onomiCircuitShaper;
 
-        public RoadData roadData;
+        public Road associatedRoad;
 
 
         private MeshFilter _meshFilter;

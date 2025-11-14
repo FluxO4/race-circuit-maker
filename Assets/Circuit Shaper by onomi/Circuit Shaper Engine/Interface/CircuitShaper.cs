@@ -11,7 +11,7 @@ namespace OnomiCircuitShaper.Engine.Interface
     /// The concrete implementation of the ICircuitShaper interface. This class orchestrates
     /// the entire editing process, managing the live Circuit object and calling the static
     /// Processor classes to act on the data.
-    /// </summary>
+    /// </summary> 
     public class CircuitShaper : ICircuitShaper
     {
         private CircuitData _currentData;
@@ -20,6 +20,7 @@ namespace OnomiCircuitShaper.Engine.Interface
         // Selection state
         private readonly List<CircuitPoint> _selectedPoints = new List<CircuitPoint>();
         private CircuitCurve _selectedCurve;
+        private Road _selectedRoad;
 
         private SinglePointSelectionMode _singlePointSelectionMode = SinglePointSelectionMode.AnchorPoint;
 
@@ -32,6 +33,7 @@ namespace OnomiCircuitShaper.Engine.Interface
         // Expose selection state as read-only
         public IReadOnlyList<CircuitPoint> SelectedPoints => _selectedPoints.AsReadOnly();
         public CircuitCurve SelectedCurve => _selectedCurve;
+        public Road SelectedRoad => _selectedRoad;
 
         public SinglePointSelectionMode GetSinglePointSelectionMode() => _singlePointSelectionMode;
 
@@ -63,7 +65,7 @@ namespace OnomiCircuitShaper.Engine.Interface
             _currentData = circuitData;
         }
 
-        public List<RoadData> GetAndClearDirtyRoads()
+        public List<Road> GetAndClearDirtyRoads()
         {
             return RoadRebuildQueue.GetAndClearDirtyRoads();
         }
@@ -173,81 +175,15 @@ namespace OnomiCircuitShaper.Engine.Interface
         }
 
 
-        public void CreateNewRoadFromPoints(CircuitPoint[] pointData)
+        public void CreateNewRoadFromPoints(CircuitPoint[] points)
         {
-            UnityEngine.Debug.Log($"[CircuitShaper] CreateNewRoadFromPoints called with {pointData?.Length ?? 0} points");
-            
-            if (pointData == null || pointData.Length < 2)
-            {
-                UnityEngine.Debug.LogError("[CircuitShaper] ERROR: Need at least 2 points to create a road");
-                return;
-            }
+            //Compute the point index range in the selected curve.
+            if (points == null || points.Length < 2) return;
 
-            // Validate that all points have cross-sections with at least 2 points
-            for (int i = 0; i < pointData.Length; i++)
-            {
-                var point = pointData[i];
-                if (point == null)
-                {
-                    UnityEngine.Debug.LogError($"[CircuitShaper] ERROR: Point {i} is null");
-                    return;
-                }
-                
-                if (point.CrossSection == null)
-                {
-                    UnityEngine.Debug.LogError($"[CircuitShaper] ERROR: Point {i} has no cross-section");
-                    UnityEngine.Debug.LogError($"Cannot create road: Point {i} has no cross-section curve. Please apply a cross-section preset to all selected points first.");
-                    return;
-                }
-                
-                if (point.CrossSection.Points == null || point.CrossSection.Points.Count < 2)
-                {
-                    UnityEngine.Debug.LogError($"[CircuitShaper] ERROR: Point {i} cross-section has {point.CrossSection.Points?.Count ?? 0} points");
-                    UnityEngine.Debug.LogError($"Cannot create road: Point {i} cross-section needs at least 2 points. Current count: {point.CrossSection.Points?.Count ?? 0}");
-                    return;
-                }
-            }
-            
-            UnityEngine.Debug.Log("[CircuitShaper] All points validated successfully");
+            int startIndex = _selectedCurve.Points.IndexOf(points[0]);
+            int endIndex = _selectedCurve.Points.IndexOf(points[^1]);
 
-            // Create the road data object
-            var roadPointData = new List<CircuitPointData>();
-            foreach (var point in pointData)
-            {
-                roadPointData.Add(point.Data);
-            }
-
-            var roadData = new RoadData
-            {
-                AssociatedPoints = roadPointData
-            };
-            
-            UnityEngine.Debug.Log("[CircuitShaper] RoadData created");
-
-            // Add to persistent data
-            _currentData.CircuitRoads.Add(roadData);
-
-            // Create the live edit realm road
-            var road = new Road(roadData, _settings, _liveCircuit);
-            _liveCircuit.Roads.Add(road);
-            
-            UnityEngine.Debug.Log("[CircuitShaper] Road added to circuit");
-
-            // Populate the associated points and subscribe to their events
-            road.BuildRoadFromPoints(new List<CircuitPoint>(pointData));
-            
-            UnityEngine.Debug.Log("[CircuitShaper] Road.BuildRoadFromPoints called");
-
-            // Establish bidirectional associations (point -> road)
-            foreach (var point in pointData)
-            {
-                point.AddRoadAssociation(roadData);
-            }
-            
-            // Mark the road dirty so it will be rebuilt via the queue
-            RoadRebuildQueue.MarkDirty(roadData);
-            
-            UnityEngine.Debug.Log("[CircuitShaper] Road marked dirty in queue, associations established");
+            _selectedCurve.AddRoadFromRange(startIndex, endIndex);
         }
 
         public void CreateRoadFromSelectedPoints()
@@ -256,18 +192,7 @@ namespace OnomiCircuitShaper.Engine.Interface
             CreateNewRoadFromPoints(_selectedPoints.ToArray());
         }
 
-        public void RemoveRoad(Road road)
-        {
-            if (road == null) return;
-
-            // Remove from persistent data
-            _currentData.CircuitRoads.Remove(road.Data);
-            
-            _liveCircuit.Roads.Remove(road);
-            
-            // Queue will detect road is not in CircuitRoads and clean up SceneRoad automatically
-            UnityEngine.Debug.Log("[CircuitShaper] Road removed from data, ProcessDirtyRoads will clean up SceneRoad");
-        }
+        public void RemoveRoad(Road road) => road.parentCurve.RemoveRoad(road);
 
         // Selection manipulation implementations
         public void SelectPoint(CircuitPoint point)
@@ -343,7 +268,18 @@ namespace OnomiCircuitShaper.Engine.Interface
         {
             _selectedPoints.Clear();
             _selectedCurve = null;
+            _selectedRoad = null;
             _singlePointSelectionMode = SinglePointSelectionMode.AnchorPoint;
+        }
+
+        public void SelectRoad(Road road)
+        {
+            _selectedRoad = road;
+        }
+
+        public void DeselectRoad()
+        {
+            _selectedRoad = null;
         }
 
         public void SetSinglePointSelectionMode(SinglePointSelectionMode mode)

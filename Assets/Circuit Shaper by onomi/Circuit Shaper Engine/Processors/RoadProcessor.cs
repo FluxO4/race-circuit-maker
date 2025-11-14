@@ -3,6 +3,8 @@ using OnomiCircuitShaper.Engine.EditRealm;
 using OnomiCircuitShaper.Engine.Data;
 using System;
 using System.Numerics;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace OnomiCircuitShaper.Engine.Processors
 {
@@ -54,67 +56,28 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// </remarks>
         public static GenericMeshData BuildRoadMesh(Road road)
         {
-            UnityEngine.Debug.Log("[RoadProcessor] BuildRoadMesh called");
-            
-            if (road == null)
+            if (Math.Abs(road.Data.PointIndexRange.Item2 - road.Data.PointIndexRange.Item1) < 1)
             {
-                UnityEngine.Debug.LogError("[RoadProcessor] ERROR: Road is null");
-                return new GenericMeshData();
-            }
-            
-            if (road.Data == null)
-            {
-                UnityEngine.Debug.LogError("[RoadProcessor] ERROR: Road.Data is null");
-                return new GenericMeshData();
-            }
-            
-            if (road.Data.AssociatedPoints == null)
-            {
-                UnityEngine.Debug.LogError("[RoadProcessor] ERROR: Road.Data.AssociatedPoints is null");
-                return new GenericMeshData();
-            }
-            
-            UnityEngine.Debug.Log($"[RoadProcessor] Road has {road.Data.AssociatedPoints.Count} associated points");
-            
-            if (road.Data.AssociatedPoints.Count < 2)
-            {
-                UnityEngine.Debug.LogError("[RoadProcessor] ERROR: Need at least 2 points to build a road");
                 return new GenericMeshData();
             }
 
-            // Validate that all points have cross-sections with at least 2 points
-            for (int i = 0; i < road.Data.AssociatedPoints.Count; i++)
+
+            //Extract points from the parent curve using the range
+            List<CircuitPoint> pointArray = road.parentCurve.GetPointsInRange(road.Data.PointIndexRange.Item1, road.Data.PointIndexRange.Item2);
+
+            CircuitPointData[] pointDataArray = pointArray.Select(p => p.Data).ToArray();
+
+            // Validate cross-sections
+            for (int i = 0; i < pointArray.Count; i++)
             {
-                var pointData = road.Data.AssociatedPoints[i];
-                
-                if (!(pointData is CircuitPointData))
+                var point = pointArray[i];
+                if (point?.CrossSection?.Points == null || point.CrossSection.Points.Count < 2)
                 {
-                    UnityEngine.Debug.LogError($"[RoadProcessor] ERROR: Point {i} is not a CircuitPointData (type: {pointData?.GetType().Name ?? "null"})");
-                    return new GenericMeshData();
-                }
-                
-                var circuitPoint = pointData as CircuitPointData;
-                
-                if (circuitPoint.CrossSectionCurve == null)
-                {
-                    UnityEngine.Debug.LogError($"[RoadProcessor] ERROR: Point {i} has no cross-section curve");
-                    return new GenericMeshData();
-                }
-                
-                if (circuitPoint.CrossSectionCurve.CurvePoints == null || circuitPoint.CrossSectionCurve.CurvePoints.Count < 2)
-                {
-                    UnityEngine.Debug.LogError($"[RoadProcessor] ERROR: Point {i} cross-section has {circuitPoint.CrossSectionCurve.CurvePoints?.Count ?? 0} points (need at least 2)");
                     return new GenericMeshData();
                 }
             }
-            
-            UnityEngine.Debug.Log("[RoadProcessor] All points validated successfully");
 
-            // Extract data into value-type arrays for Burst-compatibility preparation
-            CircuitPointData[] pointDataArray = ExtractCircuitPointDataArray(road.Data.AssociatedPoints);
             
-            UnityEngine.Debug.Log($"[RoadProcessor] Extracted {pointDataArray.Length} circuit point data objects");
-
             // Calculate mesh dimensions
             int widthSegments = road.Data.WidthWiseVertexCount - 1;
             int lengthSegmentsPerPoint = Math.Max(1, (int)(widthSegments * road.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount));
@@ -124,15 +87,10 @@ namespace OnomiCircuitShaper.Engine.Processors
             int vertexCountLength = totalLengthSegments + 1;
             int totalVertices = vertexCountWidth * vertexCountLength;
             
-            UnityEngine.Debug.Log($"[RoadProcessor] Mesh dimensions: {vertexCountWidth}x{vertexCountLength} = {totalVertices} vertices");
-            UnityEngine.Debug.Log($"[RoadProcessor] Width segments: {widthSegments}, Length segments: {totalLengthSegments}");
-            
             // Allocate arrays
             var vertices = new Vector3[totalVertices];
             var uvs = new Vector2[totalVertices];
             var triangles = new int[widthSegments * totalLengthSegments * 6]; // 2 triangles per quad, 3 indices each
-
-            UnityEngine.Debug.Log("[RoadProcessor] Starting vertex generation...");
 
             // Generate vertices and UVs
             int vertexIndex = 0;
@@ -150,36 +108,13 @@ namespace OnomiCircuitShaper.Engine.Processors
                 // Normalize cross-section curves before interpolation
                 CurveProcessor.NormaliseCurvePoints(p1.CrossSectionCurve);
                 CurveProcessor.NormaliseCurvePoints(p2.CrossSectionCurve);
-                
-                // Log first iteration details
-                if (lengthIndex == 0)
-                {
-                    UnityEngine.Debug.Log($"[RoadProcessor] P1 CrossSection: {p1.CrossSectionCurve.CurvePoints.Count} points, IsClosed: {p1.CrossSectionCurve.IsClosed}");
-                    UnityEngine.Debug.Log($"[RoadProcessor] P2 CrossSection: {p2.CrossSectionCurve.CurvePoints.Count} points, IsClosed: {p2.CrossSectionCurve.IsClosed}");
-                    for (int i = 0; i < p1.CrossSectionCurve.CurvePoints.Count; i++)
-                    {
-                        UnityEngine.Debug.Log($"[RoadProcessor] P1 CS Point {i}: pos={p1.CrossSectionCurve.CurvePoints[i].PointPosition}, norm={p1.CrossSectionCurve.CurvePoints[i].NormalizedPosition01}");
-                    }
-                }
 
                 for (int widthIndex = 0; widthIndex < vertexCountWidth; widthIndex++)
                 {
                     float widthT = (float)widthIndex / widthSegments;
 
-                    // Log first row of vertices
-                    if (lengthIndex == 0)
-                    {
-                        UnityEngine.Debug.Log($"[RoadProcessor] Width {widthIndex}/{vertexCountWidth-1}: widthT = {widthT}");
-                    }
-
                     // Generate vertex position using the cross-section interpolation
                     vertices[vertexIndex] = CurveProcessor.LerpBetweenTwoCrossSections(p1, p2, widthT, localT);
-                    
-                    // Log first row vertex positions
-                    if (lengthIndex == 0)
-                    {
-                        UnityEngine.Debug.Log($"[RoadProcessor] Vertex {vertexIndex} at widthT={widthT}: {vertices[vertexIndex]}");
-                    }
 
                     // Generate UV coordinates
                     float u = widthT * road.Data.UVTile.x + road.Data.UVOffset.x;
@@ -189,9 +124,6 @@ namespace OnomiCircuitShaper.Engine.Processors
                     vertexIndex++;
                 }
             }
-
-            UnityEngine.Debug.Log($"[RoadProcessor] Generated {vertexIndex} vertices");
-            UnityEngine.Debug.Log("[RoadProcessor] Starting triangle generation...");
 
             // Generate triangle indices
             int triangleIndex = 0;
@@ -217,36 +149,12 @@ namespace OnomiCircuitShaper.Engine.Processors
                 }
             }
 
-            UnityEngine.Debug.Log($"[RoadProcessor] Generated {triangleIndex/3} triangles");
-            UnityEngine.Debug.Log("[RoadProcessor] Mesh generation complete!");
-
             return new GenericMeshData
             {
                 Vertices = vertices,
                 UVs = uvs,
                 Triangles = triangles
             };
-        }
-
-        /// <summary>
-        /// Extracts CircuitPointData array from a mixed PointData list.
-        /// This separation of data extraction from processing is crucial for future Burst optimization.
-        /// </summary>
-        /// <remarks>
-        /// [Look here onomi] In the future Burst implementation, this would populate a NativeArray
-        /// instead of a managed array, and would be called outside the Job.
-        /// </remarks>
-        private static CircuitPointData[] ExtractCircuitPointDataArray(System.Collections.Generic.List<CircuitPointData> points)
-        {
-            var result = new System.Collections.Generic.List<CircuitPointData>();
-            foreach (var point in points)
-            {
-                if (point is CircuitPointData circuitPoint)
-                {
-                    result.Add(circuitPoint);
-                }
-            }
-            return result.ToArray();
         }
 
         /// <summary>

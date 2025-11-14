@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using OnomiCircuitShaper.Engine.Data;
+using OnomiCircuitShaper.Engine.EditRealm;
 
 namespace OnomiCircuitShaper.Engine
 {
@@ -10,20 +11,20 @@ namespace OnomiCircuitShaper.Engine
     /// </summary>
     public static class RoadRebuildQueue
     {
-        private static HashSet<RoadData> _dirtyRoads = new HashSet<RoadData>();
+        private static HashSet<Road> _dirtyRoadIndices = new HashSet<Road>();
         private static object _lock = new object();
         
         /// <summary>
         /// Marks a road as needing rebuild. Safe to call multiple times with the same road.
         /// </summary>
-        /// <param name="roadData">The road data to mark as dirty.</param>
-        public static void MarkDirty(RoadData roadData)
+        /// <param name="road">The road to mark as dirty.</param>
+        public static void MarkDirty(Road road)
         {
-            if (roadData == null) return;
+            if (road == null) return;
             
             lock (_lock)
             {
-                _dirtyRoads.Add(roadData);
+                _dirtyRoadIndices.Add(road);
             }
         }
         
@@ -31,12 +32,12 @@ namespace OnomiCircuitShaper.Engine
         /// Gets all dirty roads and clears the queue atomically.
         /// </summary>
         /// <returns>List of all roads that need rebuilding.</returns>
-        public static List<RoadData> GetAndClearDirtyRoads()
+        public static List<Road> GetAndClearDirtyRoads()
         {
             lock (_lock)
             {
-                var result = new List<RoadData>(_dirtyRoads);
-                _dirtyRoads.Clear();
+                var result = new List<Road>(_dirtyRoadIndices);
+                _dirtyRoadIndices.Clear();
                 return result;
             }
         }
@@ -48,7 +49,7 @@ namespace OnomiCircuitShaper.Engine
         {
             lock (_lock)
             {
-                _dirtyRoads.Clear();
+                _dirtyRoadIndices.Clear();
             }
         }
         
@@ -60,7 +61,7 @@ namespace OnomiCircuitShaper.Engine
         {
             lock (_lock)
             {
-                return _dirtyRoads.Count > 0;
+                return _dirtyRoadIndices.Count > 0;
             }
         }
         
@@ -73,7 +74,7 @@ namespace OnomiCircuitShaper.Engine
             {
                 lock (_lock)
                 {
-                    return _dirtyRoads.Count;
+                    return _dirtyRoadIndices.Count;
                 }
             }
         }

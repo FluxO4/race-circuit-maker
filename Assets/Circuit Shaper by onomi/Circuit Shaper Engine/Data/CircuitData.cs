@@ -20,11 +20,5 @@ namespace OnomiCircuitShaper.Engine.Data
         // layers can clearly distinguish main-path splines from other types like cross-sections.
         public List<CircuitCurveData> CircuitCurves = new List<CircuitCurveData>();
 
-        /// <summary>
-        /// A list of all the <see cref="RoadData"/> objects. Each road defines a visible mesh
-        /// that is generated along a sequence of points from the curves, effectively creating
-        /// the track surface.
-        /// </summary>
-        public List<RoadData> CircuitRoads = new List<RoadData>();
     }
 }

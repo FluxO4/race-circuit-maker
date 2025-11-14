@@ -26,11 +26,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public List<CircuitCurve> Curves { get; private set; } = new List<CircuitCurve>();
 
-        /// <summary>
-        /// A list of live, editable Road objects that mirror `CircuitData.CircuitRoads`.
-        /// </summary>
-        public List<Road> Roads { get; private set; } = new List<Road>();
-
 
         /// <summary>
         /// Initializes the editing session. It populates the dictionaries with live
@@ -44,7 +39,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
             //Clear existing data
             Curves.Clear();
-            Roads.Clear();
 
             // Instantiate Curves
             foreach (CircuitCurveData curveData in Data.CircuitCurves)
@@ -52,15 +46,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 CircuitCurve curve = new CircuitCurve(curveData, Settings);
                 Curves.Add(curve);
             }
-            //Instantiate Roads
-            foreach (var roadData in Data.CircuitRoads)
-            {
-                Road road = new Road(roadData, Settings, this);
-                Roads.Add(road);
-            }
-            
-            // Reconnect roads to their live CircuitPoint objects and subscribe to events
-            ReconnectRoadsToPoints();
         }
 
         /// <summary>
@@ -72,7 +57,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Data = null;
             Settings = null;
             Curves.Clear();
-            Roads.Clear();
         }
 
 
@@ -93,23 +77,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             return null;
         }
 
-        // Function for adding new road from RoadData can be added here.
-        public void AddRoad(RoadData roadData)
-        {
-            if (!Roads.Exists(r => object.ReferenceEquals(r.Data, roadData)))
-            {
-                Road road = new Road(roadData, Settings, this);
-                // Ensure data list contains this road
-                if (Data != null)
-                {
-                    if (Data.CircuitRoads == null)
-                        Data.CircuitRoads = new List<RoadData>();
-                    if (!Data.CircuitRoads.Contains(roadData))
-                        Data.CircuitRoads.Add(roadData);
-                }
-                Roads.Add(road);
-            }
-        }
 
         // Function for deleting curve
         public void DeleteCurve(CircuitCurve curve)
@@ -123,109 +90,6 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                     Data.CircuitCurves.Remove(curve.Data);
                 }
             }
-        }
-
-
-        /// <summary>
-        /// Triggers a rebuild of all roads and their associated meshes.
-        /// </summary>
-        public void BuildAll()
-        {
-            // To be implemented.
-        }
-
-        /// <summary>
-        /// Reconnects roads to their live CircuitPoint objects and establishes road associations.
-        /// This must be called after roads are instantiated from data to establish live references.
-        /// Uses the queue-based system instead of event subscriptions.
-        /// 
-        /// After deserialization, CircuitPointData references change, so we match by position in the
-        /// data structure (curve index + point index) rather than reference equality.
-        /// </summary>
-        public void ReconnectRoadsToPoints()
-        {
-            if (Roads == null) return;
-            
-            // First, clear all existing road associations from all points
-            foreach (var curve in Curves)
-            {
-                foreach (var point in curve.Points)
-                {
-                    point.AssociatedRoads.Clear();
-                }
-            }
-            
-            // Then, rebuild associations for each road
-            foreach (var road in Roads)
-            {
-                if (road.Data?.AssociatedPoints == null || road.Data.AssociatedPoints.Count < 2)
-                {
-                    UnityEngine.Debug.LogWarning($"[Circuit] Skipping road with invalid AssociatedPoints (null or < 2 points)");
-                    continue;
-                }
-                
-                // Find all live points for this road by matching data positions
-                var livePoints = new List<CircuitPoint>();
-                bool allPointsFound = true;
-                
-                foreach (var pointData in road.Data.AssociatedPoints)
-                {
-                    CircuitPoint livePoint = FindPointByData(pointData);
-                    if (livePoint != null)
-                    {
-                        livePoints.Add(livePoint);
-                        // Add this road to the point's association list (for marking dirty)
-                        livePoint.AddRoadAssociation(road.Data);
-                    }
-                    else
-                    {
-                        allPointsFound = false;
-                        UnityEngine.Debug.LogError($"[Circuit] Could not find live point for RoadData - point may have been deleted or data corrupted");
-                        break;
-                    }
-                }
-                
-                // Rebuild road's live point list and event subscriptions
-                if (allPointsFound && livePoints.Count >= 2)
-                {
-                    // This populates Road.AssociatedPoints and sets up event subscriptions
-                    road.BuildRoadFromPoints(livePoints);
-                    // Mark for initial rebuild
-                    RoadRebuildQueue.MarkDirty(road.Data);
-                    UnityEngine.Debug.Log($"[Circuit] Road reconnected with {livePoints.Count} points, marked for rebuild");
-                }
-                else
-                {
-                    UnityEngine.Debug.LogWarning($"[Circuit] Road reconnection failed - only found {livePoints.Count} of {road.Data.AssociatedPoints.Count} points");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Finds a live CircuitPoint object that wraps the given CircuitPointData.
-        /// After deserialization, references change, so we match by finding the same
-        /// CircuitPointData instance in both the curve's data and the point's data.
-        /// </summary>
-        private CircuitPoint FindPointByData(CircuitPointData pointData)
-        {
-            // Find which curve contains this point data
-            for (int curveIdx = 0; curveIdx < Data.CircuitCurves.Count; curveIdx++)
-            {
-                var curveData = Data.CircuitCurves[curveIdx];
-                for (int pointIdx = 0; pointIdx < curveData.CurvePoints.Count; pointIdx++)
-                {
-                    // Check if this is the same data object by reference
-                    if (object.ReferenceEquals(curveData.CurvePoints[pointIdx], pointData))
-                    {
-                        // Found it! Now get the corresponding live point
-                        if (curveIdx < Curves.Count && pointIdx < Curves[curveIdx].Points.Count)
-                        {
-                            return Curves[curveIdx].Points[pointIdx];
-                        }
-                    }
-                }
-            }
-            return null;
         }
     }
 }

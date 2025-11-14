@@ -11,7 +11,8 @@ namespace OnomiCircuitShaper.Engine.Data
     [System.Serializable]
     public class CircuitCurveData : CurveData<CircuitPointData>
     {
-        // This class is currently a placeholder for any future properties that are
-        // specific to a main circuit path, such as track-wide properties or metadata.
+        // Roads that are built along this circuit curve.
+        public List<RoadData> Roads = new List<RoadData>();
+
     }
 }

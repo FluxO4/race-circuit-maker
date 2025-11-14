@@ -3,6 +3,7 @@ using System.Numerics;
 
 namespace OnomiCircuitShaper.Engine.Data
 {
+
     /// <summary>
     /// Contains all the data required to generate a road mesh.
     /// A road is defined by a sequence of points, mesh generation parameters,
@@ -12,10 +13,16 @@ namespace OnomiCircuitShaper.Engine.Data
     public class RoadData
     {
         /// <summary>
-        /// The ordered list of points that this road will be built along.
-        /// These points are typically a subset of the points from one or more CircuitCurves.
+        /// The min and max indices of the points that define this road within the parent curve's point list.
         /// </summary>
-        public List<CircuitPointData> AssociatedPoints = new List<CircuitPointData>();
+
+        public (int, int) PointIndexRange;
+        
+
+        //<summary>
+        /// The material index to use when generating the road mesh. This index corresponds to the material list in the parent circuit.
+        ///</summary>
+        public int MaterialIndex = 0;
 
         /// <summary>
         /// Determines the number of vertices used across the width of the road mesh.

@@ -12,6 +12,11 @@ namespace OnomiCircuitShaper.Engine.Data
     public class BridgeData
     {
         /// <summary>
+        /// The material index to use when rendering the bridge mesh.
+        /// </summary>
+        public int MaterialIndex = 0;
+
+        /// <summary>
         /// If true, the bridge shape will be generated using the procedural template parameters below.
         /// If false, it will be generated from the custom 'BridgeShapePoints' list.
         /// </summary>

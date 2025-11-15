@@ -660,7 +660,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Points[^1].AutoSetControlPoints();
         }
 
-        protected void OnCurveStateChanged()
+        public void OnCurveStateChanged()
         {
             CurveStateChanged?.Invoke();
         }

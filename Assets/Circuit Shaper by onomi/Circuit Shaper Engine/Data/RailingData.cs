@@ -8,6 +8,16 @@ namespace OnomiCircuitShaper.Engine.Data
     public class RailingData
     {
         /// <summary>
+        /// The material index to use when rendering the railing mesh.
+        /// </summary>
+        public int MaterialIndex = 0;
+
+        /// <summary>
+        /// Whether to render this railing (false makes it invisible).
+        /// </summary>
+        public bool IsVisible = true;
+
+        /// <summary>
         /// The vertical height of the railing mesh from the road surface.
         /// </summary>
         public float RailingHeight = 1.0f;

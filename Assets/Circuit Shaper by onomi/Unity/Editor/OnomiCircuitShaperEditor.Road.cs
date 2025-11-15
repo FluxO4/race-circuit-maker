@@ -350,6 +350,14 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
             // --- END NEW SECTION ---
 
+            // Bridge Section
+            EditorGUILayout.Space();
+            DrawBridgeInspector();
+
+            // Railings Section
+            EditorGUILayout.Space();
+            DrawRailingsInspector();
+
             // Deletion
             EditorGUILayout.Space();
             GUI.backgroundColor = Color.red;
@@ -367,6 +375,187 @@ namespace OnomiCircuitShaper.Unity.Editor
             GUI.backgroundColor = Color.white;
 
             EditorGUILayout.Space();
+        }
+
+        /// <summary>
+        /// Draws the bridge inspector UI for the selected road.
+        /// </summary>
+        private void DrawBridgeInspector()
+        {
+            EditorGUILayout.LabelField("Bridge", EditorStyles.boldLabel);
+
+            bool hasBridge = _selectedRoad.Bridge != null;
+            
+            EditorGUI.BeginChangeCheck();
+            bool enableBridge = EditorGUILayout.Toggle("Enable Bridge", hasBridge);
+            
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (enableBridge && !hasBridge)
+                {
+                    // Create new bridge
+                    _selectedRoad.Data.Bridge = new BridgeData();
+                    _selectedRoad.parentCurve.OnCurveStateChanged();
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+                else if (!enableBridge && hasBridge)
+                {
+                    // Remove bridge
+                    _selectedRoad.Data.Bridge = null;
+                    _selectedRoad.parentCurve.OnCurveStateChanged();
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+            }
+
+            if (hasBridge)
+            {
+                EditorGUI.indentLevel++;
+                
+                // Material Index
+                bool hasBridgeMaterials = _target != null && _target.BridgeMaterials != null && _target.BridgeMaterials.Count > 0;
+                EditorGUI.BeginDisabledGroup(!hasBridgeMaterials);
+                
+                EditorGUI.BeginChangeCheck();
+                int maxBridgeMatIndex = hasBridgeMaterials ? Mathf.Max(0, _target.BridgeMaterials.Count - 1) : 0;
+                int bridgeMaterialIndex = EditorGUILayout.IntSlider("Material Index", _selectedRoad.Bridge.Data.MaterialIndex, 0, maxBridgeMatIndex);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _selectedRoad.Bridge.Data.MaterialIndex = bridgeMaterialIndex;
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+                
+                EditorGUI.EndDisabledGroup();
+                if (!hasBridgeMaterials)
+                {
+                    EditorGUILayout.HelpBox("No bridge materials assigned. Add materials to the OnomiCircuitShaper component.", MessageType.Info);
+                }
+
+                // Template settings
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Template Settings", EditorStyles.miniBoldLabel);
+
+                EditorGUI.BeginChangeCheck();
+                float edgeWidth = EditorGUILayout.FloatField("Edge Width", _selectedRoad.Bridge.Data.TemplateEdgeWidth);
+                float bridgeHeight = EditorGUILayout.FloatField("Bridge Height", _selectedRoad.Bridge.Data.TemplateBridgeHeight);
+                float flangeWidth = EditorGUILayout.FloatField("Flange Width", _selectedRoad.Bridge.Data.TemplateFlangeWidth);
+                float flangeHeight = EditorGUILayout.FloatField("Flange Height", _selectedRoad.Bridge.Data.TemplateFlangeHeight);
+                float flangeDepth = EditorGUILayout.FloatField("Flange Depth", _selectedRoad.Bridge.Data.TemplateFlangeDepth);
+                float curbHeight = EditorGUILayout.FloatField("Curb Height", _selectedRoad.Bridge.Data.TemplateCurbHeight);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _selectedRoad.Bridge.Data.TemplateEdgeWidth = edgeWidth;
+                    _selectedRoad.Bridge.Data.TemplateBridgeHeight = bridgeHeight;
+                    _selectedRoad.Bridge.Data.TemplateFlangeWidth = flangeWidth;
+                    _selectedRoad.Bridge.Data.TemplateFlangeHeight = flangeHeight;
+                    _selectedRoad.Bridge.Data.TemplateFlangeDepth = flangeDepth;
+                    _selectedRoad.Bridge.Data.TemplateCurbHeight = curbHeight;
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        /// <summary>
+        /// Draws the railings inspector UI for the selected road.
+        /// </summary>
+        private void DrawRailingsInspector()
+        {
+            EditorGUILayout.LabelField("Railings", EditorStyles.boldLabel);
+
+            if (_selectedRoad.Railings == null)
+            {
+                _selectedRoad.Data.Railings = new List<RailingData>();
+            }
+
+            int railingCount = _selectedRoad.Railings.Count;
+            EditorGUILayout.LabelField($"Count: {railingCount}");
+
+            // Add/Remove buttons
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Add Railing", GUILayout.Height(25)))
+            {
+                var newRailing = new RailingData();
+                _selectedRoad.Data.Railings.Add(newRailing);
+                _selectedRoad.parentCurve.OnCurveStateChanged();
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+            
+            EditorGUI.BeginDisabledGroup(railingCount == 0);
+            if (GUILayout.Button("Remove Last", GUILayout.Height(25)))
+            {
+                if (railingCount > 0)
+                {
+                    _selectedRoad.Data.Railings.RemoveAt(railingCount - 1);
+                    _selectedRoad.parentCurve.OnCurveStateChanged();
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+            }
+            EditorGUI.EndDisabledGroup();
+            EditorGUILayout.EndHorizontal();
+
+            // Draw each railing
+            for (int i = 0; i < _selectedRoad.Railings.Count; i++)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                
+                var railing = _selectedRoad.Railings[i];
+                var railingData = railing.Data;
+
+                EditorGUILayout.LabelField($"Railing {i}", EditorStyles.boldLabel);
+                
+                EditorGUI.indentLevel++;
+
+                EditorGUI.BeginChangeCheck();
+
+                // Visibility
+                bool isVisible = EditorGUILayout.Toggle("Visible", railingData.IsVisible);
+
+                // Material
+                bool hasRailingMaterials = _target != null && _target.RailingMaterials != null && _target.RailingMaterials.Count > 0;
+                EditorGUI.BeginDisabledGroup(!hasRailingMaterials);
+                int maxRailingMatIndex = hasRailingMaterials ? Mathf.Max(0, _target.RailingMaterials.Count - 1) : 0;
+                int railingMaterialIndex = EditorGUILayout.IntSlider("Material Index", railingData.MaterialIndex, 0, maxRailingMatIndex);
+                EditorGUI.EndDisabledGroup();
+
+                if (!hasRailingMaterials)
+                {
+                    EditorGUILayout.HelpBox("No railing materials assigned.", MessageType.Info);
+                }
+
+                // Properties
+                float railingHeight = EditorGUILayout.FloatField("Height", railingData.RailingHeight);
+                float min = EditorGUILayout.Slider("Min (Length)", railingData.Min, 0f, 1f);
+                float max = EditorGUILayout.Slider("Max (Length)", railingData.Max, 0f, 1f);
+                float horizontalPos = EditorGUILayout.Slider("Horizontal Position", railingData.HorizontalPosition, 0f, 1f);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    railingData.IsVisible = isVisible;
+                    railingData.MaterialIndex = railingMaterialIndex;
+                    railingData.RailingHeight = railingHeight;
+                    railingData.Min = Mathf.Min(min, max - 0.01f);
+                    railingData.Max = Mathf.Max(max, min + 0.01f);
+                    railingData.HorizontalPosition = horizontalPos;
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+
+                // Delete button for this specific railing
+                GUI.backgroundColor = new Color(1f, 0.5f, 0.5f);
+                if (GUILayout.Button($"Delete Railing {i}", GUILayout.Height(20)))
+                {
+                    _selectedRoad.Data.Railings.RemoveAt(i);
+                    _selectedRoad.parentCurve.OnCurveStateChanged();
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                    break; // Exit loop since we modified the list
+                }
+                GUI.backgroundColor = Color.white;
+
+                EditorGUI.indentLevel--;
+                EditorGUILayout.EndVertical();
+            }
         }
 
 

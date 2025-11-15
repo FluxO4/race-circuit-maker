@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OnomiCircuitShaper.Engine.Data;
 using System.Numerics;
+using OnomiCircuitShaper.Engine.Presets;
 
 namespace OnomiCircuitShaper.Engine.EditRealm
 {
@@ -35,9 +36,18 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         {
             CircuitCurve = circuitCurve;
 
-            if (CrossSection == null && data.CrossSectionCurve != null)
+            if (CrossSection == null && data.CrossSectionCurve != null && data.CrossSectionCurve.CurvePoints != null && data.CrossSectionCurve.CurvePoints.Count >= 2)
             {
+                //Add cross section if it exists
                 CrossSection = new CrossSectionCurve(data.CrossSectionCurve, settings, this);
+            }
+            else
+            {
+                //Create and default to flat cross-section
+                CrossSectionCurveData newCurveData = new CrossSectionCurveData();
+                newCurveData.CurvePoints = new List<CrossSectionPointData>();
+                SetCrossSectionCurve(new CrossSectionCurve(newCurveData, settings, this));
+                CrossSection.SetPreset(CrossSectionPresets.FlatPreset);
             }
         }
 
@@ -47,6 +57,13 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             CrossSection = newCrossSection;
             Data.CrossSectionCurve = newCrossSection?.Data;
             OnPointStateChanged();
+            CircuitCurve?.HandlePointTransformed(this);
+        }
+
+        public void OnCrossSectionChanged()
+        {
+            OnPointStateChanged();
+            CircuitCurve?.HandlePointTransformed(this);
         }
 
         #region Properties
@@ -97,6 +114,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             Data.ForwardControlPointPosition += delta;
             Data.BackwardControlPointPosition += delta;
             OnPointStateChanged();
+            CircuitCurve?.HandlePointTransformed(this);
         }
 
         /// <summary>
@@ -116,6 +134,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             }
             RealignUpVector();
             OnPointStateChanged();
+            CircuitCurve?.HandlePointTransformed(this);
         }
 
         /// <summary>
@@ -136,6 +155,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             }
             RealignUpVector();
             OnPointStateChanged();
+            CircuitCurve?.HandlePointTransformed(this);
+
         }
 
         /// <summary>
@@ -167,6 +188,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
             RealignUpVector();
             OnPointStateChanged();
+            CircuitCurve?.HandlePointTransformed(this);
         }
 
 

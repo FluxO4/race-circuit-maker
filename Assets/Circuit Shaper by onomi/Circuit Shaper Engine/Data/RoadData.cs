@@ -16,8 +16,8 @@ namespace OnomiCircuitShaper.Engine.Data
         /// The min and max indices of the points that define this road within the parent curve's point list.
         /// </summary>
 
-        public int minPointIndex = 0;
-        public int maxPointIndex = 0;
+        public int startSegmentIndex = 0;
+        public int endSegmentIndex = 0;
         
 
         //<summary>

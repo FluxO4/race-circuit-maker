@@ -36,6 +36,11 @@ namespace OnomiCircuitShaper.Unity.Editor
         {
             _target = (OnomiCircuitShaper)target;
 
+            if (_target.freeze) return;
+
+            //If playing, do not initialize editor
+            if (Application.isPlaying) return;
+
             // The OnAfterDeserialize on the target will have already run,
             // so _target.Data should be fully loaded here.
 
@@ -54,6 +59,14 @@ namespace OnomiCircuitShaper.Unity.Editor
         
         private void OnDisable()
         {
+
+            if (_target.freeze) return;
+
+            //If playing, do not disable editor
+            if (Application.isPlaying) return;
+
+
+
             // Clear the rebuild queue when editor is disabled via interface
             if (_circuitShaper != null)
             {
@@ -71,6 +84,13 @@ namespace OnomiCircuitShaper.Unity.Editor
         {
             //Draw default inspector
             DrawDefaultInspector();
+
+            if (_target.freeze) return;
+
+            //If playing, do not initialize editor
+            if (Application.isPlaying) return;
+
+            
 
             // Process the road rebuild queue
             ProcessDirtyRoads();
@@ -290,10 +310,24 @@ namespace OnomiCircuitShaper.Unity.Editor
 
         private void OnSceneGUI()
         {
+
+
             if (_target == null || _circuitShaper == null) return;
+            
+            if (_target.freeze) return;
+
+            //If playing, do not initialize editor
+            if (Application.isPlaying) return;
 
             // Process the road rebuild queue for immediate visual feedback
             ProcessDirtyRoads();
+
+            
+
+
+
+            Event e = Event.current;
+
 
             if (_isEditingCrossSection)
             {
@@ -302,12 +336,11 @@ namespace OnomiCircuitShaper.Unity.Editor
             else
             {
                 // Draw all regular handles when not in cross-section edit mode
-                DrawAllHandles(_target);
+                DrawAllHandles(_target, e);
             }
 
             HandleUtility.Repaint();
 
-            Event e = Event.current;
 
             // Handle point creation
             if ((_creatingNewPointMode || _addingToSelectedCurveMode) && e.type == EventType.MouseDown && e.button == 0 && !e.alt)
@@ -318,7 +351,7 @@ namespace OnomiCircuitShaper.Unity.Editor
 
                     //Pass camera position and forward direction
                     Ray ray = HandleUtility.GUIPointToWorldRay(e.mousePosition);
-                    CircuitPoint createdPoint =_circuitShaper.AddPointAsNewCurve(ray.origin.ToLocalSpace(_target.transform.position, _target.Data.settingsData.ScaleMultiplier), ray.direction.ToNumericsVector3());
+                    CircuitPoint createdPoint = _circuitShaper.AddPointAsNewCurve(ray.origin.ToLocalSpace(_target.transform.position, _target.Data.settingsData.ScaleMultiplier), ray.direction.ToNumericsVector3());
                     // switch to adding-to-selected after creation so subsequent clicks add to the freshly created curve
                     _creatingNewPointMode = false;
                     _addingToSelectedCurveMode = true;
@@ -336,20 +369,42 @@ namespace OnomiCircuitShaper.Unity.Editor
                     {
                         _addingToSelectedCurveMode = false;
                     }
-   
+
                     _circuitShaper.SelectPoint(createdPoint);
-                    
+
                 }
+
+                _circuitShaper.DeselectRoad();
 
                 // consume the event so Unity's scene view doesn't also use it
                 e.Use();
 
             }
+            else if (e.type == EventType.MouseDown && e.button == 0 && !e.alt && _hoveredRoad != null)
+            {
+                _circuitShaper.SelectRoad(_hoveredRoad);
+                _circuitShaper.ClearSelection(); // Deselect any points
+                _creatingNewPointMode = false;
+                _addingToSelectedCurveMode = false;
+                _isEditingCrossSection = false;
+                Debug.Log("Clicked and seleceted road: " + _hoveredRoad.RoadStartIndex + " as " + _selectedRoad);
+                e.Use();
+                Repaint(); // Update inspector
+            }
+            else if ((_circuitShaper.SelectedPoints.Count > 0) && e.type == EventType.KeyDown && e.keyCode == KeyCode.Delete && !e.alt)
+            {
+
+                _circuitShaper.DeleteSelectedPoints();
+
+
+                // consume the event so Unity's scene view doesn't also use it
+                e.Use();
+            }
             else if ((_circuitShaper.SelectedPoints.Count > 0) && e.type == EventType.MouseDown && e.button == 0 && !e.alt)
             {
 
                 _circuitShaper.ClearSelection();
-
+                _circuitShaper.DeselectRoad();
                 // exit all modes
                 _creatingNewPointMode = false;
                 _addingToSelectedCurveMode = false;
@@ -359,14 +414,16 @@ namespace OnomiCircuitShaper.Unity.Editor
                 e.Use();
 
             }
-            else if ((_circuitShaper.SelectedPoints.Count > 0) && e.type == EventType.KeyDown && e.keyCode == KeyCode.Delete && !e.alt)
+
+            
+
+            //deselect road if any points are selected
+            if (_circuitShaper.SelectedPoints.Count > 0 && _selectedRoad != null)
             {
-
-                _circuitShaper.DeleteSelectedPoints();
-
-                // consume the event so Unity's scene view doesn't also use it
-                e.Use();
+                _circuitShaper.DeselectRoad();
+                Repaint(); // Update inspector
             }
+            
             
             
             // If any handle was moved, mark the object as "dirty"

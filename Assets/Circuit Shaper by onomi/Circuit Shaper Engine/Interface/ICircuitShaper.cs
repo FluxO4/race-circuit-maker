@@ -182,7 +182,15 @@ namespace OnomiCircuitShaper.Engine.Interface
         //A function to delete the currently selected curve
         void DeleteSelectedCurve();
 
+        /// <summary>
+        /// Attempts to change the start segment index of a road. Returns false if it would cause overlap with another road.
+        /// </summary>
+        bool TrySetRoadStartSegment(Road road, int newStartSegment);
 
+        /// <summary>
+        /// Attempts to change the end segment index of a road. Returns false if it would cause overlap with another road.
+        /// </summary>
+        bool TrySetRoadEndSegment(Road road, int newEndSegment);
 
     }
 

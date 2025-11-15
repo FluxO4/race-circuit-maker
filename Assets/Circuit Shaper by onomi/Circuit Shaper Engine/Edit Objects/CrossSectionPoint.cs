@@ -66,6 +66,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             // Notify listeners/owners that the cross-section point changed. Owners
             // such as the CrossSectionCurve should listen and auto-set control points.
             OnPointStateChanged();
+            
         }
 
         /// <summary>

@@ -285,5 +285,15 @@ namespace OnomiCircuitShaper.Engine.Interface
         {
             _singlePointSelectionMode = mode;
         }
+
+        public bool TrySetRoadStartSegment(Road road, int newStartSegment)
+        {
+            return road?.parentCurve?.TrySetRoadStartSegment(road, newStartSegment) ?? false;
+        }
+
+        public bool TrySetRoadEndSegment(Road road, int newEndSegment)
+        {
+            return road?.parentCurve?.TrySetRoadEndSegment(road, newEndSegment) ?? false;
+        }
     }
 }

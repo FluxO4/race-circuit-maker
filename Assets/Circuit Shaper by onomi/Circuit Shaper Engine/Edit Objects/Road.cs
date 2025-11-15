@@ -10,6 +10,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
     /// </summary>
     public class Road
     {
+        public bool MarkedForDeletion = false;
+
+
         /// <summary>
         /// The raw, underlying data for this road.
         /// Contains PointAddresses, mesh generation parameters, UV settings.
@@ -35,8 +38,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         public Bridge Bridge { get; private set; }
 
 
-        public int RoadStartIndex => Data.minPointIndex;
-        public int RoadEndIndex => Data.maxPointIndex;
+        public int RoadStartIndex => Data.startSegmentIndex;
+        public int RoadEndIndex => Data.endSegmentIndex;
 
         /// <summary>
         /// Constructor - creates a simple wrapper around RoadData.

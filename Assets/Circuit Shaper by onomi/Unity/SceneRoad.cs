@@ -21,19 +21,7 @@ namespace OnomiCircuitShaper.Unity
         private MeshCollider _meshCollider;
         private Mesh _mesh;
 
-        private void Awake()
-        {
-            // Prevent this GameObject from being saved in the scene or destroyed during play mode transitions
-            this.gameObject.hideFlags = HideFlags.DontSaveInEditor;
-            
-            _meshFilter = GetComponent<MeshFilter>();
-            _meshRenderer = GetComponent<MeshRenderer>();
-            _meshCollider = GetComponent<MeshCollider>();
-            _mesh = new Mesh();
-            _mesh.name = "SceneRoad_Mesh";
-            _meshFilter.mesh = _mesh;
-            _meshCollider.sharedMesh = _mesh;
-        }
+
 
         /// <summary>
         /// Receives new mesh data and applies it to the MeshFilter and MeshCollider.

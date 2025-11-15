@@ -58,16 +58,18 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// </remarks>
         public static GenericMeshData BuildRoadMesh(Road road)
         {
-            if (road.Data.maxPointIndex == road.Data.minPointIndex)
+            // Note: Same start and end segment is valid (single segment road)
+            // Only check that parent curve has points
+            if (road.parentCurve == null || road.parentCurve.Points.Count < 2)
             {
-                UnityEngine.Debug.Log("Invalid point index range for road: " + road + " Range: " + road.Data.minPointIndex + " to " + road.Data.maxPointIndex);
+               
                 return new GenericMeshData();
             }
 
 
             //Extract points from the parent curve using the range
-            UnityEngine.Debug.Log(road + " " + road.parentCurve + " Range: " + road.Data.minPointIndex + " to " + road.Data.maxPointIndex);
-            List<CircuitPoint> pointArray = road.parentCurve.GetPointsInRange(road.Data.minPointIndex, road.Data.maxPointIndex);
+
+            List<CircuitPoint> pointArray =  road.parentCurve.GetPointsFromSegmentRange(road.Data.startSegmentIndex, road.Data.endSegmentIndex);
 
             CircuitPointData[] pointDataArray = pointArray.Select(p => p.Data).ToArray();
 
@@ -81,18 +83,18 @@ namespace OnomiCircuitShaper.Engine.Processors
                 }
             }
 
-            UnityEngine.Debug.Log("Building road mesh for road with " + pointDataArray.Length + " points.");
+    
 
-            
+
             // Calculate mesh dimensions
             int widthSegments = road.Data.WidthWiseVertexCount - 1;
             int lengthSegmentsPerPoint = Math.Max(1, (int)(widthSegments * road.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount));
             int totalLengthSegments = (pointDataArray.Length - 1) * lengthSegmentsPerPoint;
-            
+
             int vertexCountWidth = road.Data.WidthWiseVertexCount;
             int vertexCountLength = totalLengthSegments + 1;
             int totalVertices = vertexCountWidth * vertexCountLength;
-            
+
             // Allocate arrays
             var vertices = new Vector3[totalVertices];
             var uvs = new Vector2[totalVertices];
@@ -163,6 +165,8 @@ namespace OnomiCircuitShaper.Engine.Processors
                 MaterialID = road.Data.MaterialIndex
             };
         }
+        
+
 
         /// <summary>
         /// Generates the vertex, UV, and triangle data for a bridge mesh.

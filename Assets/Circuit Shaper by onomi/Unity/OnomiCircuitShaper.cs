@@ -11,6 +11,10 @@ namespace OnomiCircuitShaper.Unity
     /// </summary>
     public class OnomiCircuitShaper : MonoBehaviour
     {
+
+        public bool freeze = false;
+
+
         /// <summary>
         /// The data
         /// </summary>

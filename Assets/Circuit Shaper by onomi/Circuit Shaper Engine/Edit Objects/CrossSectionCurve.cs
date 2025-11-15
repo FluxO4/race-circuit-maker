@@ -50,6 +50,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 }
                 SetPointsFromLocalPositions(newPositions);
             }
+
+            parentCircuitPoint.OnCrossSectionChanged();
             
         }
 
@@ -82,9 +84,9 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             }
 
             UpdateNeighborReferences();
-            NormaliseCrossSectionPoints();
-            AutoSetAllControlPoints();
+            HandleCrossSectionPointChanged();
             OnCurveStateChanged();
+            
         }
 
         /// <summary>
@@ -100,6 +102,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 return;
             }
             SetPointsFromLocalPositions(preset.ToList());
+
+    
         }
 
         /// <summary>
@@ -111,6 +115,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         {
             AutoSetAllControlPoints();
             NormaliseCrossSectionPoints();
+            parentCircuitPoint.OnCrossSectionChanged();
         }
 
         private void OnPointChanged(Point<CrossSectionPointData> point)

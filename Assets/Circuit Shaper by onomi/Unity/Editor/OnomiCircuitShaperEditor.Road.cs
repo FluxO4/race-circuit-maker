@@ -15,6 +15,7 @@ namespace OnomiCircuitShaper.Unity.Editor
     {
         //Dict to map RoadData to SceneRoad GameObjects
         Dictionary<Road, SceneRoad> _sceneRoads = new Dictionary<Road, SceneRoad>();
+        Road _hoveredRoad = null;
 
 
         /// <summary>
@@ -32,19 +33,32 @@ namespace OnomiCircuitShaper.Unity.Editor
             _sceneRoads.Clear();
 
             // Delete all children of the target GameObject
-            foreach (Transform child in _target.transform)
+            // Use a reverse for-loop to avoid modifying the Transform collection while enumerating.
+            for (int i = _target.transform.childCount - 1; i >= 0; i--)
             {
+                var child = _target.transform.GetChild(i);
+                Debug.Log("[Editor] Deleted child GameObject: " + child.name);
                 DestroyImmediate(child.gameObject);
             }
+           // Debug.Log("[Editor] Number of Children Destroyed: " + _target.transform.childCount);
 
-            foreach(CircuitCurve circuitCurve in circuit.Curves)
+            foreach (CircuitCurve circuitCurve in circuit.Curves)
             {
-                foreach(Road road in circuitCurve.Roads)
+                foreach (Road road in circuitCurve.Roads)
                 {
                     var meshData = RoadProcessor.BuildRoadMesh(road);
 
                     // Create or update the SceneRoad
                     UpdateRoadMesh(road, meshData);
+                }
+            }
+            
+            //Hide the scene roads from the hierarchy
+            foreach (var sceneRoad in _sceneRoads.Values)
+            {
+                if (sceneRoad != null)
+                {
+                    sceneRoad.gameObject.hideFlags = HideFlags.HideInHierarchy;
                 }
             }
 
@@ -107,6 +121,24 @@ namespace OnomiCircuitShaper.Unity.Editor
         {
             UnityEngine.Debug.Log($"[Editor] UpdateRoadMesh called. Vertices: {meshData.Vertices?.Length ?? 0}");
 
+            //if road is marked for deletion, delete and return
+            if (road.MarkedForDeletion)
+            {
+                UnityEngine.Debug.Log("[Editor] Road marked for deletion, removing SceneRoad if exists");
+                if (_sceneRoads.TryGetValue(road, out SceneRoad sceneRoad))
+                {
+                    if (sceneRoad != null)
+                    {
+                        DestroyImmediate(sceneRoad.gameObject);
+                    }
+                    _sceneRoads.Remove(road);
+                }
+                //Let's just rebuild everything instead to be safe
+                
+                return;
+            }
+
+
             // If meshData has no vertices
             if (meshData.Vertices == null) return;
 
@@ -157,7 +189,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             UnityEngine.Debug.Log($"[Editor] Calling SceneRoad.UpdateMesh with {vertices.Length} vertices, {uvs.Length} UVs, {mesh.Triangles.Length} triangle indices");
 
             // Update the mesh
-            existingRoad.UpdateMesh(vertices, uvs, mesh.Triangles, 0);
+            existingRoad.UpdateMesh(vertices, uvs, mesh.Triangles, mesh.MaterialID);
 
             UnityEngine.Debug.Log("[Editor] Mesh updated successfully");
         }
@@ -257,22 +289,26 @@ namespace OnomiCircuitShaper.Unity.Editor
             // Min Index control
             EditorGUILayout.BeginHorizontal(GUILayout.Width(220));
             GUI.enabled = (pointCount > 0);
-            GUILayout.Label("Min Index", GUILayout.Width(80));
+            GUILayout.Label("Start Seg", GUILayout.Width(80));
             if (GUILayout.Button("-", GUILayout.Width(24)))
             {
-                int v = _selectedRoad.Data.minPointIndex - 1;
+                int v = _selectedRoad.Data.startSegmentIndex - 1;
                 if (pointCount > 0 && v < 0) v = maxAllowed;
-                _selectedRoad.Data.minPointIndex = Mathf.Clamp(v, 0, maxAllowed);
-                RoadRebuildQueue.MarkDirty(_selectedRoad);
+                if (!_circuitShaper.TrySetRoadStartSegment(_selectedRoad, v))
+                {
+                    UnityEngine.Debug.LogWarning("Cannot decrease start segment: would overlap with another road");
+                }
             }
             // display value (not directly editable - changed only via +/-)
-            EditorGUILayout.LabelField(_selectedRoad.Data.minPointIndex.ToString(), GUILayout.Width(30), GUILayout.ExpandWidth(false));
+            EditorGUILayout.LabelField(_selectedRoad.Data.startSegmentIndex.ToString(), GUILayout.Width(30), GUILayout.ExpandWidth(false));
             if (GUILayout.Button("+", GUILayout.Width(24)))
             {
-                int v = _selectedRoad.Data.minPointIndex + 1;
+                int v = _selectedRoad.Data.startSegmentIndex + 1;
                 if (pointCount > 0 && v > maxAllowed) v = 0;
-                _selectedRoad.Data.minPointIndex = Mathf.Clamp(v, 0, maxAllowed);
-                RoadRebuildQueue.MarkDirty(_selectedRoad);
+                if (!_circuitShaper.TrySetRoadStartSegment(_selectedRoad, v))
+                {
+                    UnityEngine.Debug.LogWarning("Cannot increase start segment: would overlap with another road");
+                }
             }
             GUI.enabled = true;
             EditorGUILayout.EndHorizontal();
@@ -280,21 +316,25 @@ namespace OnomiCircuitShaper.Unity.Editor
             // Max Index control
             EditorGUILayout.BeginHorizontal(GUILayout.Width(220));
             GUI.enabled = (pointCount > 0);
-            GUILayout.Label("Max Index", GUILayout.Width(80));
+            GUILayout.Label("End Seg", GUILayout.Width(80));
             if (GUILayout.Button("-", GUILayout.Width(24)))
             {
-                int v = _selectedRoad.Data.maxPointIndex - 1;
+                int v = _selectedRoad.Data.endSegmentIndex - 1;
                 if (pointCount > 0 && v < 0) v = maxAllowed;
-                _selectedRoad.Data.maxPointIndex = Mathf.Clamp(v, 0, maxAllowed);
-                RoadRebuildQueue.MarkDirty(_selectedRoad);
+                if (!_circuitShaper.TrySetRoadEndSegment(_selectedRoad, v))
+                {
+                    UnityEngine.Debug.LogWarning("Cannot decrease end segment: would overlap with another road");
+                }
             }
-            EditorGUILayout.LabelField(_selectedRoad.Data.maxPointIndex.ToString(), GUILayout.Width(30), GUILayout.ExpandWidth(false));
+            EditorGUILayout.LabelField(_selectedRoad.Data.endSegmentIndex.ToString(), GUILayout.Width(30), GUILayout.ExpandWidth(false));
             if (GUILayout.Button("+", GUILayout.Width(24)))
             {
-                int v = _selectedRoad.Data.maxPointIndex + 1;
+                int v = _selectedRoad.Data.endSegmentIndex + 1;
                 if (pointCount > 0 && v > maxAllowed) v = 0;
-                _selectedRoad.Data.maxPointIndex = Mathf.Clamp(v, 0, maxAllowed);
-                RoadRebuildQueue.MarkDirty(_selectedRoad);
+                if (!_circuitShaper.TrySetRoadEndSegment(_selectedRoad, v))
+                {
+                    UnityEngine.Debug.LogWarning("Cannot increase end segment: would overlap with another road");
+                }
             }
             GUI.enabled = true;
             EditorGUILayout.EndHorizontal();
@@ -306,7 +346,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
             else
             {
-                EditorGUILayout.HelpBox($"Indices wrap between 0 and {maxAllowed}. Min may be greater than Max to draw the road in reverse.", MessageType.None);
+                EditorGUILayout.HelpBox($"Segment indices wrap between 0 and {maxAllowed}. Segment N connects point N to point N+1. Buttons disabled if change would overlap another road.", MessageType.None);
             }
             // --- END NEW SECTION ---
 

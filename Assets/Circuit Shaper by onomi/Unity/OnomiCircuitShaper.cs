@@ -15,5 +15,18 @@ namespace OnomiCircuitShaper.Unity
         /// The data
         /// </summary>
         public OnomiCircuitShaperData Data = new OnomiCircuitShaperData();
+
+
+
+
+        // A list of Road materials
+        public List<Material> RoadMaterials = new List<Material>();
+
+
+        // A list of Railing materials
+        public List<Material> RailingMaterials = new List<Material>();
+
+        // A list of Bridge materials
+        public List<Material> BridgeMaterials = new List<Material>();
     }
 }

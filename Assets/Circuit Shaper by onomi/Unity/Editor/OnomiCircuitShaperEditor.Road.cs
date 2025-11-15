@@ -1,11 +1,12 @@
 using OnomiCircuitShaper.Engine.Data;
 using OnomiCircuitShaper.Engine.EditRealm;
-using OnomiCircuitShaper.Unity.Utilities;
+using OnomiCircuitShaper.Engine.Interface;
 using UnityEditor;
 using UnityEngine;
 using System.Linq;
 using OnomiCircuitShaper.Engine.Processors;
 using System.Collections.Generic;
+
 
 
 namespace OnomiCircuitShaper.Unity.Editor
@@ -105,7 +106,7 @@ namespace OnomiCircuitShaper.Unity.Editor
         private void UpdateRoadMesh(Road road, GenericMeshData meshData)
         {
             UnityEngine.Debug.Log($"[Editor] UpdateRoadMesh called. Vertices: {meshData.Vertices?.Length ?? 0}");
-            
+
             // If meshData has no vertices
             if (meshData.Vertices == null) return;
 
@@ -156,9 +157,176 @@ namespace OnomiCircuitShaper.Unity.Editor
             UnityEngine.Debug.Log($"[Editor] Calling SceneRoad.UpdateMesh with {vertices.Length} vertices, {uvs.Length} UVs, {mesh.Triangles.Length} triangle indices");
 
             // Update the mesh
-            existingRoad.UpdateMesh(vertices, uvs, mesh.Triangles);
-            
+            existingRoad.UpdateMesh(vertices, uvs, mesh.Triangles, 0);
+
             UnityEngine.Debug.Log("[Editor] Mesh updated successfully");
+        }
+        
+
+                /// <summary>
+        /// Draws the inspector UI for the selected road, allowing editing of UV settings,
+        /// material assignment, mesh resolution, and deletion.
+        /// </summary>
+        private void DrawSelectedRoadInspector()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Selected Road", EditorStyles.boldLabel);
+            
+            if (_selectedRoad == null || _selectedRoad.Data == null)
+            {
+                return;
+            }
+
+            // Get the SceneRoad for material editing
+            SceneRoad sceneRoad = null;
+            _sceneRoads.TryGetValue(_selectedRoad, out sceneRoad);
+
+            EditorGUI.BeginChangeCheck();
+
+            // UV Settings
+            EditorGUILayout.LabelField("UV Settings", EditorStyles.boldLabel);
+            var uvTile = (System.Numerics.Vector2)_selectedRoad.Data.UVTile;
+            var uvOffset = (System.Numerics.Vector2)_selectedRoad.Data.UVOffset;
+            
+            UnityEngine.Vector2 tileUV = new UnityEngine.Vector2(uvTile.X, uvTile.Y);
+            UnityEngine.Vector2 offsetUV = new UnityEngine.Vector2(uvOffset.X, uvOffset.Y);
+            
+            tileUV = EditorGUILayout.Vector2Field("Tile", tileUV);
+            offsetUV = EditorGUILayout.Vector2Field("Offset", offsetUV);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedRoad.Data.UVTile = (SerializableVector2)(new System.Numerics.Vector2(tileUV.x, tileUV.y));
+                _selectedRoad.Data.UVOffset = (SerializableVector2)(new System.Numerics.Vector2(offsetUV.x, offsetUV.y));
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            // Mesh Resolution
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Mesh Resolution", EditorStyles.boldLabel);
+            int widthWiseVertexCount = EditorGUILayout.IntSlider("Width Vertices", _selectedRoad.Data.WidthWiseVertexCount, 2, 50);
+            float lengthMult = EditorGUILayout.Slider("Length Density", _selectedRoad.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount, 0.1f, 10f);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedRoad.Data.WidthWiseVertexCount = widthWiseVertexCount;
+                _selectedRoad.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount = lengthMult;
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+
+            // Material Selection
+            //Material should now simply set the material index in road data, we should simply use a number input with inrease decrease buttons on either side
+            
+            EditorGUILayout.Space();
+
+            bool hasMaterials = _target != null && _target.RoadMaterials != null && _target.RoadMaterials.Count > 0;
+
+            // Grey out the whole material section if there are no materials
+            EditorGUI.BeginDisabledGroup(!hasMaterials);
+            EditorGUILayout.LabelField("Material", EditorStyles.boldLabel);
+
+            EditorGUI.BeginChangeCheck();
+            int maxIndex = (_target != null && _target.RoadMaterials != null) ? Mathf.Max(0, _target.RoadMaterials.Count - 1) : 0;
+            int materialIndex = EditorGUILayout.IntSlider("Material Index", _selectedRoad.Data.MaterialIndex, 0, maxIndex);
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedRoad.Data.MaterialIndex = materialIndex;
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+            EditorGUI.EndDisabledGroup();
+
+            if (!hasMaterials)
+            {
+                EditorGUILayout.HelpBox("No road materials assigned on target. Assign at least one material to enable material selection.", MessageType.Info);
+            }
+
+            // --- NEW: Min/Max index controls with wrap-around ---
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Road Point Index Range", EditorStyles.boldLabel);
+
+            int pointCount = 0;
+            if (_selectedRoad.parentCurve != null && _selectedRoad.parentCurve.Points != null)
+            {
+                pointCount = _selectedRoad.parentCurve.Points.Count;
+            }
+            int maxAllowed = Mathf.Max(0, pointCount - 1);
+
+            EditorGUILayout.BeginHorizontal();
+            // Min Index control
+            EditorGUILayout.BeginHorizontal(GUILayout.Width(220));
+            GUI.enabled = (pointCount > 0);
+            GUILayout.Label("Min Index", GUILayout.Width(80));
+            if (GUILayout.Button("-", GUILayout.Width(24)))
+            {
+                int v = _selectedRoad.Data.minPointIndex - 1;
+                if (pointCount > 0 && v < 0) v = maxAllowed;
+                _selectedRoad.Data.minPointIndex = Mathf.Clamp(v, 0, maxAllowed);
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+            // display value (not directly editable - changed only via +/-)
+            EditorGUILayout.LabelField(_selectedRoad.Data.minPointIndex.ToString(), GUILayout.Width(30), GUILayout.ExpandWidth(false));
+            if (GUILayout.Button("+", GUILayout.Width(24)))
+            {
+                int v = _selectedRoad.Data.minPointIndex + 1;
+                if (pointCount > 0 && v > maxAllowed) v = 0;
+                _selectedRoad.Data.minPointIndex = Mathf.Clamp(v, 0, maxAllowed);
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+            GUI.enabled = true;
+            EditorGUILayout.EndHorizontal();
+
+            // Max Index control
+            EditorGUILayout.BeginHorizontal(GUILayout.Width(220));
+            GUI.enabled = (pointCount > 0);
+            GUILayout.Label("Max Index", GUILayout.Width(80));
+            if (GUILayout.Button("-", GUILayout.Width(24)))
+            {
+                int v = _selectedRoad.Data.maxPointIndex - 1;
+                if (pointCount > 0 && v < 0) v = maxAllowed;
+                _selectedRoad.Data.maxPointIndex = Mathf.Clamp(v, 0, maxAllowed);
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+            EditorGUILayout.LabelField(_selectedRoad.Data.maxPointIndex.ToString(), GUILayout.Width(30), GUILayout.ExpandWidth(false));
+            if (GUILayout.Button("+", GUILayout.Width(24)))
+            {
+                int v = _selectedRoad.Data.maxPointIndex + 1;
+                if (pointCount > 0 && v > maxAllowed) v = 0;
+                _selectedRoad.Data.maxPointIndex = Mathf.Clamp(v, 0, maxAllowed);
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+            GUI.enabled = true;
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndHorizontal();
+
+            if (pointCount == 0)
+            {
+                EditorGUILayout.HelpBox("Parent curve has no points (or parent curve missing). Cannot edit indices.", MessageType.Info);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox($"Indices wrap between 0 and {maxAllowed}. Min may be greater than Max to draw the road in reverse.", MessageType.None);
+            }
+            // --- END NEW SECTION ---
+
+            // Deletion
+            EditorGUILayout.Space();
+            GUI.backgroundColor = Color.red;
+            if (GUILayout.Button("Delete Road", GUILayout.Height(30)))
+            {
+                if (EditorUtility.DisplayDialog("Delete Road", 
+                    "Are you sure you want to delete this road?", 
+                    "Delete", "Cancel"))
+                {
+                    _circuitShaper.RemoveRoad(_selectedRoad);
+                    _circuitShaper.DeselectRoad();
+                
+                }
+            }
+            GUI.backgroundColor = Color.white;
+
+            EditorGUILayout.Space();
         }
 
 

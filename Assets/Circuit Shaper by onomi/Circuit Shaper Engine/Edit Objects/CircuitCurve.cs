@@ -2,6 +2,7 @@ using OnomiCircuitShaper.Engine.Data;
 using System.Numerics;
 using OnomiCircuitShaper.Engine.Processors;
 using System.Collections.Generic;
+using OnomiCircuitShaper.Engine.Interface;
 using System;
 
 
@@ -59,6 +60,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             {
                 RoadData roadData = Data.Roads[i];
                 Road road = new Road(roadData, Settings, this);
+                UnityEngine.Debug.Log("Created road from data with range: " + roadData.minPointIndex + " to " + roadData.maxPointIndex + " with parent "+ this);
                 Roads.Add(road);
             }
 
@@ -75,11 +77,12 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             List<CircuitPoint> selectedPoints = new List<CircuitPoint>();
 
             int pos = startIndex;
-            while(pos != endIndex)
+            while (pos != endIndex)
             {
                 selectedPoints.Add(Points[pos]);
                 pos = (pos + 1) % Points.Count;
             }
+            selectedPoints.Add(Points[endIndex]); // Include the end point
 
             return selectedPoints;
         }
@@ -111,8 +114,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             {
                 Road road = Roads[i];
 
-                if (road.Data.PointIndexRange.Item1 >= index) road.Data.PointIndexRange.Item1 = road.Data.PointIndexRange.Item1 + 1;
-                if (road.Data.PointIndexRange.Item2 >= index) road.Data.PointIndexRange.Item2 = road.Data.PointIndexRange.Item2 + 1;
+                if (road.Data.minPointIndex >= index) road.Data.minPointIndex = road.Data.minPointIndex + 1;
+                if (road.Data.maxPointIndex >= index) road.Data.maxPointIndex = road.Data.maxPointIndex + 1;
             }
 
 
@@ -203,10 +206,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             //Check if range clashes with existing roads
             foreach (var road in Roads)
             {
-                int roadStart = road.Data.PointIndexRange.Item1;
-                int roadEnd = road.Data.PointIndexRange.Item2;
 
-                if (!(endIndex < roadStart || startIndex > roadEnd))
+                if (!(endIndex < road.RoadStartIndex || startIndex > road.RoadEndIndex))
                 {
                     return null; // Clash detected
                 }
@@ -215,7 +216,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
             RoadData newRoadData = new RoadData()
             {
-                PointIndexRange = (startIndex, endIndex)
+                minPointIndex = startIndex,
+                maxPointIndex = endIndex
             };
 
             Data.Roads.Add(newRoadData);
@@ -318,8 +320,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 for (int i = 0; i < Roads.Count; i++)
                 {
                     Road road = Roads[i];
-                    if (road.Data.PointIndexRange.Item1 > index) road.Data.PointIndexRange.Item1 = road.Data.PointIndexRange.Item1 - 1;
-                    if (road.Data.PointIndexRange.Item2 > index) road.Data.PointIndexRange.Item2 = road.Data.PointIndexRange.Item2 - 1;
+                    if (road.Data.minPointIndex > index) road.Data.minPointIndex = road.Data.minPointIndex - 1;
+                    if (road.Data.maxPointIndex > index) road.Data.maxPointIndex = road.Data.maxPointIndex - 1;
                    
                 }
 
@@ -370,7 +372,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             int pointIndex = Points.IndexOf((CircuitPoint)point);
             foreach (var road in Roads)
             {
-                if (pointIndex >= road.Data.PointIndexRange.Item1 && pointIndex <= road.Data.PointIndexRange.Item2)
+                if (pointIndex >= road.RoadStartIndex && pointIndex <= road.RoadEndIndex)
                 {
                     RoadRebuildQueue.MarkDirty(road);
                 }

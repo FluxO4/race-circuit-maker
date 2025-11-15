@@ -268,7 +268,6 @@ namespace OnomiCircuitShaper.Engine.Interface
         {
             _selectedPoints.Clear();
             _selectedCurve = null;
-            _selectedRoad = null;
             _singlePointSelectionMode = SinglePointSelectionMode.AnchorPoint;
         }
 

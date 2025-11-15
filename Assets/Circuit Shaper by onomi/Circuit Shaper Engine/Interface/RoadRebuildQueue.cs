@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using OnomiCircuitShaper.Engine.Data;
 using OnomiCircuitShaper.Engine.EditRealm;
 
-namespace OnomiCircuitShaper.Engine
+namespace OnomiCircuitShaper.Engine.Interface
 {
     /// <summary>
     /// Static communication channel for road rebuild requests.

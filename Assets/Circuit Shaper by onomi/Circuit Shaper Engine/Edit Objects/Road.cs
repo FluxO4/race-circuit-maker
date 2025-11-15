@@ -35,7 +35,8 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         public Bridge Bridge { get; private set; }
 
 
-        public int RoadStartIndex => Data.PointIndexRange.Item1;
+        public int RoadStartIndex => Data.minPointIndex;
+        public int RoadEndIndex => Data.maxPointIndex;
 
         /// <summary>
         /// Constructor - creates a simple wrapper around RoadData.
@@ -44,6 +45,7 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         {
             Data = data;
             Settings = settings;
+            this.parentCurve = parentCurve;
 
             // Create live wrappers for railings
             if (data.Railings != null)

@@ -118,50 +118,84 @@ namespace OnomiCircuitShaper.Unity.Editor
                 // Then, draw road handles as thicker lines along the curve, selectable
                 foreach (Road road in curve.Roads)
                 {
-                    if (road.Data.PointIndexRange.Item2 == road.Data.PointIndexRange.Item1)
+                    if (road.RoadEndIndex == road.RoadStartIndex)
                     {
                         continue; // Skip roads with less than 2 points
                     }
 
                     bool isSelected = (_selectedRoad == road);
 
-                    int pos = road.Data.PointIndexRange.Item1;
+                    { // Hover detection pass
+
+                        int pos = road.RoadStartIndex;
 
 
 
-                    while (pos != road.Data.PointIndexRange.Item2)
-                    {
-
-                        CircuitPoint p1 = curve.Points[pos];
-                        CircuitPoint p2 = curve.Points[(pos + 1) % curve.Points.Count];
-
-                        if (!isSelected)
+                        while (pos != road.RoadEndIndex)
                         {
-                            // Check for hover
-                            float minDist = HandleUtility.DistancePointBezier(e.mousePosition,
-                                HandleUtility.WorldToGUIPoint(p1.PointPosition.ToGlobalSpace(basePosition, scale)),
-                                HandleUtility.WorldToGUIPoint(p2.PointPosition.ToGlobalSpace(basePosition, scale)),
-                                HandleUtility.WorldToGUIPoint(p1.ForwardControlPointPosition.ToGlobalSpace(basePosition, scale)),
-                                HandleUtility.WorldToGUIPoint(p2.BackwardControlPointPosition.ToGlobalSpace(basePosition, scale))
-                                );
-                            if (minDist < 10f) // 10 pixels threshold
+
+                            CircuitPoint p1 = curve.Points[pos];
+                            CircuitPoint p2 = curve.Points[(pos + 1) % curve.Points.Count];
+
+                            if (!isSelected)
                             {
-                                hoveredRoad = road;
+                                // Check for hover
+                                float minDist = HandleUtility.DistancePointBezier(e.mousePosition,
+                                    HandleUtility.WorldToGUIPoint(p1.PointPosition.ToGlobalSpace(basePosition, scale)),
+                                    HandleUtility.WorldToGUIPoint(p2.PointPosition.ToGlobalSpace(basePosition, scale)),
+                                    HandleUtility.WorldToGUIPoint(p1.ForwardControlPointPosition.ToGlobalSpace(basePosition, scale)),
+                                    HandleUtility.WorldToGUIPoint(p2.BackwardControlPointPosition.ToGlobalSpace(basePosition, scale))
+                                    );
+                                if (minDist < 10f) // 10 pixels threshold
+                                {
+                                    hoveredRoad = road;
+                                }
                             }
 
+                            pos = (pos + 1) % curve.Points.Count;
+                        }
+                    }
 
-                            if (hoveredRoad == road)
+                      
+
+                    { // Drawing pass
+
+                        int pos = road.RoadStartIndex;
+                        while (pos != road.RoadEndIndex)
+                        {
+
+                            CircuitPoint p1 = curve.Points[pos];
+                            CircuitPoint p2 = curve.Points[(pos + 1) % curve.Points.Count];
+
+                            if (!isSelected)
                             {
 
-                                Handles.DrawBezier(
-                                p1.PointPosition.ToGlobalSpace(basePosition, scale),
-                                p2.PointPosition.ToGlobalSpace(basePosition, scale),
-                                p1.ForwardControlPointPosition.ToGlobalSpace(basePosition, scale),
-                                p2.BackwardControlPointPosition.ToGlobalSpace(basePosition, scale),
-                                Color.yellow,
-                                null,
-                                8f
-                                );
+                                if (hoveredRoad == road)
+                                {
+
+                                    Handles.DrawBezier(
+                                    p1.PointPosition.ToGlobalSpace(basePosition, scale),
+                                    p2.PointPosition.ToGlobalSpace(basePosition, scale),
+                                    p1.ForwardControlPointPosition.ToGlobalSpace(basePosition, scale),
+                                    p2.BackwardControlPointPosition.ToGlobalSpace(basePosition, scale),
+                                    Color.yellow,
+                                    null,
+                                    8f
+                                    );
+                                }
+                                else
+                                {
+                                    Handles.DrawBezier(
+                                    p1.PointPosition.ToGlobalSpace(basePosition, scale),
+                                    p2.PointPosition.ToGlobalSpace(basePosition, scale),
+                                    p1.ForwardControlPointPosition.ToGlobalSpace(basePosition, scale),
+                                    p2.BackwardControlPointPosition.ToGlobalSpace(basePosition, scale),
+                                    Color.Lerp(Color.green, Color.yellow, 0.5f),
+                                    null,
+                                    5f
+                                    );
+                                }
+
                             }
                             else
                             {
@@ -170,29 +204,16 @@ namespace OnomiCircuitShaper.Unity.Editor
                                 p2.PointPosition.ToGlobalSpace(basePosition, scale),
                                 p1.ForwardControlPointPosition.ToGlobalSpace(basePosition, scale),
                                 p2.BackwardControlPointPosition.ToGlobalSpace(basePosition, scale),
-                                Color.green,
+                                Color.white,
                                 null,
-                                5f
+                                12f
                                 );
+
                             }
 
+
+                            pos = (pos + 1) % curve.Points.Count;
                         }
-                        else
-                        {
-                            Handles.DrawBezier(
-                            p1.PointPosition.ToGlobalSpace(basePosition, scale),
-                            p2.PointPosition.ToGlobalSpace(basePosition, scale),
-                            p1.ForwardControlPointPosition.ToGlobalSpace(basePosition, scale),
-                            p2.BackwardControlPointPosition.ToGlobalSpace(basePosition, scale),
-                            Color.white,
-                            null,
-                            12f
-                            );
-
-                        }
-
-
-                        pos = (pos + 1) % curve.Points.Count;
                     }
                 }
 
@@ -231,6 +252,7 @@ namespace OnomiCircuitShaper.Unity.Editor
                 _creatingNewPointMode = false;
                 _addingToSelectedCurveMode = false;
                 _isEditingCrossSection = false;
+            Debug.Log("Clicked and seleceted road: " + hoveredRoad.RoadStartIndex +  " as " + _selectedRoad);
                 e.Use();
                 Repaint(); // Update inspector
             }

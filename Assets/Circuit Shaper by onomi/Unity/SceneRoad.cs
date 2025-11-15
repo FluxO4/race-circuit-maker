@@ -38,9 +38,9 @@ namespace OnomiCircuitShaper.Unity
         /// <summary>
         /// Receives new mesh data and applies it to the MeshFilter and MeshCollider.
         /// </summary>
-        public void UpdateMesh(Vector3[] vertices, Vector2[] uvs, int[] triangles)
+        public void UpdateMesh(Vector3[] vertices, Vector2[] uvs, int[] triangles, int materialID)
         {
-            UnityEngine.Debug.Log($"[SceneRoad] UpdateMesh called with {vertices?.Length ?? 0} vertices, {uvs?.Length ?? 0} UVs, {triangles?.Length ?? 0} triangle indices");
+            UnityEngine.Debug.Log($"[SceneRoad] UpdateMesh called with {vertices?.Length ?? 0} vertices, {uvs?.Length ?? 0} UVs, {triangles?.Length ?? 0} triangle indices, MaterialID: {materialID}");
             
             // Ensure components are initialized (in case this is called before Awake)
             if (_meshFilter == null)
@@ -52,6 +52,11 @@ namespace OnomiCircuitShaper.Unity
             {
                 UnityEngine.Debug.Log("[SceneRoad] MeshCollider was null, getting component");
                 _meshCollider = GetComponent<MeshCollider>();
+            }
+            if (_meshRenderer == null)
+            {
+                UnityEngine.Debug.Log("[SceneRoad] MeshRenderer was null, getting component");
+                _meshRenderer = GetComponent<MeshRenderer>();
             }
             
             if(_mesh == null)
@@ -71,6 +76,18 @@ namespace OnomiCircuitShaper.Unity
             // Reassign to ensure it's set
             _meshFilter.mesh = _mesh;
             _meshCollider.sharedMesh = _mesh;
+
+
+            // Update material
+            if (onomiCircuitShaper != null && onomiCircuitShaper.RoadMaterials != null &&
+                materialID >= 0 && materialID < onomiCircuitShaper.RoadMaterials.Count)
+            {
+                _meshRenderer.material = onomiCircuitShaper.RoadMaterials[materialID];
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"[SceneRoad] Invalid material ID {materialID} or missing OnomiCircuitShaper reference.");
+            }
             
             UnityEngine.Debug.Log($"[SceneRoad] Mesh updated successfully. Vertex count: {_mesh.vertexCount}, Triangle count: {_mesh.triangles.Length/3}");
         }

@@ -22,6 +22,8 @@ namespace OnomiCircuitShaper.Engine.Processors
         public Vector3[] Vertices;
         public Vector2[] UVs;
         public int[] Triangles;
+
+        public int MaterialID;
     }
 
     /// <summary>
@@ -56,14 +58,16 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// </remarks>
         public static GenericMeshData BuildRoadMesh(Road road)
         {
-            if (Math.Abs(road.Data.PointIndexRange.Item2 - road.Data.PointIndexRange.Item1) < 1)
+            if (road.Data.maxPointIndex == road.Data.minPointIndex)
             {
+                UnityEngine.Debug.Log("Invalid point index range for road: " + road + " Range: " + road.Data.minPointIndex + " to " + road.Data.maxPointIndex);
                 return new GenericMeshData();
             }
 
 
             //Extract points from the parent curve using the range
-            List<CircuitPoint> pointArray = road.parentCurve.GetPointsInRange(road.Data.PointIndexRange.Item1, road.Data.PointIndexRange.Item2);
+            UnityEngine.Debug.Log(road + " " + road.parentCurve + " Range: " + road.Data.minPointIndex + " to " + road.Data.maxPointIndex);
+            List<CircuitPoint> pointArray = road.parentCurve.GetPointsInRange(road.Data.minPointIndex, road.Data.maxPointIndex);
 
             CircuitPointData[] pointDataArray = pointArray.Select(p => p.Data).ToArray();
 
@@ -76,6 +80,8 @@ namespace OnomiCircuitShaper.Engine.Processors
                     return new GenericMeshData();
                 }
             }
+
+            UnityEngine.Debug.Log("Building road mesh for road with " + pointDataArray.Length + " points.");
 
             
             // Calculate mesh dimensions
@@ -153,7 +159,8 @@ namespace OnomiCircuitShaper.Engine.Processors
             {
                 Vertices = vertices,
                 UVs = uvs,
-                Triangles = triangles
+                Triangles = triangles,
+                MaterialID = road.Data.MaterialIndex
             };
         }
 

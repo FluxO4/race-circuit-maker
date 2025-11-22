@@ -449,6 +449,25 @@ namespace OnomiCircuitShaper.Unity.Editor
                     EditorGUILayout.HelpBox("No bridge materials assigned. Add materials to the OnomiCircuitShaper component.", MessageType.Info);
                 }
 
+                // UV Settings for Bridge
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("UV Settings", EditorStyles.boldLabel);
+
+                var bUvTile = (System.Numerics.Vector2)_selectedRoad.Bridge.Data.UVTile;
+                var bUvOffset = (System.Numerics.Vector2)_selectedRoad.Bridge.Data.UVOffset;
+                UnityEngine.Vector2 bridgeTile = new UnityEngine.Vector2(bUvTile.X, bUvTile.Y);
+                UnityEngine.Vector2 bridgeOffset = new UnityEngine.Vector2(bUvOffset.X, bUvOffset.Y);
+
+                EditorGUI.BeginChangeCheck();
+                bridgeTile = EditorGUILayout.Vector2Field("Tile", bridgeTile);
+                bridgeOffset = EditorGUILayout.Vector2Field("Offset", bridgeOffset);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _selectedRoad.Bridge.Data.UVTile = (SerializableVector2)(new System.Numerics.Vector2(bridgeTile.x, bridgeTile.y));
+                    _selectedRoad.Bridge.Data.UVOffset = (SerializableVector2)(new System.Numerics.Vector2(bridgeOffset.x, bridgeOffset.y));
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+
                 // Template settings
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Template Settings", EditorStyles.miniBoldLabel);
@@ -545,6 +564,17 @@ namespace OnomiCircuitShaper.Unity.Editor
                 float max = EditorGUILayout.Slider("Max (Length)", railingData.Max, 0f, 1f);
                 float horizontalPos = EditorGUILayout.Slider("Horizontal Position", railingData.HorizontalPosition, 0f, 1f);
 
+                // UV Settings for this railing
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("UV Settings", EditorStyles.label);
+                var rUvTile = (System.Numerics.Vector2)railingData.UVTile;
+                var rUvOffset = (System.Numerics.Vector2)railingData.UVOffset;
+                UnityEngine.Vector2 railingTile = new UnityEngine.Vector2(rUvTile.X, rUvTile.Y);
+                UnityEngine.Vector2 railingOffset = new UnityEngine.Vector2(rUvOffset.X, rUvOffset.Y);
+
+                railingTile = EditorGUILayout.Vector2Field("Tile", railingTile);
+                railingOffset = EditorGUILayout.Vector2Field("Offset", railingOffset);
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     railingData.IsVisible = isVisible;
@@ -553,6 +583,8 @@ namespace OnomiCircuitShaper.Unity.Editor
                     railingData.Min = Mathf.Min(min, max - 0.01f);
                     railingData.Max = Mathf.Max(max, min + 0.01f);
                     railingData.HorizontalPosition = horizontalPos;
+                    railingData.UVTile = (SerializableVector2)(new System.Numerics.Vector2(railingTile.x, railingTile.y));
+                    railingData.UVOffset = (SerializableVector2)(new System.Numerics.Vector2(railingOffset.x, railingOffset.y));
                     RoadRebuildQueue.MarkDirty(_selectedRoad);
                 }
 

@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace OnomiCircuitShaper.Engine.Data
 {
     /// <summary>
@@ -40,5 +42,15 @@ namespace OnomiCircuitShaper.Engine.Data
         /// Values in between will place it somewhere across the road surface.
         /// </summary>
         public float HorizontalPosition = 0.0f;
+
+        /// <summary>
+        /// Controls the tiling of the UV coordinates on the railing mesh.
+        /// </summary>
+        public SerializableVector2 UVTile = (SerializableVector2)System.Numerics.Vector2.One;
+
+        /// <summary>
+        /// Controls the offset of the UV coordinates on the railing mesh.
+        /// </summary>
+        public SerializableVector2 UVOffset = (SerializableVector2)System.Numerics.Vector2.Zero;
     }
 }

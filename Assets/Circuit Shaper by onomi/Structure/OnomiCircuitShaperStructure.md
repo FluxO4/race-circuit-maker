@@ -50,14 +50,21 @@ This is the hierarchy of the pure data classes that can be serialized to save an
     -   `List<RailingData> Railings`: Railings attached to this road.
     -   `BridgeData Bridge`: Optional bridge structure.
 -   `RailingData`
+    -   `int MaterialIndex`: Material index for the railing mesh.
+    -   `bool IsVisible`: Whether the railing should be rendered.
     -   `float RailingHeight`: Vertical height of the railing.
     -   `float Min`: Start position (0-1 along road).
     -   `float Max`: End position (0-1 along road).
     -   `float HorizontalPosition`: Position across road width (0-1, where 0 is left edge, 1 is right edge).
+    -   `Vector2 UVTile`: UV tiling factor for the railing texture.
+    -   `Vector2 UVOffset`: UV offset for the railing texture.
 -   `BridgeData`
+    -   `bool Enabled`: Whether the bridge is active.
+    -   `int MaterialIndex`: Material index for the bridge mesh.
     -   `bool UseTemplate`: If true, use I-beam template; if false, use custom shape.
     -   `List<Vector2> BridgeShapePoints`: Custom 2D profile points (if not using template).
     -   `Vector2 UVTile`: UV tiling for bridge texture.
+    -   `Vector2 UVOffset`: UV offset for bridge texture.
     -   `float TemplateEdgeWidth`: Width of template edge beams.
     -   `float TemplateBridgeHeight`: Height of template I-beam.
     -   `float TemplateFlangeWidth`: Width of template flanges.
@@ -255,14 +262,17 @@ Static utility classes for calculations and mesh generation.
 -   `RoadProcessor` (Mesh generation)
     -   **Methods:**
         -   `static GenericMeshData BuildRoadMesh(Road)`: Generates road geometry.
-        -   `static GenericMeshData BuildBridgeMesh(Bridge)`: Generates bridge geometry.
-        -   `static GenericMeshData BuildRailingMesh(Railing)`: Generates railing geometry.
-    -   **Notes:** [Look here onomi] Returns engine-agnostic GenericMeshData (vertices, UVs, triangles) that Unity layer converts to UnityEngine.Mesh.
+        -   `static GenericMeshData BuildBridgeMesh(Bridge, Road)`: Generates bridge geometry using cross-section positions.
+        -   `static GenericMeshData BuildRailingMesh(Railing, Road)`: Generates railing geometry as vertical ribbons.
+        -   `private static GenericMeshData BuildRibbon(...)`: Generates flexible ribbon meshes using cross-section sampling.
+        -   `private static void GetInterpolatedFrame(...)`: Calculates position and coordinate frame along the circuit curve.
+    -   **Notes:** Returns engine-agnostic GenericMeshData (vertices, UVs, triangles) that Unity layer converts to UnityEngine.Mesh. Bridges and railings use cross-section positions (t=0.0 to 1.0) for perfect edge alignment with roads.
 
 -   `GenericMeshData` (Struct)
     -   `Vector3[] Vertices`: Mesh vertex positions.
     -   `Vector2[] UVs`: Texture coordinates.
     -   `int[] Triangles`: Triangle indices (counter-clockwise winding).
+    -   `int MaterialID`: Material index for this mesh.
 
 ## Preset Layer (`OnomiCircuitShaper.Engine.Presets`)
 
@@ -303,14 +313,16 @@ Unity-specific presentation and interaction code.
     -   **Notes:** [Look here onomi] Uses Unity's Handles API for 3D gizmos. Supports undo/redo via Undo.RecordObject. Implements ray casting for adding points via mouse clicks.
 
 -   `SceneRoad` (MonoBehaviour - Visual road object)
-    -   **Purpose:** GameObject component representing a single road mesh.
+    -   **Purpose:** Passive view component that displays road, bridge, and railing meshes.
     -   **Properties:**
-        -   `RoadData AssociatedRoadData`: Reference to source data.
+        -   `Road associatedRoad`: Reference to the edit-realm Road object.
+        -   Child objects: `SceneBridge`, List of `SceneRailing` components.
         -   Components: `MeshFilter`, `MeshRenderer`, `MeshCollider`.
     -   **Methods:**
-        -   `void UpdateMesh(GenericMeshData)`: Converts engine mesh data to Unity Mesh, assigns to filter/collider.
-        -   `void UpdateMaterial(Material)`: Assigns material to renderer.
-    -   **Notes:** [Look here onomi] Created/managed by OnomiCircuitShaper. Mesh is regenerated whenever RoadBuilt event fires.
+        -   `void UpdateMesh(GenericMeshData, int)`: Updates the main road mesh.
+        -   `void UpdateBridge(GenericMeshData, Bridge, int)`: Updates or removes bridge mesh.
+        -   `void UpdateRailings(List<(GenericMeshData, Railing)>)`: Updates all railing meshes.
+    -   **Notes:** SceneRoad is a passive view - it receives pre-generated mesh data from the editor layer and only handles Unity GameObject/component management. Mesh generation happens in OnomiCircuitShaperEditor.Road.
 
 -   `NumericsConverter` (Utility class)
     -   **Purpose:** Converts between System.Numerics.Vector3 (engine) and UnityEngine.Vector3 (Unity).

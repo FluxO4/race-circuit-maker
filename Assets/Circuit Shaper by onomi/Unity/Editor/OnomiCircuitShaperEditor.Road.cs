@@ -7,8 +7,6 @@ using System.Linq;
 using OnomiCircuitShaper.Engine.Processors;
 using System.Collections.Generic;
 
-
-
 namespace OnomiCircuitShaper.Unity.Editor
 {
     public partial class OnomiCircuitShaperEditor : UnityEditor.Editor
@@ -24,7 +22,7 @@ namespace OnomiCircuitShaper.Unity.Editor
         private void RebuildAllRoadsFromData()
         {
             if (_circuitShaper == null || _circuitShaper.GetLiveCircuit == null) return;
-            
+
             var circuit = _circuitShaper.GetLiveCircuit;
 
             UnityEngine.Debug.Log($"[Editor] Rebuilding roads from data");
@@ -40,7 +38,7 @@ namespace OnomiCircuitShaper.Unity.Editor
                 Debug.Log("[Editor] Deleted child GameObject: " + child.name);
                 DestroyImmediate(child.gameObject);
             }
-           // Debug.Log("[Editor] Number of Children Destroyed: " + _target.transform.childCount);
+            // Debug.Log("[Editor] Number of Children Destroyed: " + _target.transform.childCount);
 
             foreach (CircuitCurve circuitCurve in circuit.Curves)
             {
@@ -52,15 +50,15 @@ namespace OnomiCircuitShaper.Unity.Editor
                     UpdateRoadMesh(road, meshData);
                 }
             }
-            
+
             //Hide the scene roads from the hierarchy
-            foreach (var sceneRoad in _sceneRoads.Values)
-            {
-                if (sceneRoad != null)
-                {
-                    sceneRoad.gameObject.hideFlags = HideFlags.HideInHierarchy;
-                }
-            }
+            /* foreach (var sceneRoad in _sceneRoads.Values)
+             {
+                 if (sceneRoad != null)
+                 {
+                     sceneRoad.gameObject.hideFlags = HideFlags.HideInHierarchy;
+                 }
+             }*/
 
         }
 
@@ -134,7 +132,7 @@ namespace OnomiCircuitShaper.Unity.Editor
                     _sceneRoads.Remove(road);
                 }
                 //Let's just rebuild everything instead to be safe
-                
+
                 return;
             }
 
@@ -191,11 +189,44 @@ namespace OnomiCircuitShaper.Unity.Editor
             // Update the mesh
             existingRoad.UpdateMesh(vertices, uvs, mesh.Triangles, mesh.MaterialID);
 
+            // --- Handle Bridge ---
+            GenericMeshData bridgeMesh = new GenericMeshData();
+            if (road.Bridge != null && road.Bridge.Data.Enabled)
+            {
+                bridgeMesh = RoadProcessor.BuildBridgeMesh(road.Bridge, road);
+                Debug.Log("[Editor] Bridge is enabled, generated mesh with " + bridgeMesh.Vertices?.Length + " vertices.");
+            }
+            else
+            {
+                Debug.Log("[Editor] Bridge is disabled or null, sending empty mesh. Bridge:" +road.Bridge+"Bridge disabled: " + (road.Bridge != null ? !road.Bridge.Data.Enabled : true));
+            }
+            // Pass bridge mesh to SceneRoad (empty if disabled/null, which SceneRoad handles by removing the object)
+            int bridgeMatID = (road.Bridge != null) ? road.Bridge.Data.MaterialIndex : 0;
+
+            Debug.Log("[Editor] Updating bridge mesh with " + bridgeMesh.Vertices?.Length + " vertices");
+            existingRoad.UpdateBridge(bridgeMesh, road.Bridge, bridgeMatID);
+
+
+
+
+            // --- Handle Railings ---
+            var railingUpdates = new List<(GenericMeshData, Railing)>();
+            if (road.Railings != null)
+            {
+                foreach (var railing in road.Railings)
+                {
+                    // Generate mesh for each railing
+                    var railingMesh = RoadProcessor.BuildRailingMesh(railing, road);
+                    railingUpdates.Add((railingMesh, railing));
+                }
+            }
+            existingRoad.UpdateRailings(railingUpdates);
+
             UnityEngine.Debug.Log("[Editor] Mesh updated successfully");
         }
-        
 
-                /// <summary>
+
+        /// <summary>
         /// Draws the inspector UI for the selected road, allowing editing of UV settings,
         /// material assignment, mesh resolution, and deletion.
         /// </summary>
@@ -203,7 +234,7 @@ namespace OnomiCircuitShaper.Unity.Editor
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Selected Road", EditorStyles.boldLabel);
-            
+
             if (_selectedRoad == null || _selectedRoad.Data == null)
             {
                 return;
@@ -219,10 +250,10 @@ namespace OnomiCircuitShaper.Unity.Editor
             EditorGUILayout.LabelField("UV Settings", EditorStyles.boldLabel);
             var uvTile = (System.Numerics.Vector2)_selectedRoad.Data.UVTile;
             var uvOffset = (System.Numerics.Vector2)_selectedRoad.Data.UVOffset;
-            
+
             UnityEngine.Vector2 tileUV = new UnityEngine.Vector2(uvTile.X, uvTile.Y);
             UnityEngine.Vector2 offsetUV = new UnityEngine.Vector2(uvOffset.X, uvOffset.Y);
-            
+
             tileUV = EditorGUILayout.Vector2Field("Tile", tileUV);
             offsetUV = EditorGUILayout.Vector2Field("Offset", offsetUV);
 
@@ -250,7 +281,7 @@ namespace OnomiCircuitShaper.Unity.Editor
 
             // Material Selection
             //Material should now simply set the material index in road data, we should simply use a number input with inrease decrease buttons on either side
-            
+
             EditorGUILayout.Space();
 
             bool hasMaterials = _target != null && _target.RoadMaterials != null && _target.RoadMaterials.Count > 0;
@@ -363,13 +394,13 @@ namespace OnomiCircuitShaper.Unity.Editor
             GUI.backgroundColor = Color.red;
             if (GUILayout.Button("Delete Road", GUILayout.Height(30)))
             {
-                if (EditorUtility.DisplayDialog("Delete Road", 
-                    "Are you sure you want to delete this road?", 
+                if (EditorUtility.DisplayDialog("Delete Road",
+                    "Are you sure you want to delete this road?",
                     "Delete", "Cancel"))
                 {
                     _circuitShaper.RemoveRoad(_selectedRoad);
                     _circuitShaper.DeselectRoad();
-                
+
                 }
             }
             GUI.backgroundColor = Color.white;
@@ -385,23 +416,24 @@ namespace OnomiCircuitShaper.Unity.Editor
             EditorGUILayout.LabelField("Bridge", EditorStyles.boldLabel);
 
             bool hasBridge = _selectedRoad.Bridge != null && _selectedRoad.Bridge.Data.Enabled;
-            
+
             EditorGUI.BeginChangeCheck();
             bool enableBridge = EditorGUILayout.Toggle("Enable Bridge", hasBridge);
-            
+
             if (EditorGUI.EndChangeCheck())
             {
+                Debug.Log("[Editor] Enabling bridge: " + enableBridge);
                 _circuitShaper.SetRoadBridgeEnabled(_selectedRoad, enableBridge);
             }
 
             if (hasBridge && _selectedRoad.Bridge != null)
             {
                 EditorGUI.indentLevel++;
-                
+
                 // Material Index
                 bool hasBridgeMaterials = _target != null && _target.BridgeMaterials != null && _target.BridgeMaterials.Count > 0;
                 EditorGUI.BeginDisabledGroup(!hasBridgeMaterials);
-                
+
                 EditorGUI.BeginChangeCheck();
                 int maxBridgeMatIndex = hasBridgeMaterials ? Mathf.Max(0, _target.BridgeMaterials.Count - 1) : 0;
                 int bridgeMaterialIndex = EditorGUILayout.IntSlider("Material Index", _selectedRoad.Bridge.Data.MaterialIndex, 0, maxBridgeMatIndex);
@@ -410,7 +442,7 @@ namespace OnomiCircuitShaper.Unity.Editor
                     _selectedRoad.Bridge.Data.MaterialIndex = bridgeMaterialIndex;
                     RoadRebuildQueue.MarkDirty(_selectedRoad);
                 }
-                
+
                 EditorGUI.EndDisabledGroup();
                 if (!hasBridgeMaterials)
                 {
@@ -465,7 +497,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             {
                 _circuitShaper.AddRailingToRoad(_selectedRoad);
             }
-            
+
             EditorGUI.BeginDisabledGroup(railingCount == 0);
             if (GUILayout.Button("Remove Last", GUILayout.Height(25)))
             {
@@ -482,12 +514,12 @@ namespace OnomiCircuitShaper.Unity.Editor
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                
+
                 var railing = _selectedRoad.Railings[i];
                 var railingData = railing.Data;
 
                 EditorGUILayout.LabelField($"Railing {i}", EditorStyles.boldLabel);
-                
+
                 EditorGUI.indentLevel++;
 
                 EditorGUI.BeginChangeCheck();
@@ -540,7 +572,7 @@ namespace OnomiCircuitShaper.Unity.Editor
 
 
 
-        
+
 
     }
 }

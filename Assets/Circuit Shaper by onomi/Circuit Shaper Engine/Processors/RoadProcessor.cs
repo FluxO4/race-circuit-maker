@@ -62,14 +62,14 @@ namespace OnomiCircuitShaper.Engine.Processors
             // Only check that parent curve has points
             if (road.parentCurve == null || road.parentCurve.Points.Count < 2)
             {
-               
+
                 return new GenericMeshData();
             }
 
 
             //Extract points from the parent curve using the range
 
-            List<CircuitPoint> pointArray =  road.parentCurve.GetPointsFromSegmentRange(road.Data.startSegmentIndex, road.Data.endSegmentIndex);
+            List<CircuitPoint> pointArray = road.parentCurve.GetPointsFromSegmentRange(road.Data.startSegmentIndex, road.Data.endSegmentIndex);
 
             CircuitPointData[] pointDataArray = pointArray.Select(p => p.Data).ToArray();
 
@@ -83,7 +83,7 @@ namespace OnomiCircuitShaper.Engine.Processors
                 }
             }
 
-    
+
 
 
             // Calculate mesh dimensions
@@ -165,7 +165,7 @@ namespace OnomiCircuitShaper.Engine.Processors
                 MaterialID = road.Data.MaterialIndex
             };
         }
-        
+
 
 
         /// <summary>
@@ -266,9 +266,9 @@ namespace OnomiCircuitShaper.Engine.Processors
 
                     // Calculate local coordinate system
                     Vector3 curveTangent = CircuitMathematics.BezierEvaluateCubicDerivative(
-                        p1.PointPosition, p1.ForwardControlPointPosition, 
+                        p1.PointPosition, p1.ForwardControlPointPosition,
                         p2.BackwardControlPointPosition, p2.PointPosition, localT);
-                    
+
                     if (curveTangent.LengthSquared() < 1e-6f)
                     {
                         curveTangent = Vector3.Normalize((Vector3)p2.PointPosition - (Vector3)p1.PointPosition);
@@ -300,9 +300,9 @@ namespace OnomiCircuitShaper.Engine.Processors
                         p2.BackwardControlPointPosition, p2.PointPosition, localT);
 
                     Vector3 curveTangent = CircuitMathematics.BezierEvaluateCubicDerivative(
-                        p1.PointPosition, p1.ForwardControlPointPosition, 
+                        p1.PointPosition, p1.ForwardControlPointPosition,
                         p2.BackwardControlPointPosition, p2.PointPosition, localT);
-                    
+
                     if (curveTangent.LengthSquared() < 1e-6f)
                     {
                         curveTangent = Vector3.Normalize((Vector3)p2.PointPosition - (Vector3)p1.PointPosition);
@@ -337,7 +337,7 @@ namespace OnomiCircuitShaper.Engine.Processors
             }
 
             // Generate triangle indices with consistent winding
-            int triangleIndex = 0; 
+            int triangleIndex = 0;
             for (int i = 0; i < activeSegmentCount; i++)
             {
                 int bottomLeft = i * 2;
@@ -370,8 +370,17 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// </summary>
         public static GenericMeshData BuildBridgeMesh(Bridge bridge, Road parentRoad)
         {
+            UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh called");
+
             if (bridge == null || parentRoad == null || parentRoad.parentCurve == null)
             {
+                UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh: Early return - null check failed");
+                return new GenericMeshData();
+            }
+
+            if (!bridge.Data.Enabled)
+            {
+                UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh: Bridge disabled");
                 return new GenericMeshData();
             }
 
@@ -379,8 +388,11 @@ namespace OnomiCircuitShaper.Engine.Processors
                 parentRoad.Data.startSegmentIndex,
                 parentRoad.Data.endSegmentIndex);
 
+            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Point array count = {pointArray.Count}");
+
             if (pointArray.Count < 2)
             {
+                UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh: Not enough points");
                 return new GenericMeshData();
             }
 
@@ -411,14 +423,19 @@ namespace OnomiCircuitShaper.Engine.Processors
                 }
             }
 
+            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Bridge shape points count = {bridgeShapePoints.Count}, UseTemplate = {bridge.Data.UseTemplate}");
+
             if (bridgeShapePoints.Count < 2)
             {
+                UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh: Not enough shape points");
                 return new GenericMeshData();
             }
 
             // Calculate mesh resolution
             int widthSegments = parentRoad.Data.WidthWiseVertexCount - 1;
             int lengthSegmentsPerPoint = Math.Max(1, (int)(widthSegments * parentRoad.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount));
+
+            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: widthSegments = {widthSegments}, lengthSegmentsPerPoint = {lengthSegmentsPerPoint}");
 
             // Build bridge mesh using ribbons for each segment of the bridge profile
             // The bridge profile defines a 2D shape that wraps around both edges of the road
@@ -431,21 +448,27 @@ namespace OnomiCircuitShaper.Engine.Processors
             var rightEdgePos = CurveProcessor.LerpAlongCurve(pointDataArray[0].CrossSectionCurve, 1f);
             float roadHalfWidth = (rightEdgePos - leftEdgePos).Length() / 2f;
 
+            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: roadHalfWidth = {roadHalfWidth}, leftEdgePos = {leftEdgePos}, rightEdgePos = {rightEdgePos}");
+
             // Create ribbons for left side of bridge
             for (int i = 0; i < bridgeShapePoints.Count - 1; i++)
             {
                 Vector2 p1 = bridgeShapePoints[i];
                 Vector2 p2 = bridgeShapePoints[i + 1];
 
+                UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Creating left ribbon {i}, p1 = {p1}, p2 = {p2}");
+
                 // Build ribbon from p1 to p2 on left side
                 GenericMeshData leftRibbon = BuildRibbon(
                     pointDataArray,
                     new Vector2(-roadHalfWidth + p1.X, p1.Y),  // Start position
                     new Vector2(-roadHalfWidth + p2.X, p2.Y),  // End position
-                    Vector2.One, // Full length (0 to 1)
+                    new Vector2(0, 1), // Full length (0 to 1)
                     lengthSegmentsPerPoint,
                     bridge.Data.UVTile,
                     Vector2.Zero);
+
+                UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Left ribbon {i} has {leftRibbon.Vertices?.Length ?? 0} vertices");
 
                 if (leftRibbon.Vertices != null && leftRibbon.Vertices.Length > 0)
                 {
@@ -455,14 +478,19 @@ namespace OnomiCircuitShaper.Engine.Processors
 
             // Create bottom connecting ribbon
             Vector2 bottomLeft = bridgeShapePoints[bridgeShapePoints.Count - 1];
+
+            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Creating bottom ribbon, bottomLeft = {bottomLeft}");
+
             GenericMeshData bottomRibbon = BuildRibbon(
                 pointDataArray,
                 new Vector2(-roadHalfWidth + bottomLeft.X, bottomLeft.Y),  // Left bottom
                 new Vector2(roadHalfWidth - bottomLeft.X, bottomLeft.Y),   // Right bottom (mirrored)
-                Vector2.One,
+                new Vector2(0, 1),
                 lengthSegmentsPerPoint,
                 bridge.Data.UVTile,
                 Vector2.Zero);
+
+            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Bottom ribbon has {bottomRibbon.Vertices?.Length ?? 0} vertices");
 
             if (bottomRibbon.Vertices != null && bottomRibbon.Vertices.Length > 0)
             {
@@ -475,15 +503,19 @@ namespace OnomiCircuitShaper.Engine.Processors
                 Vector2 p1 = bridgeShapePoints[i];
                 Vector2 p2 = bridgeShapePoints[i - 1];
 
+                UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Creating right ribbon {i}, p1 = {p1}, p2 = {p2}");
+
                 // Build ribbon from p1 to p2 on right side (mirrored)
                 GenericMeshData rightRibbon = BuildRibbon(
                     pointDataArray,
                     new Vector2(roadHalfWidth - p1.X, p1.Y),  // Start position (mirrored)
                     new Vector2(roadHalfWidth - p2.X, p2.Y),  // End position (mirrored)
-                    Vector2.One,
+                    new Vector2(0, 1),
                     lengthSegmentsPerPoint,
                     bridge.Data.UVTile,
                     Vector2.Zero);
+
+                UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Right ribbon {i} has {rightRibbon.Vertices?.Length ?? 0} vertices");
 
                 if (rightRibbon.Vertices != null && rightRibbon.Vertices.Length > 0)
                 {
@@ -491,8 +523,14 @@ namespace OnomiCircuitShaper.Engine.Processors
                 }
             }
 
+            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Total ribbons collected = {ribbons.Count}");
+
             // Combine all ribbons into one mesh
-            return CombineMeshData(ribbons.ToArray(), bridge.Data.MaterialIndex);
+            var result = CombineMeshData(ribbons.ToArray(), bridge.Data.MaterialIndex);
+
+            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Final mesh has {result.Vertices?.Length ?? 0} vertices");
+
+            return result;
         }
 
         /// <summary>
@@ -532,7 +570,7 @@ namespace OnomiCircuitShaper.Engine.Processors
                 lengthSegmentsPerPoint,
                 Vector2.One,
                 Vector2.Zero,
-                useCrossSectionPosition: true); 
+                useCrossSectionPosition: true);
 
             railingMesh.MaterialID = railing.Data.MaterialIndex;
             return railingMesh;

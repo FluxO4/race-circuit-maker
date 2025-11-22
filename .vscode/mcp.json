@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "unityMCP": {
+      "command": "C:\\Users\\fluxo\\.local\\bin\\uv.exe",
+      "args": [
+        "run",
+        "--directory",
+        "C:\\Users\\fluxo\\AppData\\Local\\UnityMCP\\UnityMcpServer\\src",
+        "server.py"
+      ],
+      "type": "stdio"
+    }
+  }
+}

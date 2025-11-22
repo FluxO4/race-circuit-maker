@@ -1,5 +1,6 @@
 using OnomiCircuitShaper.Engine.EditRealm;
 using OnomiCircuitShaper.Engine.Processors;
+using OnomiCircuitShaper.Engine.Data;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -39,7 +40,7 @@ namespace OnomiCircuitShaper.Unity
         public void UpdateMesh(Vector3[] vertices, Vector2[] uvs, int[] triangles, int materialID)
         {
             UnityEngine.Debug.Log($"[SceneRoad] UpdateMesh called with {vertices?.Length ?? 0} vertices, {uvs?.Length ?? 0} UVs, {triangles?.Length ?? 0} triangle indices, MaterialID: {materialID}");
-            
+
             // Ensure components are initialized (in case this is called before Awake)
             if (_meshFilter == null)
             {
@@ -56,21 +57,21 @@ namespace OnomiCircuitShaper.Unity
                 UnityEngine.Debug.Log("[SceneRoad] MeshRenderer was null, getting component");
                 _meshRenderer = GetComponent<MeshRenderer>();
             }
-            
-            if(_mesh == null)
+
+            if (_mesh == null)
             {
                 UnityEngine.Debug.Log("[SceneRoad] Mesh was null, creating new mesh");
                 _mesh = new Mesh();
                 _mesh.name = "SceneRoad_Mesh";
             }
-            
+
             _mesh.Clear();
             _mesh.vertices = vertices;
             _mesh.uv = uvs;
             _mesh.triangles = triangles;
             _mesh.RecalculateNormals();
             _mesh.RecalculateBounds();
-            
+
             // Reassign to ensure it's set
             _meshFilter.mesh = _mesh;
             _meshCollider.sharedMesh = _mesh;
@@ -86,54 +87,45 @@ namespace OnomiCircuitShaper.Unity
             {
                 UnityEngine.Debug.LogWarning($"[SceneRoad] Invalid material ID {materialID} or missing OnomiCircuitShaper reference.");
             }
-            
-            UnityEngine.Debug.Log($"[SceneRoad] Mesh updated successfully. Vertex count: {_mesh.vertexCount}, Triangle count: {_mesh.triangles.Length/3}");
 
-            // Update bridge and railings
-            UpdateBridgeAndRailings();
+            UnityEngine.Debug.Log($"[SceneRoad] Mesh updated successfully. Vertex count: {_mesh.vertexCount}, Triangle count: {_mesh.triangles.Length / 3}");
+
+            // Bridge and Railings are now updated separately via UpdateBridge and UpdateRailings methods
         }
 
         /// <summary>
-        /// Updates the bridge and railing child objects based on the associated road data.
+        /// Updates the bridge child object with the provided mesh data.
         /// </summary>
-        private void UpdateBridgeAndRailings()
+        public void UpdateBridge(GenericMeshData bridgeMesh, Bridge bridge, int materialID)
         {
-            if (associatedRoad == null) return;
-
-            // Update or create bridge
-            if (associatedRoad.Bridge != null)
+            if (bridgeMesh.Vertices != null && bridgeMesh.Vertices.Length > 0)
             {
                 if (_sceneBridge == null)
                 {
                     // Create bridge child object
                     GameObject bridgeObj = new GameObject("Bridge");
                     bridgeObj.transform.SetParent(transform, false);
-                    bridgeObj.hideFlags = HideFlags.HideInHierarchy;
+                    //bridgeObj.hideFlags = HideFlags.HideInHierarchy;
                     _sceneBridge = bridgeObj.AddComponent<SceneBridge>();
                     _sceneBridge.onomiCircuitShaper = onomiCircuitShaper;
-                    _sceneBridge.associatedBridge = associatedRoad.Bridge;
+                    _sceneBridge.associatedBridge = bridge;
                 }
 
-                // Generate and apply bridge mesh
-                GenericMeshData bridgeMesh = RoadProcessor.BuildBridgeMesh(associatedRoad.Bridge, associatedRoad);
-                if (bridgeMesh.Vertices != null && bridgeMesh.Vertices.Length > 0)
+                Vector3[] unityVertices = new Vector3[bridgeMesh.Vertices.Length];
+                for (int i = 0; i < bridgeMesh.Vertices.Length; i++)
                 {
-                    Vector3[] unityVertices = new Vector3[bridgeMesh.Vertices.Length];
-                    for (int i = 0; i < bridgeMesh.Vertices.Length; i++)
-                    {
-                        var v = bridgeMesh.Vertices[i];
-                        unityVertices[i] = new Vector3(v.X, v.Y, v.Z);
-                    }
-
-                    Vector2[] unityUVs = new Vector2[bridgeMesh.UVs.Length];
-                    for (int i = 0; i < bridgeMesh.UVs.Length; i++)
-                    {
-                        var uv = bridgeMesh.UVs[i];
-                        unityUVs[i] = new Vector2(uv.X, uv.Y);
-                    }
-
-                    _sceneBridge.UpdateMesh(unityVertices, unityUVs, bridgeMesh.Triangles, bridgeMesh.MaterialID);
+                    var v = bridgeMesh.Vertices[i];
+                    unityVertices[i] = new Vector3(v.X, v.Y, v.Z);
                 }
+
+                Vector2[] unityUVs = new Vector2[bridgeMesh.UVs.Length];
+                for (int i = 0; i < bridgeMesh.UVs.Length; i++)
+                {
+                    var uv = bridgeMesh.UVs[i];
+                    unityUVs[i] = new Vector2(uv.X, uv.Y);
+                }
+
+                _sceneBridge.UpdateMesh(unityVertices, unityUVs, bridgeMesh.Triangles, materialID);
             }
             else
             {
@@ -144,12 +136,17 @@ namespace OnomiCircuitShaper.Unity
                     _sceneBridge = null;
                 }
             }
+        }
 
-            // Update railings
-            if (associatedRoad.Railings != null)
+        /// <summary>
+        /// Updates the railing child objects with the provided list of mesh data.
+        /// </summary>
+        public void UpdateRailings(List<(GenericMeshData mesh, Railing railing)> railingUpdates)
+        {
+            if (railingUpdates != null && railingUpdates.Count > 0)
             {
                 // Remove excess railing objects
-                while (_sceneRailings.Count > associatedRoad.Railings.Count)
+                while (_sceneRailings.Count > railingUpdates.Count)
                 {
                     int lastIndex = _sceneRailings.Count - 1;
                     if (_sceneRailings[lastIndex] != null)
@@ -160,9 +157,12 @@ namespace OnomiCircuitShaper.Unity
                 }
 
                 // Create or update railing objects
-                for (int i = 0; i < associatedRoad.Railings.Count; i++)
+                for (int i = 0; i < railingUpdates.Count; i++)
                 {
-                    Railing railingData = associatedRoad.Railings[i];
+                    var update = railingUpdates[i];
+                    var railingMesh = update.mesh;
+                    var railing = update.railing;
+
                     SceneRailing sceneRailing;
 
                     if (i >= _sceneRailings.Count)
@@ -170,7 +170,7 @@ namespace OnomiCircuitShaper.Unity
                         // Create new railing child object
                         GameObject railingObj = new GameObject($"Railing_{i}");
                         railingObj.transform.SetParent(transform, false);
-                        railingObj.hideFlags = HideFlags.HideInHierarchy;
+                        //railingObj.hideFlags = HideFlags.HideInHierarchy;
                         sceneRailing = railingObj.AddComponent<SceneRailing>();
                         sceneRailing.onomiCircuitShaper = onomiCircuitShaper;
                         _sceneRailings.Add(sceneRailing);
@@ -180,10 +180,8 @@ namespace OnomiCircuitShaper.Unity
                         sceneRailing = _sceneRailings[i];
                     }
 
-                    sceneRailing.associatedRailing = railingData;
+                    sceneRailing.associatedRailing = railing;
 
-                    // Generate and apply railing mesh
-                    GenericMeshData railingMesh = RoadProcessor.BuildRailingMesh(railingData, associatedRoad);
                     if (railingMesh.Vertices != null && railingMesh.Vertices.Length > 0)
                     {
                         Vector3[] unityVertices = new Vector3[railingMesh.Vertices.Length];
@@ -200,8 +198,14 @@ namespace OnomiCircuitShaper.Unity
                             unityUVs[j] = new Vector2(uv.X, uv.Y);
                         }
 
-                        sceneRailing.UpdateMesh(unityVertices, unityUVs, railingMesh.Triangles, 
-                            railingMesh.MaterialID, railingData.Data.IsVisible);
+                        sceneRailing.UpdateMesh(unityVertices, unityUVs, railingMesh.Triangles,
+                            railingMesh.MaterialID, railing.Data.IsVisible);
+                    }
+                    else
+                    {
+                        // If mesh is empty but object exists, we might want to hide it or just update with empty mesh
+                        // For now, let's just clear the mesh
+                        sceneRailing.UpdateMesh(new Vector3[0], new Vector2[0], new int[0], 0, false);
                     }
                 }
             }

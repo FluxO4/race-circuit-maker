@@ -23,13 +23,17 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public RailingData Data { get; private set; }
 
+
+        public Road ParentRoad { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Railing"/> class.
         /// </summary>
         /// <param name="data">The <see cref="RailingData"/> to be managed by this edit-realm object.</param>
-        public Railing(RailingData data)
+        public Railing(RailingData data, Road parentRoad = null)
         {
             Data = data;
+            ParentRoad = parentRoad;
         }
     }
 }

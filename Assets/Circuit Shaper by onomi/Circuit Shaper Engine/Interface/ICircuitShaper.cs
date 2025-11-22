@@ -192,6 +192,21 @@ namespace OnomiCircuitShaper.Engine.Interface
         /// </summary>
         bool TrySetRoadEndSegment(Road road, int newEndSegment);
 
+        /// <summary>
+        /// Enables or disables the bridge for a road.
+        /// </summary>
+        void SetRoadBridgeEnabled(Road road, bool enabled);
+
+        /// <summary>
+        /// Adds a new railing to a road.
+        /// </summary>
+        void AddRailingToRoad(Road road);
+
+        /// <summary>
+        /// Removes a railing from a road at the specified index.
+        /// </summary>
+        void RemoveRailingFromRoad(Road road, int index);
+
     }
 
     public enum SinglePointSelectionMode

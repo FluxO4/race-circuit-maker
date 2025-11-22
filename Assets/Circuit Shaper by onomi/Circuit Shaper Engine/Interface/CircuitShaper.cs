@@ -295,5 +295,40 @@ namespace OnomiCircuitShaper.Engine.Interface
         {
             return road?.parentCurve?.TrySetRoadEndSegment(road, newEndSegment) ?? false;
         }
+
+        public void SetRoadBridgeEnabled(Road road, bool enabled)
+        {
+            if (road == null) return;
+
+            road.EnableBridge(enabled);
+            road.parentCurve?.OnCurveStateChanged();
+            RoadRebuildQueue.MarkDirty(road);
+        }
+
+        public void AddRailingToRoad(Road road)
+        {
+            if (road == null) return;
+
+            if (road.Data.Railings == null)
+            {
+                road.Data.Railings = new List<RailingData>();
+            }
+
+            road.Data.Railings.Add(new RailingData());
+            road.RebuildRailingsWrappers();
+            road.parentCurve?.OnCurveStateChanged();
+            RoadRebuildQueue.MarkDirty(road);
+        }
+
+        public void RemoveRailingFromRoad(Road road, int index)
+        {
+            if (road == null || road.Data.Railings == null) return;
+            if (index < 0 || index >= road.Data.Railings.Count) return;
+
+            road.Data.Railings.RemoveAt(index);
+            road.RebuildRailingsWrappers();
+            road.parentCurve?.OnCurveStateChanged();
+            RoadRebuildQueue.MarkDirty(road);
+        }
     }
 }

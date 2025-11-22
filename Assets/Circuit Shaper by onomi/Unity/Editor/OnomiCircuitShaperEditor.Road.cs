@@ -384,30 +384,17 @@ namespace OnomiCircuitShaper.Unity.Editor
         {
             EditorGUILayout.LabelField("Bridge", EditorStyles.boldLabel);
 
-            bool hasBridge = _selectedRoad.Bridge != null;
+            bool hasBridge = _selectedRoad.Bridge != null && _selectedRoad.Bridge.Data.Enabled;
             
             EditorGUI.BeginChangeCheck();
             bool enableBridge = EditorGUILayout.Toggle("Enable Bridge", hasBridge);
             
             if (EditorGUI.EndChangeCheck())
             {
-                if (enableBridge && !hasBridge)
-                {
-                    // Create new bridge
-                    _selectedRoad.Data.Bridge = new BridgeData();
-                    _selectedRoad.parentCurve.OnCurveStateChanged();
-                    RoadRebuildQueue.MarkDirty(_selectedRoad);
-                }
-                else if (!enableBridge && hasBridge)
-                {
-                    // Remove bridge
-                    _selectedRoad.Data.Bridge = null;
-                    _selectedRoad.parentCurve.OnCurveStateChanged();
-                    RoadRebuildQueue.MarkDirty(_selectedRoad);
-                }
+                _circuitShaper.SetRoadBridgeEnabled(_selectedRoad, enableBridge);
             }
 
-            if (hasBridge)
+            if (hasBridge && _selectedRoad.Bridge != null)
             {
                 EditorGUI.indentLevel++;
                 
@@ -476,10 +463,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Add Railing", GUILayout.Height(25)))
             {
-                var newRailing = new RailingData();
-                _selectedRoad.Data.Railings.Add(newRailing);
-                _selectedRoad.parentCurve.OnCurveStateChanged();
-                RoadRebuildQueue.MarkDirty(_selectedRoad);
+                _circuitShaper.AddRailingToRoad(_selectedRoad);
             }
             
             EditorGUI.BeginDisabledGroup(railingCount == 0);
@@ -487,9 +471,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             {
                 if (railingCount > 0)
                 {
-                    _selectedRoad.Data.Railings.RemoveAt(railingCount - 1);
-                    _selectedRoad.parentCurve.OnCurveStateChanged();
-                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                    _circuitShaper.RemoveRailingFromRoad(_selectedRoad, railingCount - 1);
                 }
             }
             EditorGUI.EndDisabledGroup();
@@ -546,9 +528,7 @@ namespace OnomiCircuitShaper.Unity.Editor
                 GUI.backgroundColor = new Color(1f, 0.5f, 0.5f);
                 if (GUILayout.Button($"Delete Railing {i}", GUILayout.Height(20)))
                 {
-                    _selectedRoad.Data.Railings.RemoveAt(i);
-                    _selectedRoad.parentCurve.OnCurveStateChanged();
-                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                    _circuitShaper.RemoveRailingFromRoad(_selectedRoad, i);
                     break; // Exit loop since we modified the list
                 }
                 GUI.backgroundColor = Color.white;

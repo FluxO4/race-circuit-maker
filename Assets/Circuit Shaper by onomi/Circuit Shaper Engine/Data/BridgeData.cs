@@ -11,6 +11,11 @@ namespace OnomiCircuitShaper.Engine.Data
     [System.Serializable]
     public class BridgeData
     {
+        //enabled flag
+        public bool Enabled = true;
+
+
+
         /// <summary>
         /// The material index to use when rendering the bridge mesh.
         /// </summary>

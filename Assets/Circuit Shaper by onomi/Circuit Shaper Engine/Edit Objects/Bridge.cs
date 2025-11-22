@@ -22,13 +22,18 @@ namespace OnomiCircuitShaper.Engine.EditRealm
         /// </summary>
         public BridgeData Data { get; private set; }
 
+
+        public Road ParentRoad { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Bridge"/> class, wrapping the provided data.
         /// </summary>
         /// <param name="data">The <see cref="BridgeData"/> to be managed by this edit-realm object.</param>
-        public Bridge(BridgeData data)
+        public Bridge(BridgeData data, Road parentRoad = null)
         {
             Data = data;
+            ParentRoad = parentRoad;
         }
+
     }
 }

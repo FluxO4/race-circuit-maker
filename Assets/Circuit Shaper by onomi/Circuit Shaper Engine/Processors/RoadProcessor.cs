@@ -407,11 +407,11 @@ namespace OnomiCircuitShaper.Engine.Processors
                 // Create I-beam style bridge profile (one half, will be mirrored)
                 bridgeShapePoints.Add(new Vector2(0, 0)); // Road surface edge
                 bridgeShapePoints.Add(new Vector2(0, data.TemplateCurbHeight)); // Curb top
-                bridgeShapePoints.Add(new Vector2(-data.TemplateEdgeWidth, data.TemplateCurbHeight)); // Edge width
-                bridgeShapePoints.Add(new Vector2(-data.TemplateEdgeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth)); // Before flange
-                bridgeShapePoints.Add(new Vector2(-data.TemplateEdgeWidth - data.TemplateFlangeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth)); // Flange outer
-                bridgeShapePoints.Add(new Vector2(-data.TemplateEdgeWidth - data.TemplateFlangeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth - data.TemplateFlangeHeight)); // Flange bottom
-                bridgeShapePoints.Add(new Vector2(-data.TemplateEdgeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth - data.TemplateFlangeHeight)); // After flange
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight)); // Edge width
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth)); // Before flange
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth + data.TemplateFlangeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth)); // Flange outer
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth + data.TemplateFlangeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth - data.TemplateFlangeHeight)); // Flange bottom
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth - data.TemplateFlangeHeight)); // After flange
                 bridgeShapePoints.Add(new Vector2(0, data.TemplateCurbHeight - data.TemplateBridgeHeight)); // Bottom point
             }
             else
@@ -444,29 +444,30 @@ namespace OnomiCircuitShaper.Engine.Processors
             // Get left and right edge positions (assuming cross-section is centered)
             // We need to get the actual edge positions from the first point's cross-section
             CurveProcessor.NormaliseCurvePoints(pointDataArray[0].CrossSectionCurve);
-            var leftEdgePos = CurveProcessor.LerpAlongCurve(pointDataArray[0].CrossSectionCurve, 0f);
-            var rightEdgePos = CurveProcessor.LerpAlongCurve(pointDataArray[0].CrossSectionCurve, 1f);
-            float roadHalfWidth = (rightEdgePos - leftEdgePos).Length() / 2f;
+            var leftEdgePos3 = CurveProcessor.LerpAlongCurve(pointDataArray[0].CrossSectionCurve, 0f);
+            var rightEdgePos3 = CurveProcessor.LerpAlongCurve(pointDataArray[0].CrossSectionCurve, 1f);
 
-            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: roadHalfWidth = {roadHalfWidth}, leftEdgePos = {leftEdgePos}, rightEdgePos = {rightEdgePos}");
+            Vector2 leftEdgePos = new Vector2(leftEdgePos3.X, leftEdgePos3.Y);
+            Vector2 rightEdgePos = new Vector2(rightEdgePos3.X, rightEdgePos3.Y);
 
+            
             // Create ribbons for left side of bridge
             for (int i = 0; i < bridgeShapePoints.Count - 1; i++)
             {
-                Vector2 p1 = bridgeShapePoints[i];
-                Vector2 p2 = bridgeShapePoints[i + 1];
+                Vector2 p1 = bridgeShapePoints[i] + leftEdgePos;
+                Vector2 p2 = bridgeShapePoints[i + 1] + leftEdgePos;
 
                 UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Creating left ribbon {i}, p1 = {p1}, p2 = {p2}");
 
                 // Build ribbon from p1 to p2 on left side
                 GenericMeshData leftRibbon = BuildRibbon(
                     pointDataArray,
-                    new Vector2(-roadHalfWidth + p1.X, p1.Y),  // Start position
-                    new Vector2(-roadHalfWidth + p2.X, p2.Y),  // End position
+                    p2,  // Start position
+                    p1,  // End position
                     new Vector2(0, 1), // Full length (0 to 1)
                     lengthSegmentsPerPoint,
                     bridge.Data.UVTile,
-                    Vector2.Zero);
+                    bridge.Data.UVOffset, true);
 
                 UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Left ribbon {i} has {leftRibbon.Vertices?.Length ?? 0} vertices");
 
@@ -483,12 +484,12 @@ namespace OnomiCircuitShaper.Engine.Processors
 
             GenericMeshData bottomRibbon = BuildRibbon(
                 pointDataArray,
-                new Vector2(-roadHalfWidth + bottomLeft.X, bottomLeft.Y),  // Left bottom
-                new Vector2(roadHalfWidth - bottomLeft.X, bottomLeft.Y),   // Right bottom (mirrored)
+                new Vector2(bottomLeft.X, bottomLeft.Y) + rightEdgePos,   
+                new Vector2(bottomLeft.X, bottomLeft.Y) + leftEdgePos, 
                 new Vector2(0, 1),
                 lengthSegmentsPerPoint,
                 bridge.Data.UVTile,
-                Vector2.Zero);
+                bridge.Data.UVOffset, true);
 
             UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Bottom ribbon has {bottomRibbon.Vertices?.Length ?? 0} vertices");
 
@@ -500,20 +501,20 @@ namespace OnomiCircuitShaper.Engine.Processors
             // Create ribbons for right side of bridge (mirrored)
             for (int i = bridgeShapePoints.Count - 1; i > 0; i--)
             {
-                Vector2 p1 = bridgeShapePoints[i];
-                Vector2 p2 = bridgeShapePoints[i - 1];
+                Vector2 p1 = bridgeShapePoints[i] + rightEdgePos;
+                Vector2 p2 = bridgeShapePoints[i - 1] + rightEdgePos;
 
                 UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Creating right ribbon {i}, p1 = {p1}, p2 = {p2}");
 
                 // Build ribbon from p1 to p2 on right side (mirrored)
                 GenericMeshData rightRibbon = BuildRibbon(
                     pointDataArray,
-                    new Vector2(roadHalfWidth - p1.X, p1.Y),  // Start position (mirrored)
-                    new Vector2(roadHalfWidth - p2.X, p2.Y),  // End position (mirrored)
+                    p2,  // Start position (mirrored)
+                    p1,  // End position (mirrored)
                     new Vector2(0, 1),
                     lengthSegmentsPerPoint,
                     bridge.Data.UVTile,
-                    Vector2.Zero);
+                    bridge.Data.UVOffset, true);
 
                 UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Right ribbon {i} has {rightRibbon.Vertices?.Length ?? 0} vertices");
 

@@ -75,7 +75,7 @@ namespace OnomiCircuitShaper.Engine.Processors
         {
             if (curve == null || curve.CurvePoints.Count == 0)
             {
-                UnityEngine.Debug.LogWarning("[CurveProcessor] LerpAlongCurve: curve is null or has no points");
+
                 return Vector3.Zero;
             }
             if (curve.CurvePoints.Count == 1)
@@ -117,6 +117,7 @@ namespace OnomiCircuitShaper.Engine.Processors
             // Fallback to the last point if not found (shouldn't happen with clamped value01)
             return curve.CurvePoints[curve.CurvePoints.Count - 1].PointPosition;
         }
+        
 
 
         /// <summary>

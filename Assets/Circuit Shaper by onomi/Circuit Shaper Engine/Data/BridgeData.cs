@@ -39,6 +39,11 @@ namespace OnomiCircuitShaper.Engine.Data
         /// </summary>
         public SerializableVector2 UVTile = (SerializableVector2)Vector2.One;
 
+        /// <summary>
+        /// Controls the offset of the UV coordinates on the bridge mesh.
+        /// </summary>
+        public SerializableVector2 UVOffset = (SerializableVector2)Vector2.Zero;
+
         #region Template Properties
         /// <summary>
         /// (Template) The width of the top edge or curb of the bridge.

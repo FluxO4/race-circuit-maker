@@ -50,30 +50,18 @@ namespace OnomiCircuitShaper.Engine.Processors
         /// Generates the vertex, UV, and triangle data for a road mesh.
         /// Uses the road's associated points and their cross-sections to create the geometry.
         /// </summary>
-        /// <param name="road">The live road object containing all necessary data and references.</param>
-        /// <returns>Engine-agnostic mesh data ready for rendering.</returns>
-        /// <remarks>
-        /// [Look here onomi] This needs to handle the Min/Max properties to generate only
-        /// a portion of the full road length if desired.
-        /// </remarks>
         public static GenericMeshData BuildRoadMesh(Road road)
         {
-            // Note: Same start and end segment is valid (single segment road)
-            // Only check that parent curve has points
             if (road.parentCurve == null || road.parentCurve.Points.Count < 2)
             {
-
                 return new GenericMeshData();
             }
 
-
-            //Extract points from the parent curve using the range
-
             List<CircuitPoint> pointArray = road.parentCurve.GetPointsFromSegmentRange(road.Data.startSegmentIndex, road.Data.endSegmentIndex);
+            if (pointArray.Count < 2) return new GenericMeshData();
 
             CircuitPointData[] pointDataArray = pointArray.Select(p => p.Data).ToArray();
 
-            // Validate cross-sections
             for (int i = 0; i < pointArray.Count; i++)
             {
                 var point = pointArray[i];
@@ -83,10 +71,6 @@ namespace OnomiCircuitShaper.Engine.Processors
                 }
             }
 
-
-
-
-            // Calculate mesh dimensions
             int widthSegments = road.Data.WidthWiseVertexCount - 1;
             int lengthSegmentsPerPoint = Math.Max(1, (int)(widthSegments * road.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount));
             int totalLengthSegments = (pointDataArray.Length - 1) * lengthSegmentsPerPoint;
@@ -95,16 +79,13 @@ namespace OnomiCircuitShaper.Engine.Processors
             int vertexCountLength = totalLengthSegments + 1;
             int totalVertices = vertexCountWidth * vertexCountLength;
 
-            // Allocate arrays
             var vertices = new Vector3[totalVertices];
             var uvs = new Vector2[totalVertices];
-            var triangles = new int[widthSegments * totalLengthSegments * 6]; // 2 triangles per quad, 3 indices each
+            var triangles = new int[widthSegments * totalLengthSegments * 6];
 
-            // Generate vertices and UVs
             int vertexIndex = 0;
             for (int lengthIndex = 0; lengthIndex < vertexCountLength; lengthIndex++)
             {
-                // Determine which segment we're in and local t value
                 float globalT = (float)lengthIndex / totalLengthSegments;
                 int segmentIndex = Math.Min((int)(globalT * (pointDataArray.Length - 1)), pointDataArray.Length - 2);
                 float localT = (globalT * (pointDataArray.Length - 1)) - segmentIndex;
@@ -113,18 +94,14 @@ namespace OnomiCircuitShaper.Engine.Processors
                 var p1 = pointDataArray[segmentIndex];
                 var p2 = pointDataArray[segmentIndex + 1];
 
-                // Normalize cross-section curves before interpolation
                 CurveProcessor.NormaliseCurvePoints(p1.CrossSectionCurve);
                 CurveProcessor.NormaliseCurvePoints(p2.CrossSectionCurve);
 
                 for (int widthIndex = 0; widthIndex < vertexCountWidth; widthIndex++)
                 {
                     float widthT = (float)widthIndex / widthSegments;
-
-                    // Generate vertex position using the cross-section interpolation
                     vertices[vertexIndex] = CurveProcessor.LerpBetweenTwoCrossSections(p1, p2, widthT, localT);
 
-                    // Generate UV coordinates
                     float u = widthT * road.Data.UVTile.x + road.Data.UVOffset.x;
                     float v = globalT * road.Data.UVTile.y + road.Data.UVOffset.y;
                     uvs[vertexIndex] = new Vector2(u, v);
@@ -133,27 +110,23 @@ namespace OnomiCircuitShaper.Engine.Processors
                 }
             }
 
-            // Generate triangle indices
             int triangleIndex = 0;
             for (int lengthIndex = 0; lengthIndex < totalLengthSegments; lengthIndex++)
             {
                 for (int widthIndex = 0; widthIndex < widthSegments; widthIndex++)
                 {
-                    // Calculate the four corners of this quad
                     int bottomLeft = lengthIndex * vertexCountWidth + widthIndex;
                     int bottomRight = bottomLeft + 1;
                     int topLeft = bottomLeft + vertexCountWidth;
                     int topRight = topLeft + 1;
 
-                    // First triangle (clockwise for upward-facing normal)
                     triangles[triangleIndex++] = bottomLeft;
-                    triangles[triangleIndex++] = bottomRight;  // Swapped
-                    triangles[triangleIndex++] = topLeft;      // Swapped
-
-                    // Second triangle (clockwise for upward-facing normal)
                     triangles[triangleIndex++] = bottomRight;
-                    triangles[triangleIndex++] = topRight;     // Swapped
-                    triangles[triangleIndex++] = topLeft;      // Swapped
+                    triangles[triangleIndex++] = topLeft;
+
+                    triangles[triangleIndex++] = bottomRight;
+                    triangles[triangleIndex++] = topRight;
+                    triangles[triangleIndex++] = topLeft;
                 }
             }
 
@@ -166,52 +139,74 @@ namespace OnomiCircuitShaper.Engine.Processors
             };
         }
 
+        /// <summary>
+        /// Calculates the position, and orthonormal up and right vectors for a point along the main circuit curve.
+        /// This logic is shared by all mesh generation functions to ensure consistency.
+        /// </summary>
+        private static void GetInterpolatedFrame(CircuitPointData p1, CircuitPointData p2, float localT, out Vector3 position, out Vector3 upDir, out Vector3 rightDir)
+        {
+            position = CircuitMathematics.BezierEvaluateCubic(
+                p1.PointPosition, p1.ForwardControlPointPosition,
+                p2.BackwardControlPointPosition, p2.PointPosition, localT);
 
+            Vector3 curveTangent = CircuitMathematics.BezierEvaluateCubicDerivative(
+                p1.PointPosition, p1.ForwardControlPointPosition,
+                p2.BackwardControlPointPosition, p2.PointPosition, localT);
+
+            if (curveTangent.LengthSquared() < 1e-6f)
+            {
+                curveTangent = (Vector3)p2.PointPosition - (Vector3)p1.PointPosition;
+            }
+            curveTangent = Vector3.Normalize(curveTangent);
+
+            Vector3 interpolatedUp = Vector3.Lerp((Vector3)p1.UpDirection, (Vector3)p2.UpDirection, localT);
+            
+            // Gram-Schmidt orthogonalization to get a clean coordinate system
+            upDir = interpolatedUp - Vector3.Dot(interpolatedUp, curveTangent) * curveTangent;
+            if (upDir.LengthSquared() < 1e-6f)
+            {
+                // If up is parallel to tangent, find a new perpendicular vector.
+                var randomVec = new Vector3(0, 1, 0);
+                if (Math.Abs(Vector3.Dot(randomVec, curveTangent)) > 0.99f)
+                {
+                    randomVec = new Vector3(1, 0, 0);
+                }
+                upDir = Vector3.Cross(curveTangent, randomVec);
+            }
+            upDir = Vector3.Normalize(upDir);
+
+            rightDir = Vector3.Normalize(Vector3.Cross(curveTangent, upDir));
+        }
 
         /// <summary>
-        /// Generates a flexible ribbon mesh along the road path.
-        /// Start and end positions can be either fixed 2D offsets OR cross-section t-values (0-1).
-        /// When useCrossSectionPosition is true, startPos.X and endPos.X are treated as t-values along the cross-section curve.
-        /// When false, they are treated as direct offsets from curve center.
+        /// Generates a flexible ribbon mesh along a specified portion of the road path.
+        /// Allows specifying an origin (0-1 along cross-section) for both start and end of the ribbon width,
+        /// plus an offset from that origin.
         /// </summary>
-        /// <param name="pointDataArray">Array of circuit points defining the road path</param>
-        /// <param name="startPos">2D position (X=horizontal, Y=vertical offset or cross-section t if useCrossSectionPosition=true)</param>
-        /// <param name="endPos">2D position (X=horizontal, Y=vertical offset or cross-section t if useCrossSectionPosition=true)</param>
-        /// <param name="alongLengthMinMax">Min/max range along road length (0-1)</param>
-        /// <param name="lengthSegmentsPerPoint">Number of segments per point pair</param>
-        /// <param name="uvTile">UV tiling for texture mapping</param>
-        /// <param name="uvOffset">UV offset for texture mapping</param>
-        /// <param name="useCrossSectionPosition">If true, startPos.X and endPos.X are cross-section t-values (0-1), otherwise they're direct offsets</param>
-        /// <returns>Generic mesh data for the ribbon</returns>
         private static GenericMeshData BuildRibbon(
             CircuitPointData[] pointDataArray,
-            Vector2 startPos,
-            Vector2 endPos,
+            float startOriginT, Vector2 startOffset,
+            float endOriginT, Vector2 endOffset,
             Vector2 alongLengthMinMax,
             int lengthSegmentsPerPoint,
             Vector2 uvTile,
-            Vector2 uvOffset,
-            bool useCrossSectionPosition = false)
+            Vector2 uvOffset)
         {
             if (pointDataArray == null || pointDataArray.Length < 2)
             {
                 return new GenericMeshData();
             }
 
-            // Clamp length range
-            alongLengthMinMax = new Vector2(
-                Math.Clamp(alongLengthMinMax.X, 0f, 1f),
-                Math.Clamp(alongLengthMinMax.Y, 0f, 1f)
-            );
+            alongLengthMinMax = new Vector2(Math.Clamp(alongLengthMinMax.X, 0f, 1f), Math.Clamp(alongLengthMinMax.Y, 0f, 1f));
             if (alongLengthMinMax.X >= alongLengthMinMax.Y)
             {
-                alongLengthMinMax = new Vector2(alongLengthMinMax.X, alongLengthMinMax.X + 0.01f);
+                return new GenericMeshData();
             }
 
             int totalLengthSegments = (pointDataArray.Length - 1) * lengthSegmentsPerPoint;
-            int startSegmentIndex = (int)(alongLengthMinMax.X * totalLengthSegments);
-            int endSegmentIndex = (int)(alongLengthMinMax.Y * totalLengthSegments);
-            int activeSegmentCount = endSegmentIndex - startSegmentIndex;
+            int startStep = (int)(alongLengthMinMax.X * totalLengthSegments);
+            int endStep = (int)(alongLengthMinMax.Y * totalLengthSegments);
+            int activeSegmentCount = endStep - startStep;
 
             if (activeSegmentCount <= 0)
             {
@@ -224,12 +219,11 @@ namespace OnomiCircuitShaper.Engine.Processors
             var uvs = new Vector2[totalVertices];
             var triangles = new int[activeSegmentCount * 6];
 
-            // Generate vertices and UVs
             int vertexIndex = 0;
             for (int i = 0; i < vertexCountLength; i++)
             {
-                int actualSegmentIndex = startSegmentIndex + i;
-                float globalT = (float)actualSegmentIndex / totalLengthSegments;
+                int currentStep = startStep + i;
+                float globalT = totalLengthSegments > 0 ? (float)currentStep / totalLengthSegments : 0;
                 int segmentIndex = Math.Min((int)(globalT * (pointDataArray.Length - 1)), pointDataArray.Length - 2);
                 float localT = (globalT * (pointDataArray.Length - 1)) - segmentIndex;
                 localT = Math.Clamp(localT, 0f, 1f);
@@ -237,94 +231,16 @@ namespace OnomiCircuitShaper.Engine.Processors
                 var p1 = pointDataArray[segmentIndex];
                 var p2 = pointDataArray[segmentIndex + 1];
 
-                // Normalize cross-section curves
-                CurveProcessor.NormaliseCurvePoints(p1.CrossSectionCurve);
-                CurveProcessor.NormaliseCurvePoints(p2.CrossSectionCurve);
+                // Get the coordinate frame for orientation
+                GetInterpolatedFrame(p1, p2, localT, out _, out Vector3 upDir, out Vector3 rightDir);
 
-                Vector3 vertex1, vertex2;
+                // Calculate the base positions on the road surface using the cross-section interpolation
+                Vector3 base1 = CurveProcessor.LerpBetweenTwoCrossSections(p1, p2, startOriginT, localT);
+                Vector3 base2 = CurveProcessor.LerpBetweenTwoCrossSections(p1, p2, endOriginT, localT);
 
-                if (useCrossSectionPosition)
-                {
-                    // Sample cross-sections at both points and interpolate
-                    var crossSection1Start = CurveProcessor.LerpAlongCurve(p1.CrossSectionCurve, startPos.X);
-                    var crossSection2Start = CurveProcessor.LerpAlongCurve(p2.CrossSectionCurve, startPos.X);
-                    var crossSection1End = CurveProcessor.LerpAlongCurve(p1.CrossSectionCurve, endPos.X);
-                    var crossSection2End = CurveProcessor.LerpAlongCurve(p2.CrossSectionCurve, endPos.X);
-
-                    // Interpolate cross-section positions between the two points (use XY components only)
-                    Vector2 interpolatedStart = new Vector2(
-                        crossSection1Start.X + (crossSection2Start.X - crossSection1Start.X) * localT,
-                        crossSection1Start.Y + (crossSection2Start.Y - crossSection1Start.Y) * localT);
-                    Vector2 interpolatedEnd = new Vector2(
-                        crossSection1End.X + (crossSection2End.X - crossSection1End.X) * localT,
-                        crossSection1End.Y + (crossSection2End.Y - crossSection1End.Y) * localT);
-
-                    // Get base position at curve center
-                    Vector3 curvePosition = CircuitMathematics.BezierEvaluateCubic(
-                        p1.PointPosition, p1.ForwardControlPointPosition,
-                        p2.BackwardControlPointPosition, p2.PointPosition, localT);
-
-                    // Calculate local coordinate system
-                    Vector3 curveTangent = CircuitMathematics.BezierEvaluateCubicDerivative(
-                        p1.PointPosition, p1.ForwardControlPointPosition,
-                        p2.BackwardControlPointPosition, p2.PointPosition, localT);
-
-                    if (curveTangent.LengthSquared() < 1e-6f)
-                    {
-                        curveTangent = Vector3.Normalize((Vector3)p2.PointPosition - (Vector3)p1.PointPosition);
-                    }
-                    else
-                    {
-                        curveTangent = Vector3.Normalize(curveTangent);
-                    }
-
-                    Vector3 upDir = Vector3.Normalize(Vector3.Lerp((Vector3)p1.UpDirection, (Vector3)p2.UpDirection, localT));
-                    upDir = upDir - Vector3.Dot(upDir, curveTangent) * curveTangent;
-                    if (upDir.LengthSquared() < 1e-6f)
-                    {
-                        upDir = Vector3.UnitY - Vector3.Dot(Vector3.UnitY, curveTangent) * curveTangent;
-                    }
-                    upDir = Vector3.Normalize(upDir);
-
-                    Vector3 rightDir = Vector3.Normalize(Vector3.Cross(curveTangent, upDir));
-
-                    // Apply interpolated cross-section offsets plus vertical offsets
-                    vertex1 = curvePosition + rightDir * interpolatedStart.X + upDir * (interpolatedStart.Y + startPos.Y);
-                    vertex2 = curvePosition + rightDir * interpolatedEnd.X + upDir * (interpolatedEnd.Y + endPos.Y);
-                }
-                else
-                {
-                    // Original behavior: use fixed offsets from curve center
-                    Vector3 curvePosition = CircuitMathematics.BezierEvaluateCubic(
-                        p1.PointPosition, p1.ForwardControlPointPosition,
-                        p2.BackwardControlPointPosition, p2.PointPosition, localT);
-
-                    Vector3 curveTangent = CircuitMathematics.BezierEvaluateCubicDerivative(
-                        p1.PointPosition, p1.ForwardControlPointPosition,
-                        p2.BackwardControlPointPosition, p2.PointPosition, localT);
-
-                    if (curveTangent.LengthSquared() < 1e-6f)
-                    {
-                        curveTangent = Vector3.Normalize((Vector3)p2.PointPosition - (Vector3)p1.PointPosition);
-                    }
-                    else
-                    {
-                        curveTangent = Vector3.Normalize(curveTangent);
-                    }
-
-                    Vector3 upDir = Vector3.Normalize(Vector3.Lerp((Vector3)p1.UpDirection, (Vector3)p2.UpDirection, localT));
-                    upDir = upDir - Vector3.Dot(upDir, curveTangent) * curveTangent;
-                    if (upDir.LengthSquared() < 1e-6f)
-                    {
-                        upDir = Vector3.UnitY - Vector3.Dot(Vector3.UnitY, curveTangent) * curveTangent;
-                    }
-                    upDir = Vector3.Normalize(upDir);
-
-                    Vector3 rightDir = Vector3.Normalize(Vector3.Cross(curveTangent, upDir));
-
-                    vertex1 = curvePosition + rightDir * startPos.X + upDir * startPos.Y;
-                    vertex2 = curvePosition + rightDir * endPos.X + upDir * endPos.Y;
-                }
+                // Apply offsets relative to the interpolated frame
+                Vector3 vertex1 = base1 + rightDir * startOffset.X + upDir * startOffset.Y;
+                Vector3 vertex2 = base2 + rightDir * endOffset.X + upDir * endOffset.Y;
 
                 vertices[vertexIndex] = vertex1;
                 float vCoord = ((float)i / activeSegmentCount) * uvTile.Y + uvOffset.Y;
@@ -336,7 +252,6 @@ namespace OnomiCircuitShaper.Engine.Processors
                 vertexIndex++;
             }
 
-            // Generate triangle indices with consistent winding
             int triangleIndex = 0;
             for (int i = 0; i < activeSegmentCount; i++)
             {
@@ -345,14 +260,12 @@ namespace OnomiCircuitShaper.Engine.Processors
                 int topLeft = bottomLeft + 2;
                 int topRight = topLeft + 1;
 
-                // First triangle: counter-clockwise when viewed from outside
                 triangles[triangleIndex++] = bottomLeft;
-                triangles[triangleIndex++] = bottomRight;
                 triangles[triangleIndex++] = topLeft;
+                triangles[triangleIndex++] = bottomRight;
 
-                // Second triangle: counter-clockwise when viewed from outside
-                triangles[triangleIndex++] = topLeft;
                 triangles[triangleIndex++] = bottomRight;
+                triangles[triangleIndex++] = topLeft;
                 triangles[triangleIndex++] = topRight;
             }
 
@@ -366,21 +279,11 @@ namespace OnomiCircuitShaper.Engine.Processors
 
         /// <summary>
         /// Generates the vertex, UV, and triangle data for a bridge mesh.
-        /// The bridge wraps around the road using a template-based or custom shape.
         /// </summary>
         public static GenericMeshData BuildBridgeMesh(Bridge bridge, Road parentRoad)
         {
-            UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh called");
-
-            if (bridge == null || parentRoad == null || parentRoad.parentCurve == null)
+            if (bridge == null || parentRoad == null || parentRoad.parentCurve == null || !bridge.Data.Enabled)
             {
-                UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh: Early return - null check failed");
-                return new GenericMeshData();
-            }
-
-            if (!bridge.Data.Enabled)
-            {
-                UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh: Bridge disabled");
                 return new GenericMeshData();
             }
 
@@ -388,155 +291,87 @@ namespace OnomiCircuitShaper.Engine.Processors
                 parentRoad.Data.startSegmentIndex,
                 parentRoad.Data.endSegmentIndex);
 
-            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Point array count = {pointArray.Count}");
-
             if (pointArray.Count < 2)
             {
-                UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh: Not enough points");
                 return new GenericMeshData();
             }
 
             CircuitPointData[] pointDataArray = pointArray.Select(p => p.Data).ToArray();
-
-            // Generate bridge shape points from template
             List<Vector2> bridgeShapePoints = new List<Vector2>();
 
             if (bridge.Data.UseTemplate)
             {
                 var data = bridge.Data;
-                // Create I-beam style bridge profile (one half, will be mirrored)
-                bridgeShapePoints.Add(new Vector2(0, 0)); // Road surface edge
-                bridgeShapePoints.Add(new Vector2(0, data.TemplateCurbHeight)); // Curb top
-                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight)); // Edge width
-                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth)); // Before flange
-                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth + data.TemplateFlangeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth)); // Flange outer
-                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth + data.TemplateFlangeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth - data.TemplateFlangeHeight)); // Flange bottom
-                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth - data.TemplateFlangeHeight)); // After flange
-                bridgeShapePoints.Add(new Vector2(0, data.TemplateCurbHeight - data.TemplateBridgeHeight)); // Bottom point
+                bridgeShapePoints.Add(new Vector2(0, 0));
+                bridgeShapePoints.Add(new Vector2(0, data.TemplateCurbHeight));
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight));
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth));
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth + data.TemplateFlangeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth));
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth + data.TemplateFlangeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth - data.TemplateFlangeHeight));
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight - data.TemplateFlangeDepth - data.TemplateFlangeHeight));
+                bridgeShapePoints.Add(new Vector2(data.TemplateEdgeWidth, data.TemplateCurbHeight - data.TemplateBridgeHeight));
+                bridgeShapePoints.Add(new Vector2(0, data.TemplateCurbHeight - data.TemplateBridgeHeight));
             }
             else
             {
-                // Use custom shape points
-                foreach (var point in bridge.Data.BridgeShapePoints)
-                {
-                    bridgeShapePoints.Add((Vector2)point);
-                }
+                bridgeShapePoints.AddRange(bridge.Data.BridgeShapePoints.Select(p => (Vector2)p));
             }
-
-            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Bridge shape points count = {bridgeShapePoints.Count}, UseTemplate = {bridge.Data.UseTemplate}");
 
             if (bridgeShapePoints.Count < 2)
             {
-                UnityEngine.Debug.Log("[RoadProcessor] BuildBridgeMesh: Not enough shape points");
                 return new GenericMeshData();
             }
 
-            // Calculate mesh resolution
             int widthSegments = parentRoad.Data.WidthWiseVertexCount - 1;
             int lengthSegmentsPerPoint = Math.Max(1, (int)(widthSegments * parentRoad.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount));
 
-            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: widthSegments = {widthSegments}, lengthSegmentsPerPoint = {lengthSegmentsPerPoint}");
-
-            // Build bridge mesh using ribbons for each segment of the bridge profile
-            // The bridge profile defines a 2D shape that wraps around both edges of the road
-            List<GenericMeshData> ribbons = new List<GenericMeshData>();
-
-            // Get left and right edge positions (assuming cross-section is centered)
-            // We need to get the actual edge positions from the first point's cross-section
-            CurveProcessor.NormaliseCurvePoints(pointDataArray[0].CrossSectionCurve);
-            var leftEdgePos3 = CurveProcessor.LerpAlongCurve(pointDataArray[0].CrossSectionCurve, 0f);
-            var rightEdgePos3 = CurveProcessor.LerpAlongCurve(pointDataArray[0].CrossSectionCurve, 1f);
-
-            Vector2 leftEdgePos = new Vector2(leftEdgePos3.X, leftEdgePos3.Y);
-            Vector2 rightEdgePos = new Vector2(rightEdgePos3.X, rightEdgePos3.Y);
-
+            var ribbons = new List<GenericMeshData>();
             
-            // Create ribbons for left side of bridge
+            // Left Side: Anchor to origin 0 (Left Edge)
             for (int i = 0; i < bridgeShapePoints.Count - 1; i++)
             {
-                Vector2 p1 = bridgeShapePoints[i] + leftEdgePos;
-                Vector2 p2 = bridgeShapePoints[i + 1] + leftEdgePos;
-
-                UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Creating left ribbon {i}, p1 = {p1}, p2 = {p2}");
-
-                // Build ribbon from p1 to p2 on left side
-                GenericMeshData leftRibbon = BuildRibbon(
-                    pointDataArray,
-                    p2,  // Start position
-                    p1,  // End position
-                    new Vector2(0, 1), // Full length (0 to 1)
-                    lengthSegmentsPerPoint,
-                    bridge.Data.UVTile,
-                    bridge.Data.UVOffset, true);
-
-                UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Left ribbon {i} has {leftRibbon.Vertices?.Length ?? 0} vertices");
-
-                if (leftRibbon.Vertices != null && leftRibbon.Vertices.Length > 0)
-                {
-                    ribbons.Add(leftRibbon);
-                }
+                // We build from point i+1 to i to ensure correct normal direction (outwards)
+                Vector2 p1 = new Vector2(-bridgeShapePoints[i + 1].X, bridgeShapePoints[i + 1].Y);
+                Vector2 p2 = new Vector2(-bridgeShapePoints[i].X, bridgeShapePoints[i].Y);
+                
+                ribbons.Add(BuildRibbon(
+                    pointDataArray, 
+                    0f, p2, // Start at left edge + offset
+                    0f, p1, // End at left edge + offset
+                    new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset));
             }
 
-            // Create bottom connecting ribbon
-            Vector2 bottomLeft = bridgeShapePoints[bridgeShapePoints.Count - 1];
-
-            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Creating bottom ribbon, bottomLeft = {bottomLeft}");
-
-            GenericMeshData bottomRibbon = BuildRibbon(
-                pointDataArray,
-                new Vector2(bottomLeft.X, bottomLeft.Y) + rightEdgePos,   
-                new Vector2(bottomLeft.X, bottomLeft.Y) + leftEdgePos, 
-                new Vector2(0, 1),
-                lengthSegmentsPerPoint,
-                bridge.Data.UVTile,
-                bridge.Data.UVOffset, true);
-
-            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Bottom ribbon has {bottomRibbon.Vertices?.Length ?? 0} vertices");
-
-            if (bottomRibbon.Vertices != null && bottomRibbon.Vertices.Length > 0)
-            {
-                ribbons.Add(bottomRibbon);
-            }
-
-            // Create ribbons for right side of bridge (mirrored)
+            // Right Side: Anchor to origin 1 (Right Edge)
             for (int i = bridgeShapePoints.Count - 1; i > 0; i--)
             {
-                Vector2 p1 = bridgeShapePoints[i] + rightEdgePos;
-                Vector2 p2 = bridgeShapePoints[i - 1] + rightEdgePos;
+                // We build from point i-1 to i to ensure correct normal direction (outwards)
+                Vector2 p1 = bridgeShapePoints[i - 1];
+                Vector2 p2 = bridgeShapePoints[i];
 
-                UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Creating right ribbon {i}, p1 = {p1}, p2 = {p2}");
-
-                // Build ribbon from p1 to p2 on right side (mirrored)
-                GenericMeshData rightRibbon = BuildRibbon(
-                    pointDataArray,
-                    p2,  // Start position (mirrored)
-                    p1,  // End position (mirrored)
-                    new Vector2(0, 1),
-                    lengthSegmentsPerPoint,
-                    bridge.Data.UVTile,
-                    bridge.Data.UVOffset, true);
-
-                UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Right ribbon {i} has {rightRibbon.Vertices?.Length ?? 0} vertices");
-
-                if (rightRibbon.Vertices != null && rightRibbon.Vertices.Length > 0)
-                {
-                    ribbons.Add(rightRibbon);
-                }
+                ribbons.Add(BuildRibbon(
+                    pointDataArray, 
+                    1f, p2, // Start at right edge + offset
+                    1f, p1, // End at right edge + offset
+                    new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset));
             }
 
-            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Total ribbons collected = {ribbons.Count}");
+            // Bottom Ribbon: Connects the last point of left side to last point of right side
+            Vector2 lastPoint = bridgeShapePoints[bridgeShapePoints.Count - 1];
+            Vector2 bottomLeft = new Vector2(-lastPoint.X, lastPoint.Y);
+            Vector2 bottomRight = new Vector2(lastPoint.X, lastPoint.Y);
+            
+            ribbons.Add(BuildRibbon(
+                pointDataArray, 
+                0f, bottomLeft, // Start at left edge + offset
+                1f, bottomRight, // End at right edge + offset
+                new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset));
 
-            // Combine all ribbons into one mesh
-            var result = CombineMeshData(ribbons.ToArray(), bridge.Data.MaterialIndex);
-
-            UnityEngine.Debug.Log($"[RoadProcessor] BuildBridgeMesh: Final mesh has {result.Vertices?.Length ?? 0} vertices");
-
-            return result;
+            return CombineMeshData(ribbons.ToArray(), bridge.Data.MaterialIndex);
         }
+
 
         /// <summary>
         /// Generates the vertex, UV, and triangle data for a railing mesh.
-        /// A railing is a simple vertical ribbon extending upward from a road edge.
         /// </summary>
         public static GenericMeshData BuildRailingMesh(Railing railing, Road parentRoad)
         {
@@ -555,27 +390,25 @@ namespace OnomiCircuitShaper.Engine.Processors
             }
 
             CircuitPointData[] pointDataArray = pointArray.Select(p => p.Data).ToArray();
-
-            // Calculate mesh resolution
+            
             int widthSegments = parentRoad.Data.WidthWiseVertexCount - 1;
             int lengthSegmentsPerPoint = Math.Max(1, (int)(widthSegments * parentRoad.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount));
 
-            // Build railing as a vertical ribbon using cross-section positions
-            // startPos.X and endPos.X are the cross-section t-value (HorizontalPosition)
-            // startPos.Y and endPos.Y are the vertical offsets (0 for base, RailingHeight for top)
+            // Use the new BuildRibbon to generate the railing
+            // Anchor both top and bottom to the HorizontalPosition
             GenericMeshData railingMesh = BuildRibbon(
                 pointDataArray,
-                new Vector2(railing.Data.HorizontalPosition, 0f),  // Cross-section position, at road surface
-                new Vector2(railing.Data.HorizontalPosition, railing.Data.RailingHeight),  // Same position, extended upward
-                new Vector2(railing.Data.Min, railing.Data.Max),  // Length range
+                railing.Data.HorizontalPosition, Vector2.Zero, // Base: at HorizontalPosition, 0 offset
+                railing.Data.HorizontalPosition, new Vector2(0, railing.Data.RailingHeight), // Top: at HorizontalPosition, height offset
+                new Vector2(railing.Data.Min, railing.Data.Max),
                 lengthSegmentsPerPoint,
                 Vector2.One,
-                Vector2.Zero,
-                useCrossSectionPosition: true);
+                Vector2.Zero);
 
             railingMesh.MaterialID = railing.Data.MaterialIndex;
             return railingMesh;
         }
+
 
         /// <summary>
         /// Combines multiple mesh data objects into a single mesh.
@@ -587,12 +420,11 @@ namespace OnomiCircuitShaper.Engine.Processors
                 return new GenericMeshData();
             }
 
-            // Calculate total sizes
             int totalVertices = 0;
             int totalTriangles = 0;
             foreach (var mesh in meshes)
             {
-                if (mesh.Vertices != null)
+                if (mesh.Vertices != null && mesh.Vertices.Length > 0)
                 {
                     totalVertices += mesh.Vertices.Length;
                     totalTriangles += mesh.Triangles.Length;
@@ -604,7 +436,6 @@ namespace OnomiCircuitShaper.Engine.Processors
                 return new GenericMeshData();
             }
 
-            // Allocate combined arrays
             var combinedVertices = new Vector3[totalVertices];
             var combinedUVs = new Vector2[totalVertices];
             var combinedTriangles = new int[totalTriangles];
@@ -614,13 +445,11 @@ namespace OnomiCircuitShaper.Engine.Processors
 
             foreach (var mesh in meshes)
             {
-                if (mesh.Vertices == null) continue;
+                if (mesh.Vertices == null || mesh.Vertices.Length == 0) continue;
 
-                // Copy vertices and UVs
                 Array.Copy(mesh.Vertices, 0, combinedVertices, vertexOffset, mesh.Vertices.Length);
                 Array.Copy(mesh.UVs, 0, combinedUVs, vertexOffset, mesh.UVs.Length);
 
-                // Copy and offset triangle indices
                 for (int i = 0; i < mesh.Triangles.Length; i++)
                 {
                     combinedTriangles[triangleOffset + i] = mesh.Triangles[i] + vertexOffset;

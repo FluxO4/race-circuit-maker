@@ -52,13 +52,13 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
 
             //Hide the scene roads from the hierarchy
-            /* foreach (var sceneRoad in _sceneRoads.Values)
+             foreach (var sceneRoad in _sceneRoads.Values)
              {
                  if (sceneRoad != null)
                  {
                      sceneRoad.gameObject.hideFlags = HideFlags.HideInHierarchy;
                  }
-             }*/
+             }
 
         }
 

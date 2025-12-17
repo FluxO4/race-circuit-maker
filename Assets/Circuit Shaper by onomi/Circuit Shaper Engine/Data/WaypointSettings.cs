@@ -9,10 +9,11 @@ namespace OnomiCircuitShaper.Engine.Data
     {
         /// <summary>
         /// Quality of the curve approximation. Higher values place more waypoints on curves.
-        /// Range typically 1-100, where 100 is the highest quality with most points.
+        /// Range 0.1-100, where 100 is the highest quality with most points.
+        /// Lower values (0.1-5) suitable for simple checkpoint triggers.
         /// This affects the adaptive sampling - more points on curves, fewer on straights.
         /// </summary>
-        public float ApproximationQuality = 50f;
+        public float ApproximationQuality = 10f;
 
         /// <summary>
         /// Additional width buffer added to the road width when scaling waypoints.

@@ -23,15 +23,24 @@ namespace OnomiCircuitShaper.Unity
         /// <summary>
         /// Initializes the waypoint with transform data.
         /// </summary>
-        public void Initialize(WaypointData data, int index, SceneWaypointCurve parent)
+        public void Initialize(WaypointData data, int index, SceneWaypointCurve parent, Vector3 basePosition, float scale)
         {
             WaypointIndex = index;
             ParentCurve = parent;
             
-            // Apply transform
-            transform.position = NumericsConverter.ToUnity(data.Position);
+            // Apply transform with scale and offset
+            // Convert position to Unity global space
+            transform.position = data.Position.ToGlobalSpace(basePosition, scale);
             transform.rotation = NumericsConverter.ToUnity(data.Rotation);
-            transform.localScale = NumericsConverter.ToUnity(data.Scale);
+            // Scale the waypoint scale by the global scale multiplier
+            Vector3 waypointScale = NumericsConverter.ToUnity(data.Scale);
+            transform.localScale = new Vector3(waypointScale.x * scale, waypointScale.y * scale, waypointScale.z * scale);
+            
+            // Debug: Log rotation for first few waypoints
+            if (index < 3)
+            {
+                Debug.Log($"Waypoint {index} - Rotation: {transform.rotation.eulerAngles}, Forward: {transform.forward}");
+            }
         }
 
         private void OnDrawGizmos()

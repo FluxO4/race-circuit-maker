@@ -28,13 +28,17 @@ namespace OnomiCircuitShaper.Unity.Editor
         private bool _isEditingCrossSection = false;
 
         // Road management
-        private Road _selectedRoad => _circuitShaper.SelectedRoad;
+        private Road _selectedRoad => _circuitShaper?.SelectedRoad;
         private float _lastRoadUpdateTime = 0f;
         private const float MinRoadUpdateInterval = 0.2f; // 5 updates per second max
+        
+        // Track freeze state to detect changes
+        private bool _wasFrozen = false;
 
         private void OnEnable()
         {
             _target = (OnomiCircuitShaper)target;
+            _wasFrozen = _target.freeze;
 
             if (_target.freeze) return;
 
@@ -85,6 +89,37 @@ namespace OnomiCircuitShaper.Unity.Editor
             //Draw default inspector
             DrawDefaultInspector();
 
+            // Detect freeze state changes
+            if (_target.freeze != _wasFrozen)
+            {
+                if (_target.freeze)
+                {
+                    // Just got frozen - clean up like OnDisable
+                    Debug.Log("[Editor] Freezing - cleaning up");
+                    if (_circuitShaper != null)
+                    {
+                        _circuitShaper.ClearRoadRebuildQueue();
+                        _circuitShaper.QuitEdit();
+                        _circuitShaper = null;
+                    }
+                }
+                else
+                {
+                    // Just got unfrozen - initialize like OnEnable
+                    Debug.Log("[Editor] Unfreezing - reinitializing");
+                    if (!Application.isPlaying)
+                    {
+                        _circuitShaper = new CircuitShaper(_target.Data.circuitData, _target.Data.settingsData);
+                        _circuitShaper.BeginEdit();
+                        RebuildAllRoadsFromData();
+                        _creatingNewPointMode = false;
+                        _addingToSelectedCurveMode = false;
+                    }
+                }
+                _wasFrozen = _target.freeze;
+            }
+
+            // If frozen, only show default inspector
             if (_target.freeze) return;
 
             //If playing, do not initialize editor
@@ -315,11 +350,11 @@ namespace OnomiCircuitShaper.Unity.Editor
 
         private void OnSceneGUI()
         {
-
-
-            if (_target == null || _circuitShaper == null) return;
+            if (_target == null) return;
             
             if (_target.freeze) return;
+            
+            if (_circuitShaper == null) return;
 
             //If playing, do not initialize editor
             if (Application.isPlaying) return;

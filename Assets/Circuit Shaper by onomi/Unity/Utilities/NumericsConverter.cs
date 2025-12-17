@@ -89,6 +89,18 @@ namespace OnomiCircuitShaper.Unity.Utilities
         }
 
         /// <summary>
+        /// Transforms a Unity Vector3 to global space by applying scale and offset.
+        /// </summary>
+        public static Vector3 ToGlobalSpace(this Vector3 localPosition, Vector3 basePosition, float scale)
+        {
+            return new Vector3(
+                localPosition.x * scale + basePosition.x,
+                localPosition.y * scale + basePosition.y,
+                localPosition.z * scale + basePosition.z
+            );
+        }
+
+        /// <summary>
         /// Transforms a Unity Vector3 from global space back to local space by removing offset and scale.
         /// </summary>
         public static System.Numerics.Vector3 ToLocalSpace(this Vector3 globalPosition, Vector3 basePosition, float scale)

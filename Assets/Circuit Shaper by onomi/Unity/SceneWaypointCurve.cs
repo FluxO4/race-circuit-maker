@@ -33,7 +33,9 @@ namespace OnomiCircuitShaper.Unity
             WaypointData[] waypointData,
             GameObject prefab,
             int curveIndex,
-            OnomiCircuitShaper parent)
+            OnomiCircuitShaper parent,
+            Vector3 basePosition,
+            float scale)
         {
             CurveIndex = curveIndex;
             ParentShaper = parent;
@@ -59,7 +61,7 @@ namespace OnomiCircuitShaper.Unity
                     waypoint = waypointObj.AddComponent<SceneWaypoint>();
                 }
 
-                waypoint.Initialize(waypointData[i], i, this);
+                waypoint.Initialize(waypointData[i], i, this, basePosition, scale);
                 _waypoints.Add(waypoint);
             }
 

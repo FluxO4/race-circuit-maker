@@ -134,7 +134,7 @@ namespace OnomiCircuitShaper.Engine.Processors
                 sample.Tangent = Vector3.Normalize(sample.Tangent);
             }
 
-            // Calculate up direction (interpolate between points)
+            // Calculate up direction (interpolate between points) and ensure orthogonality
             Vector3 interpolatedUp = Vector3.Lerp(p1.UpDirection, p2.UpDirection, t);
             sample.Up = interpolatedUp - Vector3.Dot(interpolatedUp, sample.Tangent) * sample.Tangent;
             
@@ -143,10 +143,19 @@ namespace OnomiCircuitShaper.Engine.Processors
                 // Fallback if up is parallel to tangent
                 sample.Up = new Vector3(0, 1, 0);
                 sample.Up = sample.Up - Vector3.Dot(sample.Up, sample.Tangent) * sample.Tangent;
+                if (sample.Up.LengthSquared() < 1e-6f)
+                {
+                    sample.Up = new Vector3(1, 0, 0);
+                }
             }
             sample.Up = Vector3.Normalize(sample.Up);
             
-            sample.Right = Vector3.Normalize(Vector3.Cross(sample.Tangent, sample.Up));
+            // Calculate orthonormal frame: in right-handed system
+            // Right = Up × Forward (tangent)
+            sample.Right = Vector3.Normalize(Vector3.Cross(sample.Up, sample.Tangent));
+            
+            // Recalculate up to ensure perfect orthonormality: Up = Forward × Right
+            sample.Up = Vector3.Normalize(Vector3.Cross(sample.Tangent, sample.Right));
             
             // Calculate curvature
             sample.Curvature = CircuitMathematics.CalculateCurvature(
@@ -237,13 +246,22 @@ namespace OnomiCircuitShaper.Engine.Processors
                         
                         // We need the original p1/p2 here - for now, lerp the samples
                         // This is approximate but should be fine for spacing enforcement
+                        Vector3 lerpedTangent = Vector3.Normalize(Vector3.Lerp(filtered[i].Tangent, filtered[i + 1].Tangent, t));
+                        Vector3 lerpedUp = Vector3.Normalize(Vector3.Lerp(filtered[i].Up, filtered[i + 1].Up, t));
+                        
+                        // Recalculate right and up to ensure orthonormal frame
+                        // Right = Up × Forward (tangent)
+                        Vector3 lerpedRight = Vector3.Normalize(Vector3.Cross(lerpedUp, lerpedTangent));
+                        // Up = Forward × Right
+                        lerpedUp = Vector3.Normalize(Vector3.Cross(lerpedTangent, lerpedRight));
+                        
                         var interpolated = new CurveSample
                         {
                             T = interpolatedT,
                             Position = Vector3.Lerp(filtered[i].Position, filtered[i + 1].Position, t),
-                            Tangent = Vector3.Normalize(Vector3.Lerp(filtered[i].Tangent, filtered[i + 1].Tangent, t)),
-                            Up = Vector3.Normalize(Vector3.Lerp(filtered[i].Up, filtered[i + 1].Up, t)),
-                            Right = Vector3.Normalize(Vector3.Lerp(filtered[i].Right, filtered[i + 1].Right, t)),
+                            Tangent = lerpedTangent,
+                            Up = lerpedUp,
+                            Right = lerpedRight,
                             Curvature = (filtered[i].Curvature + filtered[i + 1].Curvature) / 2f
                         };
                         finalFiltered.Add(interpolated);
@@ -286,55 +304,63 @@ namespace OnomiCircuitShaper.Engine.Processors
 
         /// <summary>
         /// Creates a quaternion rotation from forward, up, and right vectors.
+        /// Uses rotation matrix to quaternion conversion where:
+        /// - Forward (tangent) = Z axis of the waypoint
+        /// - Up = Y axis of the waypoint
+        /// - Right = X axis of the waypoint
         /// </summary>
         private static Quaternion CreateRotationFromAxes(Vector3 forward, Vector3 up, Vector3 right)
         {
-            // Create a rotation matrix from the axes
-            // Matrix columns: right, up, forward (Unity convention)
-            // Then convert to quaternion
+            // Build rotation matrix with proper axis alignment:
+            // Column 0 (X-axis) = right
+            // Column 1 (Y-axis) = up  
+            // Column 2 (Z-axis) = forward
             
-            // Calculate quaternion from rotation matrix
-            // Using standard matrix-to-quaternion conversion
-            float trace = right.X + up.Y + forward.Z;
+            float m00 = right.X;    float m01 = up.X;    float m02 = forward.X;
+            float m10 = right.Y;    float m11 = up.Y;    float m12 = forward.Y;
+            float m20 = right.Z;    float m21 = up.Z;    float m22 = forward.Z;
+            
+            // Convert rotation matrix to quaternion
+            float trace = m00 + m11 + m22;
             
             if (trace > 0f)
             {
-                float s = 0.5f / (float)Math.Sqrt(trace + 1.0f);
+                float s = (float)Math.Sqrt(trace + 1.0f) * 2f; // s = 4 * qw
                 return new Quaternion(
-                    (up.Z - forward.Y) * s,
-                    (forward.X - right.Z) * s,
-                    (right.Y - up.X) * s,
-                    0.25f / s
+                    (m21 - m12) / s,
+                    (m02 - m20) / s,
+                    (m10 - m01) / s,
+                    0.25f * s
                 );
             }
-            else if (right.X > up.Y && right.X > forward.Z)
+            else if (m00 > m11 && m00 > m22)
             {
-                float s = 2.0f * (float)Math.Sqrt(1.0f + right.X - up.Y - forward.Z);
+                float s = (float)Math.Sqrt(1.0f + m00 - m11 - m22) * 2f; // s = 4 * qx
                 return new Quaternion(
                     0.25f * s,
-                    (up.X + right.Y) / s,
-                    (forward.X + right.Z) / s,
-                    (up.Z - forward.Y) / s
+                    (m01 + m10) / s,
+                    (m02 + m20) / s,
+                    (m21 - m12) / s
                 );
             }
-            else if (up.Y > forward.Z)
+            else if (m11 > m22)
             {
-                float s = 2.0f * (float)Math.Sqrt(1.0f + up.Y - right.X - forward.Z);
+                float s = (float)Math.Sqrt(1.0f + m11 - m00 - m22) * 2f; // s = 4 * qy
                 return new Quaternion(
-                    (up.X + right.Y) / s,
+                    (m01 + m10) / s,
                     0.25f * s,
-                    (forward.Y + up.Z) / s,
-                    (forward.X - right.Z) / s
+                    (m12 + m21) / s,
+                    (m02 - m20) / s
                 );
             }
             else
             {
-                float s = 2.0f * (float)Math.Sqrt(1.0f + forward.Z - right.X - up.Y);
+                float s = (float)Math.Sqrt(1.0f + m22 - m00 - m11) * 2f; // s = 4 * qz
                 return new Quaternion(
-                    (forward.X + right.Z) / s,
-                    (forward.Y + up.Z) / s,
+                    (m02 + m20) / s,
+                    (m12 + m21) / s,
                     0.25f * s,
-                    (right.Y - up.X) / s
+                    (m10 - m01) / s
                 );
             }
         }

@@ -34,11 +34,19 @@ namespace OnomiCircuitShaper.Unity.Editor
             //Clear existing scene roads
             _sceneRoads.Clear();
 
-            // Delete all children of the target GameObject
+            // Delete all children of the target GameObject except waypoint curves
             // Use a reverse for-loop to avoid modifying the Transform collection while enumerating.
             for (int i = _target.transform.childCount - 1; i >= 0; i--)
             {
                 var child = _target.transform.GetChild(i);
+                
+                // Skip waypoint curve objects
+                if (child.GetComponent<SceneWaypointCurve>() != null)
+                {
+                    Debug.Log("[Editor] Skipping waypoint curve: " + child.name);
+                    continue;
+                }
+                
                 Debug.Log("[Editor] Deleted child GameObject: " + child.name);
                 DestroyImmediate(child.gameObject);
             }
@@ -791,9 +799,9 @@ namespace OnomiCircuitShaper.Unity.Editor
 
             // Approximation Quality
             float quality = EditorGUILayout.Slider(
-                new GUIContent("Approximation Quality", "Higher values place more waypoints on curves. Range 1-100."),
+                new GUIContent("Approximation Quality", "Higher values place more waypoints on curves. Range 0.1-100. Low values (0.1-5) for checkpoints."),
                 _target.WaypointSettings.ApproximationQuality,
-                1f,
+                0.1f,
                 100f);
 
             // Width Buffer
@@ -1021,6 +1029,10 @@ namespace OnomiCircuitShaper.Unity.Editor
                     return 10f; // Default width if no cross-section
                 };
 
+                // Get scale and offset for transforms
+                Vector3 basePosition = _target.transform.position;
+                float scale = _target.Data.settingsData.ScaleMultiplier;
+
                 // Generate waypoints
                 var waypoints = WaypointProcessor.GenerateWaypoints(
                     pointDataArray,
@@ -1028,8 +1040,8 @@ namespace OnomiCircuitShaper.Unity.Editor
                     circuitCurve.Data.IsClosed,
                     getRoadWidth);
 
-                // Create waypoint GameObjects
-                waypointCurve.CreateWaypoints(waypoints, _target.WaypointPrefab, curveIndex, _target);
+                // Create waypoint GameObjects with scale and offset
+                waypointCurve.CreateWaypoints(waypoints, _target.WaypointPrefab, curveIndex, _target, basePosition, scale);
 
                 _target.WaypointCurves.Add(waypointCurve);
 

@@ -44,6 +44,40 @@ namespace OnomiCircuitShaper.Engine.Processors
         }
 
         /// <summary>
+        /// Evaluates the second derivative (acceleration/curvature direction) of a cubic Bézier curve at parameter t.
+        /// </summary>
+        public static Vector3 BezierEvaluateCubicSecondDerivative(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+        {
+            // Second derivative of cubic Bezier: 6(1-t)(P2-2P1+P0) + 6t(P3-2P2+P1)
+            float oneMinusT = 1f - t;
+            
+            return 6f * oneMinusT * (p2 - 2f * p1 + p0) + 
+                   6f * t * (p3 - 2f * p2 + p1);
+        }
+
+        /// <summary>
+        /// Calculates the curvature (1/radius) at a point on a cubic Bézier curve.
+        /// Higher values indicate sharper turns. Returns 0 for straight sections.
+        /// </summary>
+        public static float CalculateCurvature(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+        {
+            Vector3 firstDerivative = BezierEvaluateCubicDerivative(p0, p1, p2, p3, t);
+            Vector3 secondDerivative = BezierEvaluateCubicSecondDerivative(p0, p1, p2, p3, t);
+            
+            // Curvature formula: |r' × r''| / |r'|³
+            Vector3 cross = Vector3.Cross(firstDerivative, secondDerivative);
+            float crossMagnitude = cross.Length();
+            float firstDerivativeMagnitude = firstDerivative.Length();
+            
+            if (firstDerivativeMagnitude < 1e-6f)
+            {
+                return 0f;
+            }
+            
+            return crossMagnitude / (firstDerivativeMagnitude * firstDerivativeMagnitude * firstDerivativeMagnitude);
+        }
+
+        /// <summary>
         /// Estimates the total arc-length of a cubic Bézier curve by subdividing it into straight line segments.
         /// </summary>
         public static float EstimateCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int subdivisions = 10)

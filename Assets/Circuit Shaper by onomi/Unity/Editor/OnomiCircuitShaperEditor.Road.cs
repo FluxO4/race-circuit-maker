@@ -15,6 +15,10 @@ namespace OnomiCircuitShaper.Unity.Editor
         Dictionary<Road, SceneRoad> _sceneRoads = new Dictionary<Road, SceneRoad>();
         Road _hoveredRoad = null;
 
+        // Track which curves should have waypoints generated
+        private bool[] _selectedCurvesForWaypoints = null;
+        private bool _waypointCurveSelectionFoldout = false;
+
 
         /// <summary>
         /// Clears _sceneRoads, delets all children of target, and rebuilds all roads from data.
@@ -52,6 +56,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
 
             //Hide the scene roads from the hierarchy
+            if(_target.Data.settingsData.HideRoadsInHierarchy)
              foreach (var sceneRoad in _sceneRoads.Values)
              {
                  if (sceneRoad != null)
@@ -749,9 +754,316 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
         }
 
+        /// <summary>
+        /// Draws the waypoint generation UI.
+        /// </summary>
+        private void DrawWaypointInspector()
+        {
+            EditorGUILayout.LabelField("Waypoints", EditorStyles.boldLabel);
 
+            if (_target.WaypointSettings == null)
+            {
+                _target.WaypointSettings = new WaypointSettings();
+            }
 
+            EditorGUI.BeginChangeCheck();
 
+            // Prefab assignment
+            GameObject waypointPrefab = (GameObject)EditorGUILayout.ObjectField(
+                "Waypoint Prefab",
+                _target.WaypointPrefab,
+                typeof(GameObject),
+                false);
 
+            if (waypointPrefab != _target.WaypointPrefab)
+            {
+                _target.WaypointPrefab = waypointPrefab;
+                EditorUtility.SetDirty(_target);
+            }
+
+            if (_target.WaypointPrefab == null)
+            {
+                EditorGUILayout.HelpBox("Assign a prefab (e.g., a 1m cube) to use as the waypoint template.", MessageType.Info);
+            }
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Waypoint Settings", EditorStyles.label);
+
+            // Approximation Quality
+            float quality = EditorGUILayout.Slider(
+                new GUIContent("Approximation Quality", "Higher values place more waypoints on curves. Range 1-100."),
+                _target.WaypointSettings.ApproximationQuality,
+                1f,
+                100f);
+
+            // Width Buffer
+            float widthBuffer = EditorGUILayout.FloatField(
+                new GUIContent("Width Buffer", "Added to road width. Positive = wider, negative = narrower."),
+                _target.WaypointSettings.WidthBuffer);
+
+            // Height
+            float height = EditorGUILayout.FloatField(
+                new GUIContent("Height", "Waypoint height (perpendicular to road surface)."),
+                _target.WaypointSettings.Height);
+
+            // Depth
+            float depth = EditorGUILayout.FloatField(
+                new GUIContent("Depth", "Waypoint depth (along road direction)."),
+                _target.WaypointSettings.Depth);
+
+            // Min Spacing
+            float minSpacing = EditorGUILayout.FloatField(
+                new GUIContent("Min Spacing", "Minimum distance between waypoints."),
+                _target.WaypointSettings.MinWaypointSpacing);
+
+            // Max Spacing
+            float maxSpacing = EditorGUILayout.FloatField(
+                new GUIContent("Max Spacing", "Maximum distance between waypoints."),
+                _target.WaypointSettings.MaxWaypointSpacing);
+
+            // Curvature Threshold
+            float curvatureThreshold = EditorGUILayout.Slider(
+                new GUIContent("Curvature Threshold", "Sensitivity to curves. Higher = more points on curves."),
+                _target.WaypointSettings.CurvatureThreshold,
+                0.01f,
+                1.0f);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                _target.WaypointSettings.ApproximationQuality = quality;
+                _target.WaypointSettings.WidthBuffer = widthBuffer;
+                _target.WaypointSettings.Height = height;
+                _target.WaypointSettings.Depth = depth;
+                _target.WaypointSettings.MinWaypointSpacing = Mathf.Max(0.1f, minSpacing);
+                _target.WaypointSettings.MaxWaypointSpacing = Mathf.Max(_target.WaypointSettings.MinWaypointSpacing + 0.1f, maxSpacing);
+                _target.WaypointSettings.CurvatureThreshold = curvatureThreshold;
+                EditorUtility.SetDirty(_target);
+            }
+
+            EditorGUILayout.Space();
+
+            // Curve Selection
+            if (_circuitShaper != null && _circuitShaper.GetLiveCircuit != null)
+            {
+                var circuit = _circuitShaper.GetLiveCircuit;
+                int curveCount = circuit.Curves.Count;
+
+                // Initialize selection array if needed
+                if (_selectedCurvesForWaypoints == null || _selectedCurvesForWaypoints.Length != curveCount)
+                {
+                    _selectedCurvesForWaypoints = new bool[curveCount];
+                    // Default: all curves selected
+                    for (int i = 0; i < curveCount; i++)
+                    {
+                        _selectedCurvesForWaypoints[i] = true;
+                    }
+                }
+
+                _waypointCurveSelectionFoldout = EditorGUILayout.Foldout(_waypointCurveSelectionFoldout, "Curve Selection", true);
+                
+                if (_waypointCurveSelectionFoldout)
+                {
+                    EditorGUI.indentLevel++;
+                    
+                    // Select All / Deselect All buttons
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Select All", GUILayout.Width(100)))
+                    {
+                        for (int i = 0; i < _selectedCurvesForWaypoints.Length; i++)
+                        {
+                            _selectedCurvesForWaypoints[i] = true;
+                        }
+                    }
+                    if (GUILayout.Button("Deselect All", GUILayout.Width(100)))
+                    {
+                        for (int i = 0; i < _selectedCurvesForWaypoints.Length; i++)
+                        {
+                            _selectedCurvesForWaypoints[i] = false;
+                        }
+                    }
+                    GUILayout.EndHorizontal();
+
+                    // Individual curve checkboxes
+                    for (int i = 0; i < curveCount; i++)
+                    {
+                        int pointCount = circuit.Curves[i].Points.Count;
+                        string curveLabel = $"Curve {i} ({pointCount} points)";
+                        _selectedCurvesForWaypoints[i] = EditorGUILayout.Toggle(curveLabel, _selectedCurvesForWaypoints[i]);
+                    }
+
+                    EditorGUI.indentLevel--;
+                }
+
+                EditorGUILayout.Space();
+            }
+
+            // Display existing waypoint info
+            int totalWaypoints = 0;
+            foreach (var curve in _target.WaypointCurves)
+            {
+                if (curve != null)
+                {
+                    totalWaypoints += curve.transform.childCount;
+                }
+            }
+
+            if (_target.WaypointCurves.Count > 0 && totalWaypoints > 0)
+            {
+                EditorGUILayout.HelpBox($"{_target.WaypointCurves.Count} waypoint curves with {totalWaypoints} total waypoints.", MessageType.Info);
+            }
+
+            // Create Button
+            EditorGUI.BeginDisabledGroup(_target.WaypointPrefab == null);
+            GUI.backgroundColor = new Color(0.5f, 1f, 0.5f);
+            if (GUILayout.Button("Create Waypoints for Selected Curves", GUILayout.Height(30)))
+            {
+                CreateWaypoints();
+            }
+            GUI.backgroundColor = Color.white;
+            EditorGUI.EndDisabledGroup();
+
+            // Clear Button
+            if (_target.WaypointCurves.Count > 0)
+            {
+                GUI.backgroundColor = new Color(1f, 0.5f, 0.5f);
+                if (GUILayout.Button("Clear All Waypoints", GUILayout.Height(25)))
+                {
+                    if (EditorUtility.DisplayDialog("Clear Waypoints",
+                        "Are you sure you want to delete all waypoints?",
+                        "Delete", "Cancel"))
+                    {
+                        ClearAllWaypoints();
+                    }
+                }
+                GUI.backgroundColor = Color.white;
+            }
+        }
+
+        /// <summary>
+        /// Creates waypoints for selected curves in the circuit.
+        /// </summary>
+        private void CreateWaypoints()
+        {
+            if (_target.WaypointPrefab == null)
+            {
+                Debug.LogWarning("No waypoint prefab assigned!");
+                return;
+            }
+
+            if (_circuitShaper == null || _circuitShaper.GetLiveCircuit == null)
+            {
+                Debug.LogWarning("No circuit data available!");
+                return;
+            }
+
+            // Clear existing waypoints first
+            ClearAllWaypoints();
+
+            var circuit = _circuitShaper.GetLiveCircuit;
+            int curveIndex = 0;
+            int createdCount = 0;
+
+            foreach (var circuitCurve in circuit.Curves)
+            {
+                // Skip if not enough points
+                if (circuitCurve.Points.Count < 2)
+                {
+                    curveIndex++;
+                    continue;
+                }
+
+                // Skip if curve not selected for waypoints
+                if (_selectedCurvesForWaypoints != null && 
+                    curveIndex < _selectedCurvesForWaypoints.Length && 
+                    !_selectedCurvesForWaypoints[curveIndex])
+                {
+                    curveIndex++;
+                    continue;
+                }
+
+                // Create waypoint curve container
+                GameObject curveObj = new GameObject($"Waypoint Curve {curveIndex}");
+                curveObj.transform.SetParent(_target.transform);
+                curveObj.transform.localPosition = UnityEngine.Vector3.zero;
+                curveObj.transform.localRotation = UnityEngine.Quaternion.identity;
+
+                SceneWaypointCurve waypointCurve = curveObj.AddComponent<SceneWaypointCurve>();
+
+                // Convert circuit points to array
+                var pointDataArray = circuitCurve.Points.Select(p => p.Data).ToArray();
+
+                // Create function to get road width at each point index
+                System.Func<int, float> getRoadWidth = (pointIndex) =>
+                {
+                    if (pointIndex < 0 || pointIndex >= circuitCurve.Points.Count)
+                    {
+                        return 10f; // Default width
+                    }
+
+                    var point = circuitCurve.Points[pointIndex];
+                    if (point.CrossSection != null && point.CrossSection.Points.Count >= 2)
+                    {
+                        // Calculate width from cross-section extents
+                        float minX = float.MaxValue;
+                        float maxX = float.MinValue;
+
+                        foreach (var csPoint in point.CrossSection.Points)
+                        {
+                            // Convert SerializableVector3 to System.Numerics.Vector3 to access X
+                            System.Numerics.Vector3 pos = csPoint.Data.PointPosition;
+                            minX = Mathf.Min(minX, pos.X);
+                            maxX = Mathf.Max(maxX, pos.X);
+                        }
+
+                        return maxX - minX;
+                    }
+
+                    return 10f; // Default width if no cross-section
+                };
+
+                // Generate waypoints
+                var waypoints = WaypointProcessor.GenerateWaypoints(
+                    pointDataArray,
+                    _target.WaypointSettings,
+                    circuitCurve.Data.IsClosed,
+                    getRoadWidth);
+
+                // Create waypoint GameObjects
+                waypointCurve.CreateWaypoints(waypoints, _target.WaypointPrefab, curveIndex, _target);
+
+                _target.WaypointCurves.Add(waypointCurve);
+
+                createdCount++;
+                curveIndex++;
+            }
+
+            if (createdCount > 0)
+            {
+                Debug.Log($"Created waypoints for {createdCount} curve(s)");
+            }
+            else
+            {
+                Debug.LogWarning("No curves selected for waypoint generation!");
+            }
+            
+            EditorUtility.SetDirty(_target);
+        }
+
+        /// <summary>
+        /// Clears all waypoint curves and their children.
+        /// </summary>
+        private void ClearAllWaypoints()
+        {
+            foreach (var curve in _target.WaypointCurves)
+            {
+                if (curve != null)
+                {
+                    DestroyImmediate(curve.gameObject);
+                }
+            }
+            _target.WaypointCurves.Clear();
+            EditorUtility.SetDirty(_target);
+            Debug.Log("Cleared all waypoints");
+        }
     }
 }

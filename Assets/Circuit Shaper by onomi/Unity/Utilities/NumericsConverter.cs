@@ -100,5 +100,47 @@ namespace OnomiCircuitShaper.Unity.Utilities
                 (globalPosition.z - basePosition.z) / scale
             );
         }
+
+        /// <summary>
+        /// Converts a System.Numerics.Quaternion to a UnityEngine.Quaternion.
+        /// </summary>
+        public static Quaternion ToUnity(this System.Numerics.Quaternion numericsQuaternion)
+        {
+            return new Quaternion(
+                numericsQuaternion.X,
+                numericsQuaternion.Y,
+                numericsQuaternion.Z,
+                numericsQuaternion.W
+            );
+        }
+
+        /// <summary>
+        /// Converts a UnityEngine.Quaternion to a System.Numerics.Quaternion.
+        /// </summary>
+        public static System.Numerics.Quaternion ToNumerics(this Quaternion unityQuaternion)
+        {
+            return new System.Numerics.Quaternion(
+                unityQuaternion.x,
+                unityQuaternion.y,
+                unityQuaternion.z,
+                unityQuaternion.w
+            );
+        }
+
+        /// <summary>
+        /// Shortened ToUnity method for Vector3.
+        /// </summary>
+        public static Vector3 ToUnity(this System.Numerics.Vector3 numericsVector)
+        {
+            return ToUnityVector3(numericsVector);
+        }
+
+        /// <summary>
+        /// Shortened ToUnity method for Vector2.
+        /// </summary>
+        public static Vector2 ToUnity(this System.Numerics.Vector2 numericsVector)
+        {
+            return ToUnityVector2(numericsVector);
+        }
     }
 }

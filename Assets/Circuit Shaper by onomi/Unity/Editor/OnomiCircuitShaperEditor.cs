@@ -129,6 +129,11 @@ namespace OnomiCircuitShaper.Unity.Editor
 
             EditorGUILayout.Space();
 
+            // Global waypoint section
+            DrawWaypointInspector();
+
+            EditorGUILayout.Space();
+
 
             // If any GUI element has changed, mark the object as "dirty"
             // to ensure OnBeforeSerialize() is called and the JSON is updated.

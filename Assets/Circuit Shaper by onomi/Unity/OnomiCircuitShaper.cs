@@ -37,5 +37,15 @@ namespace OnomiCircuitShaper.Unity
         public List<PhysicMaterial> RoadPhysicsMaterials = new List<PhysicMaterial>();
         public List<PhysicMaterial> RailingPhysicsMaterials = new List<PhysicMaterial>();
         public List<PhysicMaterial> BridgePhysicsMaterials = new List<PhysicMaterial>();
+
+        // Waypoint generation settings
+        public WaypointSettings WaypointSettings = new WaypointSettings();
+
+        // Prefab to use for waypoint instantiation (should be a 1m cube or similar)
+        public GameObject WaypointPrefab;
+
+        // List of waypoint curve objects in the scene
+        [HideInInspector]
+        public List<SceneWaypointCurve> WaypointCurves = new List<SceneWaypointCurve>();
     }
 }

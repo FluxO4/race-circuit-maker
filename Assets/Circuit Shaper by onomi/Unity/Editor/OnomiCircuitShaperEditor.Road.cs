@@ -157,16 +157,32 @@ namespace OnomiCircuitShaper.Unity.Editor
                 roadObject.transform.localRotation = UnityEngine.Quaternion.identity;
                 roadObject.transform.localScale = UnityEngine.Vector3.one;
 
+                // Apply hide flags if setting is enabled
+                /*if (_circuitShaper?.settings?.HideRoadsInHierarchy == true)
+                {
+                    roadObject.hideFlags = HideFlags.HideInHierarchy;
+                }*/
+
                 existingRoad = roadObject.AddComponent<SceneRoad>();
                 existingRoad.onomiCircuitShaper = _target;
                 existingRoad.associatedRoad = road;
 
                 _sceneRoads[road] = existingRoad;
             }
-            else
+           /* else
             {
                 UnityEngine.Debug.Log("[Editor] Updating existing SceneRoad");
-            }
+                
+                // Update hide flags in case setting changed
+                if (_circuitShaper?.Settings?.HideRoadsInHierarchy == true)
+                {
+                    existingRoad.gameObject.hideFlags = HideFlags.HideInHierarchy;
+                }
+                else
+                {
+                    existingRoad.gameObject.hideFlags = HideFlags.None;
+                }
+            }*/
 
             // Convert System.Numerics.Vector3 to UnityEngine.Vector3
             UnityEngine.Vector3[] vertices = new UnityEngine.Vector3[mesh.Vertices.Length];
@@ -265,6 +281,16 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
 
             EditorGUI.BeginChangeCheck();
+            bool useDistanceBasedWidthUV = EditorGUILayout.Toggle("Distance-Based Width UV", _selectedRoad.Data.UseDistanceBasedWidthUV);
+            bool useDistanceBasedLengthUV = EditorGUILayout.Toggle("Distance-Based Length UV", _selectedRoad.Data.UseDistanceBasedLengthUV);
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedRoad.Data.UseDistanceBasedWidthUV = useDistanceBasedWidthUV;
+                _selectedRoad.Data.UseDistanceBasedLengthUV = useDistanceBasedLengthUV;
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+
+            EditorGUI.BeginChangeCheck();
 
             // Mesh Resolution
             EditorGUILayout.Space();
@@ -303,6 +329,43 @@ namespace OnomiCircuitShaper.Unity.Editor
             if (!hasMaterials)
             {
                 EditorGUILayout.HelpBox("No road materials assigned on target. Assign at least one material to enable material selection.", MessageType.Info);
+            }
+
+            // Layer and Tag
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Unity Scene Settings", EditorStyles.boldLabel);
+            EditorGUI.BeginChangeCheck();
+            string roadLayer = EditorGUILayout.TextField("Layer", _selectedRoad.Data.Layer ?? "");
+            string roadTag = EditorGUILayout.TextField("Tag", _selectedRoad.Data.Tag ?? "");
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedRoad.Data.Layer = roadLayer;
+                _selectedRoad.Data.Tag = roadTag;
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
+            }
+
+            // Collider and Physics Material
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Physics Settings", EditorStyles.boldLabel);
+            EditorGUI.BeginChangeCheck();
+            bool enableRoadCollider = EditorGUILayout.Toggle("Enable Collider", _selectedRoad.Data.EnableCollider);
+            
+            bool hasRoadPhysicsMaterials = _target != null && _target.RoadPhysicsMaterials != null && _target.RoadPhysicsMaterials.Count > 0;
+            EditorGUI.BeginDisabledGroup(!hasRoadPhysicsMaterials || !enableRoadCollider);
+            int maxRoadPhysMatIndex = hasRoadPhysicsMaterials ? Mathf.Max(0, _target.RoadPhysicsMaterials.Count - 1) : 0;
+            int roadPhysicsMaterialIndex = EditorGUILayout.IntSlider("Physics Material Index", _selectedRoad.Data.PhysicsMaterialIndex, 0, maxRoadPhysMatIndex);
+            EditorGUI.EndDisabledGroup();
+            
+            if (!hasRoadPhysicsMaterials)
+            {
+                EditorGUILayout.HelpBox("No road physics materials assigned.", MessageType.Info);
+            }
+            
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedRoad.Data.EnableCollider = enableRoadCollider;
+                _selectedRoad.Data.PhysicsMaterialIndex = roadPhysicsMaterialIndex;
+                RoadRebuildQueue.MarkDirty(_selectedRoad);
             }
 
             // --- NEW: Min/Max index controls with wrap-around ---
@@ -468,6 +531,53 @@ namespace OnomiCircuitShaper.Unity.Editor
                     RoadRebuildQueue.MarkDirty(_selectedRoad);
                 }
 
+                EditorGUI.BeginChangeCheck();
+                bool bridgeUseDistanceBasedWidthUV = EditorGUILayout.Toggle("Distance-Based Width UV", _selectedRoad.Bridge.Data.UseDistanceBasedWidthUV);
+                bool bridgeUseDistanceBasedLengthUV = EditorGUILayout.Toggle("Distance-Based Length UV", _selectedRoad.Bridge.Data.UseDistanceBasedLengthUV);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _selectedRoad.Bridge.Data.UseDistanceBasedWidthUV = bridgeUseDistanceBasedWidthUV;
+                    _selectedRoad.Bridge.Data.UseDistanceBasedLengthUV = bridgeUseDistanceBasedLengthUV;
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+
+                // Layer and Tag
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Unity Scene Settings", EditorStyles.label);
+                EditorGUI.BeginChangeCheck();
+                string bridgeLayer = EditorGUILayout.TextField("Layer", _selectedRoad.Bridge.Data.Layer ?? "");
+                string bridgeTag = EditorGUILayout.TextField("Tag", _selectedRoad.Bridge.Data.Tag ?? "");
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _selectedRoad.Bridge.Data.Layer = bridgeLayer;
+                    _selectedRoad.Bridge.Data.Tag = bridgeTag;
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+
+                // Collider and Physics Material
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Physics Settings", EditorStyles.label);
+                EditorGUI.BeginChangeCheck();
+                bool enableBridgeCollider = EditorGUILayout.Toggle("Enable Collider", _selectedRoad.Bridge.Data.EnableCollider);
+                
+                bool hasBridgePhysicsMaterials = _target != null && _target.BridgePhysicsMaterials != null && _target.BridgePhysicsMaterials.Count > 0;
+                EditorGUI.BeginDisabledGroup(!hasBridgePhysicsMaterials || !enableBridgeCollider);
+                int maxBridgePhysMatIndex = hasBridgePhysicsMaterials ? Mathf.Max(0, _target.BridgePhysicsMaterials.Count - 1) : 0;
+                int bridgePhysicsMaterialIndex = EditorGUILayout.IntSlider("Physics Material Index", _selectedRoad.Bridge.Data.PhysicsMaterialIndex, 0, maxBridgePhysMatIndex);
+                EditorGUI.EndDisabledGroup();
+                
+                if (!hasBridgePhysicsMaterials)
+                {
+                    EditorGUILayout.HelpBox("No bridge physics materials assigned.", MessageType.Info);
+                }
+                
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _selectedRoad.Bridge.Data.EnableCollider = enableBridgeCollider;
+                    _selectedRoad.Bridge.Data.PhysicsMaterialIndex = bridgePhysicsMaterialIndex;
+                    RoadRebuildQueue.MarkDirty(_selectedRoad);
+                }
+
                 // Template settings
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Template Settings", EditorStyles.miniBoldLabel);
@@ -575,6 +685,36 @@ namespace OnomiCircuitShaper.Unity.Editor
                 railingTile = EditorGUILayout.Vector2Field("Tile", railingTile);
                 railingOffset = EditorGUILayout.Vector2Field("Offset", railingOffset);
 
+                bool railingUseDistanceBasedWidthUV = EditorGUILayout.Toggle("Distance-Based Width UV", railingData.UseDistanceBasedWidthUV);
+                bool railingUseDistanceBasedLengthUV = EditorGUILayout.Toggle("Distance-Based Length UV", railingData.UseDistanceBasedLengthUV);
+
+                // Sidedness
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Collision Settings", EditorStyles.label);
+                RailingSidedness sidedness = (RailingSidedness)EditorGUILayout.EnumPopup("Sidedness", railingData.Sidedness);
+
+                // Layer and Tag
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Unity Scene Settings", EditorStyles.label);
+                string railingLayer = EditorGUILayout.TextField("Layer", railingData.Layer ?? "");
+                string railingTag = EditorGUILayout.TextField("Tag", railingData.Tag ?? "");
+
+                // Collider and Physics Material
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Physics Settings", EditorStyles.label);
+                bool enableRailingCollider = EditorGUILayout.Toggle("Enable Collider", railingData.EnableCollider);
+                
+                bool hasRailingPhysicsMaterials = _target != null && _target.RailingPhysicsMaterials != null && _target.RailingPhysicsMaterials.Count > 0;
+                EditorGUI.BeginDisabledGroup(!hasRailingPhysicsMaterials || !enableRailingCollider);
+                int maxRailingPhysMatIndex = hasRailingPhysicsMaterials ? Mathf.Max(0, _target.RailingPhysicsMaterials.Count - 1) : 0;
+                int railingPhysicsMaterialIndex = EditorGUILayout.IntSlider("Physics Material Index", railingData.PhysicsMaterialIndex, 0, maxRailingPhysMatIndex);
+                EditorGUI.EndDisabledGroup();
+                
+                if (!hasRailingPhysicsMaterials)
+                {
+                    EditorGUILayout.HelpBox("No railing physics materials assigned.", MessageType.Info);
+                }
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     railingData.IsVisible = isVisible;
@@ -585,6 +725,13 @@ namespace OnomiCircuitShaper.Unity.Editor
                     railingData.HorizontalPosition = horizontalPos;
                     railingData.UVTile = (SerializableVector2)(new System.Numerics.Vector2(railingTile.x, railingTile.y));
                     railingData.UVOffset = (SerializableVector2)(new System.Numerics.Vector2(railingOffset.x, railingOffset.y));
+                    railingData.UseDistanceBasedWidthUV = railingUseDistanceBasedWidthUV;
+                    railingData.UseDistanceBasedLengthUV = railingUseDistanceBasedLengthUV;
+                    railingData.Sidedness = sidedness;
+                    railingData.Layer = railingLayer;
+                    railingData.Tag = railingTag;
+                    railingData.EnableCollider = enableRailingCollider;
+                    railingData.PhysicsMaterialIndex = railingPhysicsMaterialIndex;
                     RoadRebuildQueue.MarkDirty(_selectedRoad);
                 }
 

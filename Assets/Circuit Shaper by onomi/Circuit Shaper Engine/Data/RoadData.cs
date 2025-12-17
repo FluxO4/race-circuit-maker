@@ -55,6 +55,16 @@ namespace OnomiCircuitShaper.Engine.Data
         public SerializableVector2 UVOffset = (SerializableVector2)Vector2.Zero;
 
         /// <summary>
+        /// If true, U coordinates will be calculated based on world width rather than normalized 0-1 range.
+        /// </summary>
+        public bool UseDistanceBasedWidthUV = false;
+
+        /// <summary>
+        /// If true, V coordinates will be calculated based on world length rather than normalized 0-1 range.
+        /// </summary>
+        public bool UseDistanceBasedLengthUV = false;
+
+        /// <summary>
         /// A list of RailingData objects associated with this road.
         /// Each railing will be generated as a separate mesh alongside the road.
         /// </summary>
@@ -65,5 +75,25 @@ namespace OnomiCircuitShaper.Engine.Data
         /// If not null, a bridge mesh will be generated based on these parameters.
         /// </summary>
         public BridgeData Bridge;
+
+        /// <summary>
+        /// The Unity layer name to assign to the road GameObject.
+        /// </summary>
+        public string Layer = "";
+
+        /// <summary>
+        /// The Unity tag to assign to the road GameObject.
+        /// </summary>
+        public string Tag = "";
+
+        /// <summary>
+        /// If true, the road will have a collider enabled.
+        /// </summary>
+        public bool EnableCollider = true;
+
+        /// <summary>
+        /// The physics material index to use for the road collider.
+        /// </summary>
+        public int PhysicsMaterialIndex = 0;
     }
 }

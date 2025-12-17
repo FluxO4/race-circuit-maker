@@ -32,5 +32,10 @@ namespace OnomiCircuitShaper.Unity
 
         // A list of Bridge materials
         public List<Material> BridgeMaterials = new List<Material>();
+
+        // Physics materials for roads, railings, and bridges
+        public List<PhysicMaterial> RoadPhysicsMaterials = new List<PhysicMaterial>();
+        public List<PhysicMaterial> RailingPhysicsMaterials = new List<PhysicMaterial>();
+        public List<PhysicMaterial> BridgePhysicsMaterials = new List<PhysicMaterial>();
     }
 }

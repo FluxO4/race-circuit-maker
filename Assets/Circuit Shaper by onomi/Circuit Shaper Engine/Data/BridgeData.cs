@@ -44,6 +44,16 @@ namespace OnomiCircuitShaper.Engine.Data
         /// </summary>
         public SerializableVector2 UVOffset = (SerializableVector2)Vector2.Zero;
 
+        /// <summary>
+        /// If true, U coordinates will be calculated based on world width rather than normalized 0-1 range.
+        /// </summary>
+        public bool UseDistanceBasedWidthUV = false;
+
+        /// <summary>
+        /// If true, V coordinates will be calculated based on world length rather than normalized 0-1 range.
+        /// </summary>
+        public bool UseDistanceBasedLengthUV = false;
+
         #region Template Properties
         /// <summary>
         /// (Template) The width of the top edge or curb of the bridge.
@@ -75,5 +85,25 @@ namespace OnomiCircuitShaper.Engine.Data
         /// </summary>
         public float TemplateCurbHeight = 0.3f;
         #endregion
+
+        /// <summary>
+        /// The Unity layer name to assign to the bridge GameObject.
+        /// </summary>
+        public string Layer = "";
+
+        /// <summary>
+        /// The Unity tag to assign to the bridge GameObject.
+        /// </summary>
+        public string Tag = "";
+
+        /// <summary>
+        /// If true, the bridge will have a collider enabled.
+        /// </summary>
+        public bool EnableCollider = true;
+
+        /// <summary>
+        /// The physics material index to use for the bridge collider.
+        /// </summary>
+        public int PhysicsMaterialIndex = 0;
     }
 }

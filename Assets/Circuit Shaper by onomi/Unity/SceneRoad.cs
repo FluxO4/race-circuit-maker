@@ -76,6 +76,20 @@ namespace OnomiCircuitShaper.Unity
             _meshFilter.mesh = _mesh;
             _meshCollider.sharedMesh = _mesh;
 
+            // Apply collider settings
+            if (associatedRoad != null && associatedRoad.Data != null)
+            {
+                _meshCollider.enabled = associatedRoad.Data.EnableCollider;
+
+                if (associatedRoad.Data.EnableCollider && onomiCircuitShaper != null && onomiCircuitShaper.RoadPhysicsMaterials != null)
+                {
+                    int physMatIndex = associatedRoad.Data.PhysicsMaterialIndex;
+                    if (physMatIndex >= 0 && physMatIndex < onomiCircuitShaper.RoadPhysicsMaterials.Count)
+                    {
+                        _meshCollider.material = onomiCircuitShaper.RoadPhysicsMaterials[physMatIndex];
+                    }
+                }
+            }
 
             // Update material
             if (onomiCircuitShaper != null && onomiCircuitShaper.RoadMaterials != null &&
@@ -86,6 +100,35 @@ namespace OnomiCircuitShaper.Unity
             else
             {
                 UnityEngine.Debug.LogWarning($"[SceneRoad] Invalid material ID {materialID} or missing OnomiCircuitShaper reference.");
+            }
+
+            // Apply layer and tag if specified
+            if (associatedRoad != null && associatedRoad.Data != null)
+            {
+                if (!string.IsNullOrEmpty(associatedRoad.Data.Layer))
+                {
+                    int layerIndex = LayerMask.NameToLayer(associatedRoad.Data.Layer);
+                    if (layerIndex != -1)
+                    {
+                        gameObject.layer = layerIndex;
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.LogWarning($"[SceneRoad] Layer '{associatedRoad.Data.Layer}' does not exist in the project.");
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(associatedRoad.Data.Tag))
+                {
+                    try
+                    {
+                        gameObject.tag = associatedRoad.Data.Tag;
+                    }
+                    catch
+                    {
+                        UnityEngine.Debug.LogWarning($"[SceneRoad] Tag '{associatedRoad.Data.Tag}' does not exist in the project.");
+                    }
+                }
             }
 
             UnityEngine.Debug.Log($"[SceneRoad] Mesh updated successfully. Vertex count: {_mesh.vertexCount}, Triangle count: {_mesh.triangles.Length / 3}");

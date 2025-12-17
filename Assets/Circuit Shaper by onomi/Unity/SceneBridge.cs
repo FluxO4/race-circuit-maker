@@ -51,6 +51,21 @@ namespace OnomiCircuitShaper.Unity
             _meshFilter.mesh = _mesh;
             _meshCollider.sharedMesh = _mesh;
 
+            // Apply collider settings
+            if (associatedBridge != null && associatedBridge.Data != null)
+            {
+                _meshCollider.enabled = associatedBridge.Data.EnableCollider;
+
+                if (associatedBridge.Data.EnableCollider && onomiCircuitShaper != null && onomiCircuitShaper.BridgePhysicsMaterials != null)
+                {
+                    int physMatIndex = associatedBridge.Data.PhysicsMaterialIndex;
+                    if (physMatIndex >= 0 && physMatIndex < onomiCircuitShaper.BridgePhysicsMaterials.Count)
+                    {
+                        _meshCollider.material = onomiCircuitShaper.BridgePhysicsMaterials[physMatIndex];
+                    }
+                }
+            }
+
             // Update material
             if (onomiCircuitShaper != null && onomiCircuitShaper.BridgeMaterials != null &&
                 materialID >= 0 && materialID < onomiCircuitShaper.BridgeMaterials.Count)
@@ -60,6 +75,35 @@ namespace OnomiCircuitShaper.Unity
             else
             {
                 UnityEngine.Debug.LogWarning($"[SceneBridge] Invalid material ID {materialID} or materials list not set.");
+            }
+
+            // Apply layer and tag if specified
+            if (associatedBridge != null && associatedBridge.Data != null)
+            {
+                if (!string.IsNullOrEmpty(associatedBridge.Data.Layer))
+                {
+                    int layerIndex = LayerMask.NameToLayer(associatedBridge.Data.Layer);
+                    if (layerIndex != -1)
+                    {
+                        gameObject.layer = layerIndex;
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.LogWarning($"[SceneBridge] Layer '{associatedBridge.Data.Layer}' does not exist in the project.");
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(associatedBridge.Data.Tag))
+                {
+                    try
+                    {
+                        gameObject.tag = associatedBridge.Data.Tag;
+                    }
+                    catch
+                    {
+                        UnityEngine.Debug.LogWarning($"[SceneBridge] Tag '{associatedBridge.Data.Tag}' does not exist in the project.");
+                    }
+                }
             }
         }
 

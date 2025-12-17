@@ -43,5 +43,10 @@ namespace OnomiCircuitShaper.Engine.Data
         /// Whether the handles should be free move or selectable.
         /// </summary>
         public bool FreeMoveMode = true;
+
+        /// <summary>
+        /// If true, road GameObjects will be hidden in the Unity hierarchy.
+        /// </summary>
+        public bool HideRoadsInHierarchy = false;
     }
 }

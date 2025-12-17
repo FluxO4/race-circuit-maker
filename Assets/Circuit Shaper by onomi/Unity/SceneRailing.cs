@@ -54,6 +54,21 @@ namespace OnomiCircuitShaper.Unity
             _meshFilter.mesh = _mesh;
             _meshCollider.sharedMesh = _mesh;
 
+            // Apply collider settings
+            if (associatedRailing != null && associatedRailing.Data != null)
+            {
+                _meshCollider.enabled = associatedRailing.Data.EnableCollider;
+
+                if (associatedRailing.Data.EnableCollider && onomiCircuitShaper != null && onomiCircuitShaper.RailingPhysicsMaterials != null)
+                {
+                    int physMatIndex = associatedRailing.Data.PhysicsMaterialIndex;
+                    if (physMatIndex >= 0 && physMatIndex < onomiCircuitShaper.RailingPhysicsMaterials.Count)
+                    {
+                        _meshCollider.material = onomiCircuitShaper.RailingPhysicsMaterials[physMatIndex];
+                    }
+                }
+            }
+
             // Update material
             if (onomiCircuitShaper != null && onomiCircuitShaper.RailingMaterials != null &&
                 materialID >= 0 && materialID < onomiCircuitShaper.RailingMaterials.Count)
@@ -63,6 +78,35 @@ namespace OnomiCircuitShaper.Unity
             else
             {
                 UnityEngine.Debug.LogWarning($"[SceneRailing] Invalid material ID {materialID} or materials list not set.");
+            }
+
+            // Apply layer and tag if specified
+            if (associatedRailing != null && associatedRailing.Data != null)
+            {
+                if (!string.IsNullOrEmpty(associatedRailing.Data.Layer))
+                {
+                    int layerIndex = LayerMask.NameToLayer(associatedRailing.Data.Layer);
+                    if (layerIndex != -1)
+                    {
+                        gameObject.layer = layerIndex;
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.LogWarning($"[SceneRailing] Layer '{associatedRailing.Data.Layer}' does not exist in the project.");
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(associatedRailing.Data.Tag))
+                {
+                    try
+                    {
+                        gameObject.tag = associatedRailing.Data.Tag;
+                    }
+                    catch
+                    {
+                        UnityEngine.Debug.LogWarning($"[SceneRailing] Tag '{associatedRailing.Data.Tag}' does not exist in the project.");
+                    }
+                }
             }
         }
 

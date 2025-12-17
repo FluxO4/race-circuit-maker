@@ -83,6 +83,9 @@ namespace OnomiCircuitShaper.Engine.Processors
             var uvs = new Vector2[totalVertices];
             var triangles = new int[widthSegments * totalLengthSegments * 6];
 
+            float currentLengthDistance = 0f;
+            Vector3 previousCenterPoint = Vector3.Zero;
+
             int vertexIndex = 0;
             for (int lengthIndex = 0; lengthIndex < vertexCountLength; lengthIndex++)
             {
@@ -97,13 +100,49 @@ namespace OnomiCircuitShaper.Engine.Processors
                 CurveProcessor.NormaliseCurvePoints(p1.CrossSectionCurve);
                 CurveProcessor.NormaliseCurvePoints(p2.CrossSectionCurve);
 
+                // Calculate distance for UVs
+                Vector3 centerPos = CircuitMathematics.BezierEvaluateCubic(
+                    p1.PointPosition, p1.ForwardControlPointPosition,
+                    p2.BackwardControlPointPosition, p2.PointPosition, localT);
+
+                if (lengthIndex > 0)
+                {
+                    currentLengthDistance += Vector3.Distance(centerPos, previousCenterPoint);
+                }
+                previousCenterPoint = centerPos;
+
+                float currentSectionWidth = 1.0f;
+                if (road.Data.UseDistanceBasedWidthUV)
+                {
+                    Vector3 leftEdge = CurveProcessor.LerpBetweenTwoCrossSections(p1, p2, 0f, localT);
+                    Vector3 rightEdge = CurveProcessor.LerpBetweenTwoCrossSections(p1, p2, 1f, localT);
+                    currentSectionWidth = Vector3.Distance(leftEdge, rightEdge);
+                }
+
                 for (int widthIndex = 0; widthIndex < vertexCountWidth; widthIndex++)
                 {
                     float widthT = (float)widthIndex / widthSegments;
                     vertices[vertexIndex] = CurveProcessor.LerpBetweenTwoCrossSections(p1, p2, widthT, localT);
 
-                    float u = widthT * road.Data.UVTile.x + road.Data.UVOffset.x;
-                    float v = globalT * road.Data.UVTile.y + road.Data.UVOffset.y;
+                    float u, v;
+                    if (road.Data.UseDistanceBasedWidthUV)
+                    {
+                        u = widthT * currentSectionWidth * road.Data.UVTile.x + road.Data.UVOffset.x;
+                    }
+                    else
+                    {
+                        u = widthT * road.Data.UVTile.x + road.Data.UVOffset.x;
+                    }
+
+                    if (road.Data.UseDistanceBasedLengthUV)
+                    {
+                        v = currentLengthDistance * road.Data.UVTile.y + road.Data.UVOffset.y;
+                    }
+                    else
+                    {
+                        v = globalT * road.Data.UVTile.y + road.Data.UVOffset.y;
+                    }
+                    
                     uvs[vertexIndex] = new Vector2(u, v);
 
                     vertexIndex++;
@@ -190,7 +229,9 @@ namespace OnomiCircuitShaper.Engine.Processors
             Vector2 alongLengthMinMax,
             int lengthSegmentsPerPoint,
             Vector2 uvTile,
-            Vector2 uvOffset)
+            Vector2 uvOffset,
+            bool useDistanceBasedWidthUV = false,
+            bool useDistanceBasedLengthUV = false)
         {
             if (pointDataArray == null || pointDataArray.Length < 2)
             {
@@ -219,6 +260,9 @@ namespace OnomiCircuitShaper.Engine.Processors
             var uvs = new Vector2[totalVertices];
             var triangles = new int[activeSegmentCount * 6];
 
+            float currentLengthDistance = 0f;
+            Vector3 previousCenterPoint = Vector3.Zero;
+
             int vertexIndex = 0;
             for (int i = 0; i < vertexCountLength; i++)
             {
@@ -232,7 +276,13 @@ namespace OnomiCircuitShaper.Engine.Processors
                 var p2 = pointDataArray[segmentIndex + 1];
 
                 // Get the coordinate frame for orientation
-                GetInterpolatedFrame(p1, p2, localT, out _, out Vector3 upDir, out Vector3 rightDir);
+                GetInterpolatedFrame(p1, p2, localT, out Vector3 centerPos, out Vector3 upDir, out Vector3 rightDir);
+
+                if (i > 0)
+                {
+                    currentLengthDistance += Vector3.Distance(centerPos, previousCenterPoint);
+                }
+                previousCenterPoint = centerPos;
 
                 // Calculate the base positions on the road surface using the cross-section interpolation
                 Vector3 base1 = CurveProcessor.LerpBetweenTwoCrossSections(p1, p2, startOriginT, localT);
@@ -243,12 +293,31 @@ namespace OnomiCircuitShaper.Engine.Processors
                 Vector3 vertex2 = base2 + rightDir * endOffset.X + upDir * endOffset.Y;
 
                 vertices[vertexIndex] = vertex1;
-                float vCoord = ((float)i / activeSegmentCount) * uvTile.Y + uvOffset.Y;
-                uvs[vertexIndex] = new Vector2(uvOffset.X, vCoord);
+
+                float vCoord;
+                if (useDistanceBasedLengthUV)
+                {
+                    vCoord = currentLengthDistance * uvTile.Y + uvOffset.Y;
+                }
+                else
+                {
+                    vCoord = ((float)i / activeSegmentCount) * uvTile.Y + uvOffset.Y;
+                }
+
+                float ribbonWidth = 1.0f;
+                if (useDistanceBasedWidthUV)
+                {
+                    ribbonWidth = Vector3.Distance(vertex1, vertex2);
+                }
+
+                float u1 = uvOffset.X;
+                float u2 = (useDistanceBasedWidthUV ? ribbonWidth : 1.0f) * uvTile.X + uvOffset.X;
+
+                uvs[vertexIndex] = new Vector2(u1, vCoord);
                 vertexIndex++;
 
                 vertices[vertexIndex] = vertex2;
-                uvs[vertexIndex] = new Vector2(uvTile.X + uvOffset.X, vCoord);
+                uvs[vertexIndex] = new Vector2(u2, vCoord);
                 vertexIndex++;
             }
 
@@ -338,7 +407,7 @@ namespace OnomiCircuitShaper.Engine.Processors
                     pointDataArray, 
                     0f, p2, // Start at left edge + offset
                     0f, p1, // End at left edge + offset
-                    new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset));
+                    new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset, bridge.Data.UseDistanceBasedWidthUV, bridge.Data.UseDistanceBasedLengthUV));
             }
 
             // Right Side: Anchor to origin 1 (Right Edge)
@@ -352,7 +421,7 @@ namespace OnomiCircuitShaper.Engine.Processors
                     pointDataArray, 
                     1f, p2, // Start at right edge + offset
                     1f, p1, // End at right edge + offset
-                    new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset));
+                    new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset, bridge.Data.UseDistanceBasedWidthUV, bridge.Data.UseDistanceBasedLengthUV));
             }
 
             // Bottom Ribbon: Connects the last point of left side to last point of right side
@@ -364,7 +433,7 @@ namespace OnomiCircuitShaper.Engine.Processors
                 pointDataArray, 
                 0f, bottomLeft, // Start at left edge + offset
                 1f, bottomRight, // End at right edge + offset
-                new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset));
+                new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset, bridge.Data.UseDistanceBasedWidthUV, bridge.Data.UseDistanceBasedLengthUV));
 
             return CombineMeshData(ribbons.ToArray(), bridge.Data.MaterialIndex);
         }
@@ -394,19 +463,68 @@ namespace OnomiCircuitShaper.Engine.Processors
             int widthSegments = parentRoad.Data.WidthWiseVertexCount - 1;
             int lengthSegmentsPerPoint = Math.Max(1, (int)(widthSegments * parentRoad.Data.LengthWiseVertexCountPerUnitWidthWiseVertexCount));
 
-            // Use the new BuildRibbon to generate the railing
-            // Anchor both top and bottom to the HorizontalPosition
-            GenericMeshData railingMesh = BuildRibbon(
-                pointDataArray,
-                railing.Data.HorizontalPosition, Vector2.Zero, // Base: at HorizontalPosition, 0 offset
-                railing.Data.HorizontalPosition, new Vector2(0, railing.Data.RailingHeight), // Top: at HorizontalPosition, height offset
-                new Vector2(railing.Data.Min, railing.Data.Max),
-                lengthSegmentsPerPoint,
-                Vector2.One,
-                Vector2.Zero);
+            // Handle sidedness: generate one or two ribbons based on the Sidedness setting
+            switch (railing.Data.Sidedness)
+            {
+                case RailingSidedness.DoubleSided:
+                    // Create two ribbons with opposite winding order
+                    GenericMeshData frontFace = BuildRibbon(
+                        pointDataArray,
+                        railing.Data.HorizontalPosition, Vector2.Zero, // Base: at HorizontalPosition, 0 offset
+                        railing.Data.HorizontalPosition, new Vector2(0, railing.Data.RailingHeight), // Top: at HorizontalPosition, height offset
+                        new Vector2(railing.Data.Min, railing.Data.Max),
+                        lengthSegmentsPerPoint,
+                        railing.Data.UVTile,
+                        railing.Data.UVOffset,
+                        railing.Data.UseDistanceBasedWidthUV,
+                        railing.Data.UseDistanceBasedLengthUV);
 
-            railingMesh.MaterialID = railing.Data.MaterialIndex;
-            return railingMesh;
+                    // Back face: swap start and end to reverse winding
+                    GenericMeshData backFace = BuildRibbon(
+                        pointDataArray,
+                        railing.Data.HorizontalPosition, new Vector2(0, railing.Data.RailingHeight), // Top: at HorizontalPosition, height offset
+                        railing.Data.HorizontalPosition, Vector2.Zero, // Base: at HorizontalPosition, 0 offset
+                        new Vector2(railing.Data.Min, railing.Data.Max),
+                        lengthSegmentsPerPoint,
+                        railing.Data.UVTile,
+                        railing.Data.UVOffset,
+                        railing.Data.UseDistanceBasedWidthUV,
+                        railing.Data.UseDistanceBasedLengthUV);
+
+                    GenericMeshData combinedMesh = CombineMeshData(new[] { frontFace, backFace }, railing.Data.MaterialIndex);
+                    return combinedMesh;
+
+                case RailingSidedness.LeftSided:
+                    // Left side facing (counter-clockwise winding from top to bottom)
+                    GenericMeshData leftMesh = BuildRibbon(
+                        pointDataArray,
+                        railing.Data.HorizontalPosition, new Vector2(0, railing.Data.RailingHeight), // Top
+                        railing.Data.HorizontalPosition, Vector2.Zero, // Bottom
+                        new Vector2(railing.Data.Min, railing.Data.Max),
+                        lengthSegmentsPerPoint,
+                        railing.Data.UVTile,
+                        railing.Data.UVOffset,
+                        railing.Data.UseDistanceBasedWidthUV,
+                        railing.Data.UseDistanceBasedLengthUV);
+                    leftMesh.MaterialID = railing.Data.MaterialIndex;
+                    return leftMesh;
+
+                case RailingSidedness.RightSided:
+                default:
+                    // Right side facing (counter-clockwise winding from bottom to top)
+                    GenericMeshData rightMesh = BuildRibbon(
+                        pointDataArray,
+                        railing.Data.HorizontalPosition, Vector2.Zero, // Bottom
+                        railing.Data.HorizontalPosition, new Vector2(0, railing.Data.RailingHeight), // Top
+                        new Vector2(railing.Data.Min, railing.Data.Max),
+                        lengthSegmentsPerPoint,
+                        railing.Data.UVTile,
+                        railing.Data.UVOffset,
+                        railing.Data.UseDistanceBasedWidthUV,
+                        railing.Data.UseDistanceBasedLengthUV);
+                    rightMesh.MaterialID = railing.Data.MaterialIndex;
+                    return rightMesh;
+            }
         }
 
 

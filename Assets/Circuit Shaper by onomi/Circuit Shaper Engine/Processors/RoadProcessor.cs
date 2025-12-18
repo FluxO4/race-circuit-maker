@@ -127,7 +127,8 @@ namespace OnomiCircuitShaper.Engine.Processors
                     float u, v;
                     if (road.Data.UseDistanceBasedWidthUV)
                     {
-                        u = widthT * currentSectionWidth * road.Data.UVTile.x + road.Data.UVOffset.x;
+                        // Center U at road center (0 at center, ±width/2 at edges)
+                        u = (widthT - 0.5f) * currentSectionWidth * road.Data.UVTile.x + road.Data.UVOffset.x;
                     }
                     else
                     {
@@ -403,6 +404,9 @@ namespace OnomiCircuitShaper.Engine.Processors
                 Vector2 p1 = new Vector2(-bridgeShapePoints[i + 1].X, bridgeShapePoints[i + 1].Y);
                 Vector2 p2 = new Vector2(-bridgeShapePoints[i].X, bridgeShapePoints[i].Y);
                 
+                // Skip if points are identical (zero-width ribbon)
+                if (Vector2.Distance(p1, p2) < 1e-6f) continue;
+                
                 ribbons.Add(BuildRibbon(
                     pointDataArray, 
                     0f, p2, // Start at left edge + offset
@@ -417,6 +421,9 @@ namespace OnomiCircuitShaper.Engine.Processors
                 Vector2 p1 = bridgeShapePoints[i - 1];
                 Vector2 p2 = bridgeShapePoints[i];
 
+                // Skip if points are identical (zero-width ribbon)
+                if (Vector2.Distance(p1, p2) < 1e-6f) continue;
+
                 ribbons.Add(BuildRibbon(
                     pointDataArray, 
                     1f, p2, // Start at right edge + offset
@@ -429,11 +436,15 @@ namespace OnomiCircuitShaper.Engine.Processors
             Vector2 bottomLeft = new Vector2(-lastPoint.X, lastPoint.Y);
             Vector2 bottomRight = new Vector2(lastPoint.X, lastPoint.Y);
             
-            ribbons.Add(BuildRibbon(
-                pointDataArray, 
-                0f, bottomLeft, // Start at left edge + offset
-                1f, bottomRight, // End at right edge + offset
-                new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset, bridge.Data.UseDistanceBasedWidthUV, bridge.Data.UseDistanceBasedLengthUV));
+            // Only add bottom ribbon if it has non-zero width
+            if (Vector2.Distance(bottomLeft, bottomRight) >= 1e-6f)
+            {
+                ribbons.Add(BuildRibbon(
+                    pointDataArray, 
+                    0f, bottomLeft, // Start at left edge + offset
+                    1f, bottomRight, // End at right edge + offset
+                    new Vector2(0, 1), lengthSegmentsPerPoint, bridge.Data.UVTile, bridge.Data.UVOffset, bridge.Data.UseDistanceBasedWidthUV, bridge.Data.UseDistanceBasedLengthUV));
+            }
 
             return CombineMeshData(ribbons.ToArray(), bridge.Data.MaterialIndex);
         }

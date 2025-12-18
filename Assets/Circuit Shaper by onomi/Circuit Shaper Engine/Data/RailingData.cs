@@ -97,5 +97,10 @@ namespace OnomiCircuitShaper.Engine.Data
         /// The physics material index to use for the railing collider.
         /// </summary>
         public int PhysicsMaterialIndex = 0;
+
+        /// <summary>
+        /// If true, the railing mesh will be rendered (visible). If false, it will be invisible but can still have a collider.
+        /// </summary>
+        public bool EnableMeshRenderer = true;
     }
 }

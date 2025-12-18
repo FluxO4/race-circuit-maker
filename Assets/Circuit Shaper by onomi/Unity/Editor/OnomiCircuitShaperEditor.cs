@@ -34,9 +34,15 @@ namespace OnomiCircuitShaper.Unity.Editor
         
         // Track freeze state to detect changes
         private bool _wasFrozen = false;
+        
+        // Debug: track editor instance
+        private int _editorInstanceId;
+        private static int _nextInstanceId = 0;
 
         private void OnEnable()
         {
+            _editorInstanceId = _nextInstanceId++;
+            UnityEngine.Debug.Log($"[Editor #{_editorInstanceId}] OnEnable called");
             _target = (OnomiCircuitShaper)target;
             _wasFrozen = _target.freeze;
 
@@ -102,6 +108,7 @@ namespace OnomiCircuitShaper.Unity.Editor
                         _circuitShaper.QuitEdit();
                         _circuitShaper = null;
                     }
+                    // Dictionary will be cleared by RebuildAllRoadsFromData when unfreezing
                 }
                 else
                 {

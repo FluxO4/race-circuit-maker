@@ -35,8 +35,13 @@ namespace OnomiCircuitShaper.Unity
             if (_meshCollider == null) _meshCollider = GetComponent<MeshCollider>();
             if (_meshRenderer == null) _meshRenderer = GetComponent<MeshRenderer>();
 
-            // Handle visibility
-            _meshRenderer.enabled = isVisible;
+            // Handle visibility - use EnableMeshRenderer from data if available
+            bool shouldRender = isVisible;
+            if (associatedRailing != null && associatedRailing.Data != null)
+            {
+                shouldRender = associatedRailing.Data.EnableMeshRenderer;
+            }
+            _meshRenderer.enabled = shouldRender;
 
             if (_mesh == null)
             {

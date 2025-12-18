@@ -11,8 +11,8 @@ namespace OnomiCircuitShaper.Unity.Editor
 {
     public partial class OnomiCircuitShaperEditor : UnityEditor.Editor
     {
-        //Dict to map RoadData to SceneRoad GameObjects
-        Dictionary<Road, SceneRoad> _sceneRoads = new Dictionary<Road, SceneRoad>();
+        //Dict to map RoadData to SceneRoad GameObjects - STATIC so all editor instances share it
+        static Dictionary<Road, SceneRoad> _sceneRoads = new Dictionary<Road, SceneRoad>();
         Road _hoveredRoad = null;
 
         // Track which curves should have waypoints generated
@@ -29,7 +29,7 @@ namespace OnomiCircuitShaper.Unity.Editor
 
             var circuit = _circuitShaper.GetLiveCircuit;
 
-            UnityEngine.Debug.Log($"[Editor] Rebuilding roads from data");
+            UnityEngine.Debug.Log($"[Editor] RebuildAllRoadsFromData() called - Dictionary has {_sceneRoads.Count} entries before clear");
 
             //Clear existing scene roads
             _sceneRoads.Clear();
@@ -91,7 +91,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             var dirtyRoads = _circuitShaper.GetAndClearDirtyRoads();
             if (dirtyRoads.Count == 0) return;
 
-            UnityEngine.Debug.Log($"[Editor] Processing {dirtyRoads.Count} dirty roads from queue");
+            UnityEngine.Debug.Log($"[Editor #{_editorInstanceId}] Processing {dirtyRoads.Count} dirty roads from queue");
 
             foreach (var road in dirtyRoads)
             {
@@ -130,7 +130,7 @@ namespace OnomiCircuitShaper.Unity.Editor
         /// </summary>
         private void UpdateRoadMesh(Road road, GenericMeshData meshData)
         {
-            UnityEngine.Debug.Log($"[Editor] UpdateRoadMesh called. Vertices: {meshData.Vertices?.Length ?? 0}");
+            UnityEngine.Debug.Log($"[Editor #{_editorInstanceId}] UpdateRoadMesh called. Vertices: {meshData.Vertices?.Length ?? 0}, Road hashcode: {road.GetHashCode()}, Dictionary contains road: {_sceneRoads.ContainsKey(road)}, Dict count: {_sceneRoads.Count}");
 
             //if road is marked for deletion, delete and return
             if (road.MarkedForDeletion)
@@ -162,7 +162,7 @@ namespace OnomiCircuitShaper.Unity.Editor
             // Get or create the SceneRoad
             if (existingRoad == null)
             {
-                UnityEngine.Debug.Log("[Editor] Creating new SceneRoad GameObject");
+            UnityEngine.Debug.Log($"[Editor #{_editorInstanceId}] Creating new SceneRoad GameObject");
                 // Create new GameObject
                 GameObject roadObject = new GameObject("Road");
                 roadObject.transform.SetParent(_target.transform);
@@ -714,7 +714,8 @@ namespace OnomiCircuitShaper.Unity.Editor
 
                 // Collider and Physics Material
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Physics Settings", EditorStyles.label);
+                EditorGUILayout.LabelField("Rendering & Physics Settings", EditorStyles.label);
+                bool enableMeshRenderer = EditorGUILayout.Toggle("Enable Mesh Renderer", railingData.EnableMeshRenderer);
                 bool enableRailingCollider = EditorGUILayout.Toggle("Enable Collider", railingData.EnableCollider);
                 
                 bool hasRailingPhysicsMaterials = _target != null && _target.RailingPhysicsMaterials != null && _target.RailingPhysicsMaterials.Count > 0;
@@ -743,6 +744,7 @@ namespace OnomiCircuitShaper.Unity.Editor
                     railingData.Sidedness = sidedness;
                     railingData.Layer = railingLayer;
                     railingData.Tag = railingTag;
+                    railingData.EnableMeshRenderer = enableMeshRenderer;
                     railingData.EnableCollider = enableRailingCollider;
                     railingData.PhysicsMaterialIndex = railingPhysicsMaterialIndex;
                     RoadRebuildQueue.MarkDirty(_selectedRoad);

@@ -94,19 +94,84 @@ namespace OnomiCircuitShaper.Engine.Interface
 
             //Create new curve and add it to the data.
             CircuitCurve curve = _liveCircuit.AddCurve();
-            CircuitPoint newPoint = curve.AddPointOnCurve(position);
+            // Use AddPointAtIndex for empty curve since AddPointOnCurve requires existing points
+            CircuitPoint newPoint = curve.AddPointAtIndex(position, 0);
 
             return newPoint;
         }
 
         public CircuitPoint AddPointAsNewCurve(Vector3 rayStart, Vector3 rayDirection)
         {
-            // Create a new curve containing a single circuit point at the given ray position,
-            // add it to the current data, and select the newly created point.
+            // Create a new curve containing a single circuit point.
+            // If other curves exist, find the closest point on any curve to the ray.
+            // Otherwise, intersect the ray with the XZ plane at y=0.
+
+            Vector3 pointPosition = rayStart;
+
+            // Check if there are any existing curves
+            if (_liveCircuit.Curves.Count > 0)
+            {
+                // Find the closest point on any existing curve segment to the ray
+                float closestDistanceSqr = float.MaxValue;
+                Vector3 closestPoint = rayStart;
+
+                foreach (var existingCurve in _liveCircuit.Curves)
+                {
+                    if (existingCurve.Points.Count < 2) continue;
+
+                    for (int i = 0; i < existingCurve.Points.Count - 1 + (existingCurve.IsClosed ? 1 : 0); i++)
+                    {
+                        var p1 = existingCurve.Points[i];
+                        var p2 = existingCurve.Points[(i + 1) % existingCurve.Points.Count];
+
+                        // Find closest points between ray and this segment
+                        Vector3 segmentStart = p1.PointPosition;
+                        Vector3 segmentEnd = p2.PointPosition;
+
+                        // Simple closest point calculation (project ray onto segment)
+                        Vector3 segmentDir = segmentEnd - segmentStart;
+                        float segmentLength = segmentDir.Length();
+                        if (segmentLength < 1e-6f) continue;
+                        segmentDir = Vector3.Normalize(segmentDir);
+
+                        // Find closest point on segment to ray origin
+                        Vector3 toRayStart = rayStart - segmentStart;
+                        float t = Vector3.Dot(toRayStart, segmentDir);
+                        t = Math.Clamp(t, 0f, segmentLength);
+                        Vector3 pointOnSegment = segmentStart + segmentDir * t;
+
+                        // Check distance from ray to this point
+                        Vector3 toPoint = pointOnSegment - rayStart;
+                        float rayParam = Vector3.Dot(toPoint, rayDirection);
+                        Vector3 pointOnRay = rayStart + rayDirection * Math.Max(0, rayParam);
+                        
+                        float distSqr = Vector3.DistanceSquared(pointOnRay, pointOnSegment);
+                        if (distSqr < closestDistanceSqr)
+                        {
+                            closestDistanceSqr = distSqr;
+                            closestPoint = pointOnSegment;
+                        }
+                    }
+                }
+
+                pointPosition = closestPoint;
+            }
+            else
+            {
+                // No existing curves - intersect ray with XZ plane (y=0)
+                if (Math.Abs(rayDirection.Y) > 1e-6f)
+                {
+                    float t = -rayStart.Y / rayDirection.Y;
+                    if (t > 0)
+                    {
+                        pointPosition = rayStart + rayDirection * t;
+                    }
+                }
+            }
 
             //Create new curve and add it to the data.
             CircuitCurve curve = _liveCircuit.AddCurve();
-            CircuitPoint newPoint = curve.AddPointOnCurve(rayStart, rayDirection);
+            CircuitPoint newPoint = curve.AddPointAtIndex(pointPosition, 0);
 
             return newPoint;
         }

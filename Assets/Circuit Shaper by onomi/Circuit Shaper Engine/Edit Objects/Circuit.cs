@@ -72,6 +72,11 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 CircuitCurve curve = new CircuitCurve(curveData, Settings);
                 
                 Curves.Add(curve);
+                // Add to persistent data
+                if (Data != null && !Data.CircuitCurves.Contains(curveData))
+                {
+                    Data.CircuitCurves.Add(curveData);
+                }
                 return curve;
             }
             return null;

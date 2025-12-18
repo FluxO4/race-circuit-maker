@@ -154,10 +154,16 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
         /// <summary>
         /// Finds the two closest consecutive points on the curve to the given position
-        /// and inserts a new point there.
+        /// and inserts a new point there. If there are fewer than 2 points, adds at the end.
         /// </summary>
         public CircuitPoint AddPointOnCurve(Vector3 position)
         {
+            // If fewer than 2 points, add at the end
+            if (Data.CurvePoints.Count < 2)
+            {
+                return AddPointAtIndex(position, Data.CurvePoints.Count);
+            }
+
             // Find the closest segment, find the index to be inserted to and insert the point there.
             int closestSegmentIndex = -1;
             float closestDistanceSqr = float.MaxValue;
@@ -186,9 +192,65 @@ namespace OnomiCircuitShaper.Engine.EditRealm
             return null;
         }
 
-        // Add point based on camera position and ray direction
+        /// <summary>
+        /// Adds a point on the curve based on camera position and ray direction.
+        /// Finds the closest segment to the ray and inserts a point there.
+        /// If there are fewer than 2 points, uses ray-plane intersection to determine position.
+        /// </summary>
         public CircuitPoint AddPointOnCurve(Vector3 cameraPosition, Vector3 cameraDirection)
         {
+            // If fewer than 2 points, use ray-plane intersection or existing point logic
+            if (Data.CurvePoints.Count < 2)
+            {
+                Vector3 pointPosition;
+                
+                if (Data.CurvePoints.Count == 1)
+                {
+                    // Project the ray onto a plane at the existing point's Y level
+                    Vector3 existingPos = Data.CurvePoints[0].PointPosition;
+                    if (Math.Abs(cameraDirection.Y) > 1e-6f)
+                    {
+                        float t = (existingPos.Y - cameraPosition.Y) / cameraDirection.Y;
+                        if (t > 0)
+                        {
+                            pointPosition = cameraPosition + cameraDirection * t;
+                        }
+                        else
+                        {
+                            // Ray points away from plane, use a default offset from existing point
+                            pointPosition = existingPos + new Vector3(10, 0, 0);
+                        }
+                    }
+                    else
+                    {
+                        // Ray is parallel to plane, use a default offset from existing point
+                        pointPosition = existingPos + new Vector3(10, 0, 0);
+                    }
+                }
+                else
+                {
+                    // No points exist, intersect ray with XZ plane at y=0
+                    if (Math.Abs(cameraDirection.Y) > 1e-6f)
+                    {
+                        float t = -cameraPosition.Y / cameraDirection.Y;
+                        if (t > 0)
+                        {
+                            pointPosition = cameraPosition + cameraDirection * t;
+                        }
+                        else
+                        {
+                            pointPosition = new Vector3(0, 0, 0);
+                        }
+                    }
+                    else
+                    {
+                        pointPosition = new Vector3(0, 0, 0);
+                    }
+                }
+                
+                return AddPointAtIndex(pointPosition, Data.CurvePoints.Count);
+            }
+
             // Go through every segment and track the minimum distance from the ray to the segment
             int closestSegmentIndex = -1;
             Vector3 pointToadd = Vector3.Zero;
@@ -220,7 +282,11 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 }
             }
 
-            return AddPointAtIndex(pointToadd, closestSegmentIndex + 1);
+            if (closestSegmentIndex != -1)
+            {
+                return AddPointAtIndex(pointToadd, closestSegmentIndex + 1);
+            }
+            return null;
         }
 
 

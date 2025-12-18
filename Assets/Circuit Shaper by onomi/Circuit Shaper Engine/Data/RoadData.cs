@@ -13,6 +13,11 @@ namespace OnomiCircuitShaper.Engine.Data
     public class RoadData
     {
         /// <summary>
+        /// The display name of this road. Used for the SceneRoad GameObject name.
+        /// </summary>
+        public string Name = "Road";
+
+        /// <summary>
         /// The min and max indices of the points that define this road within the parent curve's point list.
         /// </summary>
 

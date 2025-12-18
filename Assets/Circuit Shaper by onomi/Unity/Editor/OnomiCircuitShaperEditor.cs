@@ -38,6 +38,10 @@ namespace OnomiCircuitShaper.Unity.Editor
         // Debug: track editor instance
         private int _editorInstanceId;
         private static int _nextInstanceId = 0;
+        
+        // Selection lock - double-click to deselect
+        private double _lastClickTime = 0;
+        private const double DoubleClickThreshold = 0.3;
 
         private void OnEnable()
         {
@@ -168,6 +172,11 @@ namespace OnomiCircuitShaper.Unity.Editor
             
             //editing controls will go here.
             DrawEditingModesPanel();
+
+            EditorGUILayout.Space();
+
+            // Default Tag/Layer application
+            DrawDefaultTagLayerSection();
 
             EditorGUILayout.Space();
 
@@ -353,6 +362,87 @@ namespace OnomiCircuitShaper.Unity.Editor
             }
         }
 
+        /// <summary>
+        /// Draws the default tag/layer application section.
+        /// </summary>
+        private void DrawDefaultTagLayerSection()
+        {
+            EditorGUILayout.LabelField("Default Tags & Layers", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("Set default values in Data > Settings Data, then click Apply to update all roads/bridges/railings.", MessageType.None);
+
+            if (GUILayout.Button("Apply Defaults to All Roads/Bridges/Railings"))
+            {
+                ApplyDefaultTagsAndLayers();
+            }
+        }
+
+        /// <summary>
+        /// Applies default tag and layer values from settings to all roads, bridges, and railings.
+        /// </summary>
+        private void ApplyDefaultTagsAndLayers()
+        {
+            if (_circuitShaper == null || _circuitShaper.GetLiveCircuit == null) return;
+
+            var settings = _target.Data.settingsData;
+            int updatedRoads = 0;
+            int updatedBridges = 0;
+            int updatedRailings = 0;
+
+            foreach (var curve in _circuitShaper.GetLiveCircuit.Curves)
+            {
+                foreach (var road in curve.Roads)
+                {
+                    // Apply to road
+                    if (!string.IsNullOrEmpty(settings.DefaultRoadLayer))
+                    {
+                        road.Data.Layer = settings.DefaultRoadLayer;
+                    }
+                    if (!string.IsNullOrEmpty(settings.DefaultRoadTag))
+                    {
+                        road.Data.Tag = settings.DefaultRoadTag;
+                    }
+                    updatedRoads++;
+
+                    // Apply to bridge
+                    if (road.Bridge != null && road.Bridge.Data != null)
+                    {
+                        if (!string.IsNullOrEmpty(settings.DefaultBridgeLayer))
+                        {
+                            road.Bridge.Data.Layer = settings.DefaultBridgeLayer;
+                        }
+                        if (!string.IsNullOrEmpty(settings.DefaultBridgeTag))
+                        {
+                            road.Bridge.Data.Tag = settings.DefaultBridgeTag;
+                        }
+                        updatedBridges++;
+                    }
+
+                    // Apply to railings
+                    if (road.Railings != null)
+                    {
+                        foreach (var railing in road.Railings)
+                        {
+                            if (!string.IsNullOrEmpty(settings.DefaultRailingLayer))
+                            {
+                                railing.Data.Layer = settings.DefaultRailingLayer;
+                            }
+                            if (!string.IsNullOrEmpty(settings.DefaultRailingTag))
+                            {
+                                railing.Data.Tag = settings.DefaultRailingTag;
+                            }
+                            updatedRailings++;
+                        }
+                    }
+
+                    // Mark road for rebuild to apply changes
+                    RoadRebuildQueue.MarkDirty(road);
+                }
+            }
+
+            Debug.Log($"Applied default tags/layers to {updatedRoads} roads, {updatedBridges} bridges, and {updatedRailings} railings.");
+            EditorUtility.SetDirty(_target);
+        }
+
       
 
         private void OnSceneGUI()
@@ -447,18 +537,29 @@ namespace OnomiCircuitShaper.Unity.Editor
                 // consume the event so Unity's scene view doesn't also use it
                 e.Use();
             }
-            else if ((_circuitShaper.SelectedPoints.Count > 0) && e.type == EventType.MouseDown && e.button == 0 && !e.alt)
+            else if ((_circuitShaper.SelectedPoints.Count > 0 || _selectedRoad != null) && e.type == EventType.MouseDown && e.button == 0 && !e.alt)
             {
-
-                _circuitShaper.ClearSelection();
-                _circuitShaper.DeselectRoad();
-                // exit all modes
-                _creatingNewPointMode = false;
-                _addingToSelectedCurveMode = false;
-                _isEditingCrossSection = false;
-
-                // consume the event so Unity's scene view doesn't also use it
-                e.Use();
+                // Selection lock: require double-click to deselect
+                double currentTime = EditorApplication.timeSinceStartup;
+                
+                if (currentTime - _lastClickTime < DoubleClickThreshold)
+                {
+                    // Double-click - deselect
+                    _circuitShaper.ClearSelection();
+                    _circuitShaper.DeselectRoad();
+                    _creatingNewPointMode = false;
+                    _addingToSelectedCurveMode = false;
+                    _isEditingCrossSection = false;
+                    _lastClickTime = 0; // Reset to prevent triple-click issues
+                    e.Use();
+                }
+                else
+                {
+                    // Single click - just track the time but don't deselect
+                    // Still consume the event to prevent Unity from changing selection
+                    _lastClickTime = currentTime;
+                    e.Use();
+                }
 
             }
 

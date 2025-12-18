@@ -48,5 +48,36 @@ namespace OnomiCircuitShaper.Engine.Data
         /// If true, road GameObjects will be hidden in the Unity hierarchy.
         /// </summary>
         public bool HideRoadsInHierarchy = false;
+
+        // Default tag/layer settings for newly created roads, bridges, and railings
+        /// <summary>
+        /// Default Unity layer for road GameObjects.
+        /// </summary>
+        public string DefaultRoadLayer = "";
+
+        /// <summary>
+        /// Default Unity tag for road GameObjects.
+        /// </summary>
+        public string DefaultRoadTag = "";
+
+        /// <summary>
+        /// Default Unity layer for bridge GameObjects.
+        /// </summary>
+        public string DefaultBridgeLayer = "";
+
+        /// <summary>
+        /// Default Unity tag for bridge GameObjects.
+        /// </summary>
+        public string DefaultBridgeTag = "";
+
+        /// <summary>
+        /// Default Unity layer for railing GameObjects.
+        /// </summary>
+        public string DefaultRailingLayer = "";
+
+        /// <summary>
+        /// Default Unity tag for railing GameObjects.
+        /// </summary>
+        public string DefaultRailingTag = "";
     }
 }

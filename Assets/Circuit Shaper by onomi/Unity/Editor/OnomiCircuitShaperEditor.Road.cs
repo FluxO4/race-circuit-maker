@@ -163,8 +163,9 @@ namespace OnomiCircuitShaper.Unity.Editor
             if (existingRoad == null)
             {
             UnityEngine.Debug.Log($"[Editor #{_editorInstanceId}] Creating new SceneRoad GameObject");
-                // Create new GameObject
-                GameObject roadObject = new GameObject("Road");
+                // Create new GameObject with the road's name
+                string roadName = !string.IsNullOrEmpty(road.Data.Name) ? road.Data.Name : "Road";
+                GameObject roadObject = new GameObject(roadName);
                 roadObject.transform.SetParent(_target.transform);
                 roadObject.transform.localPosition = UnityEngine.Vector3.zero;
                 roadObject.transform.localRotation = UnityEngine.Quaternion.identity;
@@ -272,6 +273,19 @@ namespace OnomiCircuitShaper.Unity.Editor
             // Get the SceneRoad for material editing
             SceneRoad sceneRoad = null;
             _sceneRoads.TryGetValue(_selectedRoad, out sceneRoad);
+
+            // Road Name
+            EditorGUI.BeginChangeCheck();
+            string roadName = EditorGUILayout.TextField("Road Name", _selectedRoad.Data.Name ?? "Road");
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedRoad.Data.Name = roadName;
+                // Update the GameObject name as well
+                if (sceneRoad != null)
+                {
+                    sceneRoad.gameObject.name = !string.IsNullOrEmpty(roadName) ? roadName : "Road";
+                }
+            }
 
             EditorGUI.BeginChangeCheck();
 

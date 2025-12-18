@@ -18,14 +18,16 @@ namespace OnomiCircuitShaper.Engine.Data
         /// <summary>
         /// The position of the "forward" control point. This handle influences the
         /// shape of the curve segment leading to the *next* anchor point.
+        /// Initialized to (0,0,1) to avoid NaN issues before AutoSetControlPoints is called.
         /// </summary>
-        public SerializableVector3 ForwardControlPointPosition;
+        public SerializableVector3 ForwardControlPointPosition = new SerializableVector3(0, 0, 1);
 
         /// <summary>
         /// The position of the "backward" control point. This handle influences the
         /// shape of the curve segment coming from the *previous* anchor point.
+        /// Initialized to (0,0,-1) to avoid NaN issues before AutoSetControlPoints is called.
         /// </summary>
-        public SerializableVector3 BackwardControlPointPosition;
+        public SerializableVector3 BackwardControlPointPosition = new SerializableVector3(0, 0, -1);
 
         /// <summary>
         /// Defines the "up" direction at this specific point. This is crucial for

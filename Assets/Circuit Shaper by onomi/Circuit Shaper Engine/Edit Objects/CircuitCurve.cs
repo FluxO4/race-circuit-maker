@@ -194,68 +194,54 @@ namespace OnomiCircuitShaper.Engine.EditRealm
 
         /// <summary>
         /// Adds a point on the curve based on camera position and ray direction.
-        /// Finds the closest segment to the ray and inserts a point there.
-        /// If there are fewer than 2 points, uses ray-plane intersection to determine position.
+        /// The point is placed where the ray intersects a horizontal plane at the average Y height
+        /// of existing points, and inserted at the closest segment index.
         /// </summary>
         public CircuitPoint AddPointOnCurve(Vector3 cameraPosition, Vector3 cameraDirection)
         {
-            // If fewer than 2 points, use ray-plane intersection or existing point logic
-            if (Data.CurvePoints.Count < 2)
+            // Calculate the average Y height of existing points on this curve
+            float averageY = 0f;
+            if (Data.CurvePoints.Count > 0)
             {
-                Vector3 pointPosition;
-                
-                if (Data.CurvePoints.Count == 1)
+                foreach (var point in Data.CurvePoints)
                 {
-                    // Project the ray onto a plane at the existing point's Y level
-                    Vector3 existingPos = Data.CurvePoints[0].PointPosition;
-                    if (Math.Abs(cameraDirection.Y) > 1e-6f)
-                    {
-                        float t = (existingPos.Y - cameraPosition.Y) / cameraDirection.Y;
-                        if (t > 0)
-                        {
-                            pointPosition = cameraPosition + cameraDirection * t;
-                        }
-                        else
-                        {
-                            // Ray points away from plane, use a default offset from existing point
-                            pointPosition = existingPos + new Vector3(10, 0, 0);
-                        }
-                    }
-                    else
-                    {
-                        // Ray is parallel to plane, use a default offset from existing point
-                        pointPosition = existingPos + new Vector3(10, 0, 0);
-                    }
+                    Vector3 pos = point.PointPosition;
+                    averageY += pos.Y;
+                }
+                averageY /= Data.CurvePoints.Count;
+            }
+
+            // Calculate the point position using ray-plane intersection
+            Vector3 pointPosition;
+            if (Math.Abs(cameraDirection.Y) > 1e-6f)
+            {
+                float t = (averageY - cameraPosition.Y) / cameraDirection.Y;
+                if (t > 0)
+                {
+                    pointPosition = cameraPosition + cameraDirection * t;
                 }
                 else
                 {
-                    // No points exist, intersect ray with XZ plane at y=0
-                    if (Math.Abs(cameraDirection.Y) > 1e-6f)
-                    {
-                        float t = -cameraPosition.Y / cameraDirection.Y;
-                        if (t > 0)
-                        {
-                            pointPosition = cameraPosition + cameraDirection * t;
-                        }
-                        else
-                        {
-                            pointPosition = new Vector3(0, 0, 0);
-                        }
-                    }
-                    else
-                    {
-                        pointPosition = new Vector3(0, 0, 0);
-                    }
+                    // Ray points away from plane, project camera position onto plane
+                    pointPosition = new Vector3(cameraPosition.X, averageY, cameraPosition.Z);
                 }
-                
+            }
+            else
+            {
+                // Ray is parallel to plane, project camera position onto plane
+                pointPosition = new Vector3(cameraPosition.X, averageY, cameraPosition.Z);
+            }
+
+            // If fewer than 2 points, just add at the end
+            if (Data.CurvePoints.Count < 2)
+            {
                 return AddPointAtIndex(pointPosition, Data.CurvePoints.Count);
             }
 
-            // Go through every segment and track the minimum distance from the ray to the segment
+            // Find the closest segment to insert after
             int closestSegmentIndex = -1;
-            Vector3 pointToadd = Vector3.Zero;
-
             float closestDistanceSqr = float.MaxValue;
+            
             for (int i = 0; i < Data.CurvePoints.Count - 1 + (Data.IsClosed ? 1 : 0); i++)
             {
                 CircuitPointData p1 = Data.CurvePoints[i];
@@ -264,27 +250,20 @@ namespace OnomiCircuitShaper.Engine.EditRealm
                 Vector3 segmentStart = p1.PointPosition;
                 Vector3 segmentEnd = p2.PointPosition;
 
-                // Find the closest points on the ray and the segment
-                ClosestPointsOnRayAndSegment(
-                    cameraPosition, cameraDirection,
-                    segmentStart, segmentEnd,
-                    out Vector3 closestPointOnRay,
-                    out Vector3 closestPointOnSegment
-                );
+                // Project the new point onto this segment to find distance
+                Vector3 projectedPoint = ProjectPointOnSegment(pointPosition, segmentStart, segmentEnd);
+                float distanceSqr = Vector3.DistanceSquared(pointPosition, projectedPoint);
 
-
-                float distanceSqr = Vector3.DistanceSquared(closestPointOnRay, closestPointOnSegment);
                 if (distanceSqr < closestDistanceSqr)
                 {
                     closestDistanceSqr = distanceSqr;
                     closestSegmentIndex = i;
-                    pointToadd = closestPointOnSegment;
                 }
             }
 
             if (closestSegmentIndex != -1)
             {
-                return AddPointAtIndex(pointToadd, closestSegmentIndex + 1);
+                return AddPointAtIndex(pointPosition, closestSegmentIndex + 1);
             }
             return null;
         }

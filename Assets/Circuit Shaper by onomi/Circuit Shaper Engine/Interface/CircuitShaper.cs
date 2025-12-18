@@ -103,71 +103,10 @@ namespace OnomiCircuitShaper.Engine.Interface
         public CircuitPoint AddPointAsNewCurve(Vector3 rayStart, Vector3 rayDirection)
         {
             // Create a new curve containing a single circuit point.
-            // If other curves exist, find the closest point on any curve to the ray.
-            // Otherwise, intersect the ray with the XZ plane at y=0.
+            // Always place the point under the mouse pointer using ray-plane intersection.
+            // The plane is at the average Y height of all existing points, or Y=0 if none exist.
 
-            Vector3 pointPosition = rayStart;
-
-            // Check if there are any existing curves
-            if (_liveCircuit.Curves.Count > 0)
-            {
-                // Find the closest point on any existing curve segment to the ray
-                float closestDistanceSqr = float.MaxValue;
-                Vector3 closestPoint = rayStart;
-
-                foreach (var existingCurve in _liveCircuit.Curves)
-                {
-                    if (existingCurve.Points.Count < 2) continue;
-
-                    for (int i = 0; i < existingCurve.Points.Count - 1 + (existingCurve.IsClosed ? 1 : 0); i++)
-                    {
-                        var p1 = existingCurve.Points[i];
-                        var p2 = existingCurve.Points[(i + 1) % existingCurve.Points.Count];
-
-                        // Find closest points between ray and this segment
-                        Vector3 segmentStart = p1.PointPosition;
-                        Vector3 segmentEnd = p2.PointPosition;
-
-                        // Simple closest point calculation (project ray onto segment)
-                        Vector3 segmentDir = segmentEnd - segmentStart;
-                        float segmentLength = segmentDir.Length();
-                        if (segmentLength < 1e-6f) continue;
-                        segmentDir = Vector3.Normalize(segmentDir);
-
-                        // Find closest point on segment to ray origin
-                        Vector3 toRayStart = rayStart - segmentStart;
-                        float t = Vector3.Dot(toRayStart, segmentDir);
-                        t = Math.Clamp(t, 0f, segmentLength);
-                        Vector3 pointOnSegment = segmentStart + segmentDir * t;
-
-                        // Check distance from ray to this point
-                        Vector3 toPoint = pointOnSegment - rayStart;
-                        float rayParam = Vector3.Dot(toPoint, rayDirection);
-                        Vector3 pointOnRay = rayStart + rayDirection * Math.Max(0, rayParam);
-                        
-                        float distSqr = Vector3.DistanceSquared(pointOnRay, pointOnSegment);
-                        if (distSqr < closestDistanceSqr)
-                        {
-                            closestDistanceSqr = distSqr;
-                            closestPoint = pointOnSegment;
-                        }
-                    }
-                }
-
-                pointPosition = closestPoint;
-            }
-            else
-            {
-                // No existing curves - intersect ray with XZ plane (y=0)
-                if (Math.Abs(rayDirection.Y) > 1e-6f)
-                {
-                    float t = -rayStart.Y / rayDirection.Y;
-                    if (t > 0)
-                    {
-                        pointPosition = rayStart + rayDirection * t;
-                    }
-                }
-            }
+            Vector3 pointPosition = RayPlaneIntersection(rayStart, rayDirection);
 
             //Create new curve and add it to the data.
             CircuitCurve curve = _liveCircuit.AddCurve();
@@ -394,6 +333,51 @@ namespace OnomiCircuitShaper.Engine.Interface
             road.RebuildRailingsWrappers();
             road.parentCurve?.OnCurveStateChanged();
             RoadRebuildQueue.MarkDirty(road);
+        }
+
+        /// <summary>
+        /// Calculates the intersection point of a ray with a horizontal plane.
+        /// The plane is at the average Y height of all existing circuit points, or Y=0 if none exist.
+        /// </summary>
+        /// <param name="rayStart">The starting position of the ray</param>
+        /// <param name="rayDirection">The direction of the ray (should be normalized)</param>
+        /// <returns>The intersection point on the plane</returns>
+        public Vector3 RayPlaneIntersection(Vector3 rayStart, Vector3 rayDirection)
+        {
+            // Calculate the average Y height of all existing points
+            float averageY = 0f;
+            int pointCount = 0;
+
+            if (_liveCircuit != null && _liveCircuit.Curves.Count > 0)
+            {
+                foreach (var curve in _liveCircuit.Curves)
+                {
+                    foreach (var point in curve.Points)
+                    {
+                        averageY += point.PointPosition.Y;
+                        pointCount++;
+                    }
+                }
+
+                if (pointCount > 0)
+                {
+                    averageY /= pointCount;
+                }
+            }
+
+            // Intersect ray with horizontal plane at averageY
+            if (Math.Abs(rayDirection.Y) > 1e-6f)
+            {
+                float t = (averageY - rayStart.Y) / rayDirection.Y;
+                if (t > 0)
+                {
+                    return rayStart + rayDirection * t;
+                }
+            }
+
+            // Fallback: if ray is parallel to plane or pointing away, 
+            // project ray start onto the plane
+            return new Vector3(rayStart.X, averageY, rayStart.Z);
         }
     }
 }
